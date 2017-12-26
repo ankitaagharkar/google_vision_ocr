@@ -1,7 +1,13 @@
 import cv2,os
 import numpy as np
+from PIL import ImageStat, ImageEnhance, Image
+
 
 class Denoising:
+    def variance_of_laplacian(self,image):
+        # compute the Laplacian of the image and then return the focus
+        # measure, which is simply the variance of the Laplacian
+        return cv2.Laplacian(image, cv2.CV_64F).var()
     def mean_using_mb(self,image):
         median = cv2.medianBlur(image.copy(), 3)
         res = abs(image - median)
@@ -16,24 +22,45 @@ class Denoising:
     def image_conversion_smooth(self,path,doc_type):
         try:
             img = cv2.imread(path)
+            height, width, _ = img.shape
+            print(height,width)
             pImg=''
             head, tail = os.path.split(path)
             mean = self.mean_using_mb(img)
             if 'License' in doc_type:
-                if mean==84.5215623913:
-                    pImg=img
-                if mean < 20:
-                    pImg=self.process_image(img,10)
-                elif 20 < mean <= 46:
-                    pImg = self.process_image(img, 12)
-                elif 47< mean <=64:
-                    pImg = self.process_image(img, 10)
-                elif mean <=86.0:
-                    pImg = self.process_image(img, 25)
-                elif mean >=87.0:
-                    pImg = self.process_image(img, 5)
-                else:
-                    pass
+
+                # if mean==84.5215623913:
+                #     pImg=img
+                # if mean < 20:
+                #     pImg=self.process_image(img,10)
+                # elif 20 < mean <= 46:
+                #     pImg = self.process_image(img, 12)
+                # elif 47< mean <=64:
+                #     pImg = self.process_image(img, 10)
+                # elif mean <=86.0:
+                #     pImg = self.process_image(img, 25)
+                # elif mean >=87.0:
+                #     pImg = self.process_image(img, 5)
+                # else:
+                #     pass
+                img=Image.open(path).convert('L')
+                imStat = ImageStat.Stat(img)
+                medi = list(map((lambda x: x / 25), imStat.mean))
+                # print(medi)
+                if max(medi) < 4:
+                    brightness = ImageEnhance.Brightness(img)
+                    img = brightness.enhance(4 - max(medi))
+                # brightImg.save(imgPath[:-4] + '_Bright'+ str(max(medi)) + '.jpg')
+                sharpness = ImageEnhance.Sharpness(img)
+                cvImg = np.array(img)
+                blur = self.variance_of_laplacian(cvImg)
+                if blur < 700:
+                    sharpImg = sharpness.enhance(2)
+                    cvImg = np.array(sharpImg)
+                    blurA = self.variance_of_laplacian(cvImg)
+                    contrast = ImageEnhance.Contrast(sharpImg)
+                    image = contrast.enhance(1.45)
+                    pImg = np.array(image)
             elif 'SSN' in doc_type:
                 img = cv2.imread(path)
                 head, tail = os.path.split(path)
@@ -46,7 +73,19 @@ class Denoising:
                         pImg = self.process_image(pImg, 20)
                     else:
                         break
-            cv2.imwrite("images/static/" + tail, pImg)
-            return "images/static/" + tail
+            elif 'PayStub' in doc_type:
+                img = cv2.imread(path)
+                head, tail = os.path.split(path)
+                mean = self.mean_using_mb(img)
+                print(mean)
+                pImg = self.process_image(img, 10)
+                for i in list(range(5)):  # to Iterate again
+                    mean = self.mean_using_mb(pImg)
+                    if (mean > 65.0):
+                        pImg = self.process_image(pImg, 20)
+                    else:
+                        break
+            cv2.imwrite("../images/static/" + tail, pImg)
+            return "../images/static/" + tail
         except Exception as e:
             print(e)
