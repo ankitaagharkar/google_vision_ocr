@@ -23,7 +23,6 @@ def detect_document(path):
                     if str("SPACE").lower() in str(test).lower():
                         symbol.text = symbol.text + ' '
                     block_text = block_text + symbol.text
-                print(word.confidence)
                 text.append(block_text)
 
         actual_text=" ".join(map(str,text))

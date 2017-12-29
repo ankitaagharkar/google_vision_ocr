@@ -6,9 +6,7 @@ import sys
 import re
 sys.path.insert(0, '../image_processing')
 import Common
-sys.path.insert(0, '../all_documents')
-import get_licence_details
-import avoid
+
 
 class Paystub_details:
     def __init__(self):
@@ -21,72 +19,75 @@ class Paystub_details:
         self.zip_code=[]
         self.data, self.data1,self.value2 = [], [],[]
         self.c = Common.Common()
-        self.license_Address=get_licence_details.Licence_details()
         with open('../config/city.json', 'r') as data_file:
             self.cities = json.load(data_file)
 
-    def get_Paystub_address(self, value):
-        try:
-            actual_city = ''
-            all_number = re.findall(
-                r"\w+\s\d{4}\s\w[A-Za-z]+|\s?\s\d{1}\s\w*|\s?\d{3}\w?\s\w*\,?|\s\d{3}\s\d{1}|\w*\s\d{5}\s\w*|\w*\s\d{5}-\d{4}|\w*\s\d{5}"
-                r"|\d{2}\s\w*|\w{2}\s\d{3}\s\d{2}|\w*\s\d{3}\s\d{1}\s\d{1}"
-                r"|\w*\s\d{4}-\d{4}|\w*\s\d{2,5}\s\d{2,3}-\d{4}|\w*\s\d{2,5}\s\d{2,3}",
-                value)
-            number_val = ' '.join(map(str, all_number))
-            print("Number val", number_val)
-            data = re.findall(
-                r"\b((?=AL|AK|AS|AZ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI"
-                r"|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN"
-                r"|TX|UT|VT|VI|VA|WA|WV|WI|WY)[A-Z]{2}[, ])(\d{5}(?:-\d{4})?|\d{4}(?:-\d{4})?)", number_val)
-            if data != []:
+    def get_paystub_Address(self,value):
+            try:
+                zip_code = []
+                text = ''.join(map(str, value))
+                all_number = re.findall(
+                    r"\s?\d{2,3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\s\d{4}\s|\w*\s\d{5}\s\w*|\w*\s\d{5}-\d{4}|\w*\s\d{5}"
+                    r"|\d{2}\s\w*|\w{2}\s\d{3}\s\d{2}|\w*\s\d{3}\s\d{1}\s\d{1}"
+                    r"|\w*\s\d{4}-\d{4}|\w*\s\d{2,5}\s\d{2,3}-\d{4}|\w*\s\d{2,5}\s\d{2,3}",
+                    text)
+                number_val = ' '.join(map(str, all_number))
+
+                data = re.findall(
+                    r"\b((?=AL|AK|AS|AZ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI"
+                    r"|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN"
+                    r"|TX|UT|VT|VI|VA|WA|WV|WI|WY)[A-Z]{2}[, ])(\d{5}(?:-\d{4})?|\d{4}(?:-\d{4})?)", number_val)
                 for item in data:
-                    self.zip_code.append("".join(item))
-                code = self.zip_code[0]
-                street = ' '.join(map(str, number_val.split(code, 1)[0].split()[-2:]))
-                print("actual street", street)
-                address = self.c.find_between_r(value, street, code)
-
-                full_address = street + address + self.zip_code[0]
-
-                state, zipcode, city = self.c.get_address_zipcode(full_address, self.zip_code[0])
-                # city=city.replace('NE',"")
-                print("city",city)
-                print("Full Address:", full_address)
-                for i in range(len(self.cities['city'])):
-                    if self.cities['city'][i].lower() in city.lower():
-                        actual_city = self.cities['city'][i]
-                print("actual_city",actual_city)
-                if actual_city == '':
-                    city = ' '.join(map(str, value.split(code, 1)[0].split()[-1:]))
-                    print(city)
-                elif city == actual_city:
-                    city = actual_city
-                    print(city)
-                else:
-                    city = actual_city.upper()
-
-                full_address = self.c.find_between_r(value, street, city)
-
-                full_address = street + full_address
-
-                return full_address, street, state, zipcode, city
-            else:
-                full_address, street, state, zipcode, city = "null", "null", "null", "null", "null"
-                return full_address, street, state, zipcode, city
-        except Exception as e:
-            print("in address", e)
-            full_address, street, state, zipcode, city = "null", "null", "null", "null", "null"
-            return full_address, street, state, zipcode, city
+                    zip_code.append("".join(item))
+                print(zip_code)
+                if zip_code != []:
+                    if re.search(r'\w*\s(?=ID\s\d)', number_val):
+                        code = zip_code[1]
+                    else:
+                        code = zip_code[0]
+                    if re.match(r"\d{2,3}\s\w+\,", number_val):
+                        street = ''.join(map(str, number_val.split(code, 1)[0].split()[-4]))
+                    else:
+                        street = ''.join(map(str, number_val.split(code, 1)[0].split()[-2]))
+                    state_zip = code.split()
+                    state = state_zip[0]
+                    zipcode = state_zip[1]
+                    city = ' '.join(map(str, number_val.split(code[0], 1)[0].split()[-2:]))
+                    print("street", street)
+                    full_address = self.c.find_between_r(text, street, city)
+                    for i in range(len(self.cities['city'])):
+                        # print(self.cities['city'][i])
+                        if self.cities['city'][i].lower() in city.lower():
+                            city = self.cities['city'][i]
+                    return street, state, zipcode, city
+            except Exception as E:
+                full_address, street = None, None
+                return full_address, street
     def get_paystub_name(self,value,street):
         try:
             print("in paystub",value)
-
             name = ' '.join(map(str, value.split(street, 1)[0].split()[-6:]))
             print("name", name)
-            name_regex = re.findall(r'([A-Za-z]+[,.&\s]+[A-Za-z]+)+', name)
+            name_regex = re.findall(r'[A-Za-z]\w*\b', name)
             actual_name = " ".join(map(str, name_regex))
-            actual_name=avoid.replace(actual_name)
+            actual_name = actual_name.replace('JTD', "")
+            actual_name = actual_name.replace('AP', "")
+            actual_name = actual_name.replace('Expires', "")
+            actual_name = actual_name.replace('Name', "")
+            actual_name = actual_name.replace('DENONE', "")
+            actual_name = actual_name.replace('NONE', "")
+            actual_name = actual_name.replace('Address', "")
+            actual_name = actual_name.replace('CLASS D', "")
+            actual_name = actual_name.replace('CLASSE', "")
+            actual_name = actual_name.replace('CLASEXP', "")
+            actual_name = actual_name.replace('EXP', "")
+            actual_name = actual_name.replace('CLASS', "")
+            actual_name = actual_name.replace('ISS', "")
+            actual_name = actual_name.replace('SExr', "")
+            actual_name = actual_name.replace('EXL', "GU")
+            actual_name = actual_name.replace('Payroll', "")
+            actual_name = actual_name.replace('Attn', "")
+            actual_name = actual_name.replace('GEXP', "")
             print("full_name",actual_name)
             return actual_name
         except Exception as e:
@@ -108,7 +109,6 @@ class Paystub_details:
             string_date = " ".join(map(str, self.date_val1))
             self.date_val = re.findall(r'\d{2}\s?[./-]?\d{2}\s?[./-]?\d{2,4}', string_date)
             ##print("Date1", date_val)
-            string_date_value = " ".join(map(str, self.date_val))
             for dob in self.date_val:
                 if 'o' in dob:
                     dob = dob.replace("o", "0")
@@ -159,33 +159,33 @@ class Paystub_details:
             start_date=self.employment_Start_date.date()
             print(start_date)
             print("pay_frequency",self.pay_frequency)
-            return str(start_date), self.pay_frequency,string_date_value
+            return str(start_date), self.pay_frequency
         except Exception as E:
             print(E)
-            start_date, self.pay_frequency,string_date_value = "null", "null","null"
-            return start_date, self.pay_frequency,string_date_value
+            start_date, self.pay_frequency = "null", "null"
+            return start_date, self.pay_frequency
     def gross_net(self,text):
         try:
             value = re.findall(
-                r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings)|\s?\$?\d{1,3}\s?\,?\s?\d+\.?\d+?)\b', text)
+                r'((=?Gross Pay|Brose Pay|Amount|Gross Earnings|Net Pay)|\s?\$?\d{1,3}\s?\,?\s?\d+\.?\d+?)\b', text)
             for item in value:
                 self.data.append("".join(item))
             string_date = " ".join(map(str,self.data))
 
             if re.search('(\w+\s\w+\s?\s?\$\d{1,3}\s?\,?\s?\d+\.?(\d+)?)', string_date) is not None:
                 get_value = re.findall(
-                    r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings)|\s?\s?\$\d{1,3}\s?\,?\s?\d+\.?\d+?)\b',
+                    r'(=?(Gross Pay|Brose Pay|Amount|Gross Earnings|Net Pay)|\s?\s?\$\d{1,3}\s?\,?\s?\d+\.?\d+?)\b',
                     string_date)
             else:
                 get_value = re.findall(
-                    r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings)\s?\s?\d{1,3}\s?\,?\s?\d+\.?\d+?)\b',
+                    r'(=?(Gross Pay|Brose Pay|Amount|Gross Earnings|Net Pay)\s?\s?\d{1,3}\s?\,?\s?\d+\.?\d+?)\b',
                     string_date)
 
             for item in get_value:
                 self.data1.append("".join(item))
             get_gn_value = "".join(map(str, self.data1))
             gross_net_value = re.findall(
-                r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings)\s?\s?\$?\d{1,3}\s?\,?\s?\d+\.?(\d+)?)',
+                r'((=?Gross Pay|Brose Pay|Amount|Gross Earnings|Net Pay)\s?\s?\$?\d{1,3}\s?\,?\s?\d+\.?(\d+)?)',
                 get_gn_value)
             for item in gross_net_value:
                 self.value2.append("".join(item))
@@ -198,15 +198,11 @@ class Paystub_details:
             else:
                 return gross_net_value[0][0].replace(" ", ""), gross_net_value[2][0].replace(" ", "")
         except Exception as e:
-            gross_val,net_val="null","null"
+            print(e)
     def get_details(self,text):
-        try:
-            address, street, state, zipcode, city, = self.get_Paystub_address(text)
-            full_name=self.get_paystub_name(text,street)
-            starting_date,pay_freq,string_date_value=self.get_paystub_date(text)
-            gross_pay,net_pay=self.gross_net(text)
-            return state,city,full_name,starting_date,pay_freq,gross_pay,net_pay,string_date_value
-        except Exception as e:
-            state, city, full_name, starting_date, pay_freq, gross_pay, net_pay,string_date_value="null","null","null","null","null","null","null","null"
-            return state, city, full_name, starting_date, pay_freq, gross_pay, net_pay,string_date_value
+        street, state, zipcode, city=self.get_paystub_Address(text)
+        full_name=self.get_paystub_name(text,street)
+        starting_date,pay_freq=self.get_paystub_date(text)
+        gross_pay,net_pay=self.gross_net(text)
+        return state,city,full_name,starting_date,pay_freq,gross_pay,net_pay
 

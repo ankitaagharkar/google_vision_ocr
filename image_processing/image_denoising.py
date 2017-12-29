@@ -29,42 +29,38 @@ class Denoising:
             mean = self.mean_using_mb(img)
             if 'License' in doc_type:
 
-                pImg=Image.open(path)
-                imStat = ImageStat.Stat(pImg)
+                # if mean==84.5215623913:
+                #     pImg=img
+                # if mean < 20:
+                #     pImg=self.process_image(img,10)
+                # elif 20 < mean <= 46:
+                #     pImg = self.process_image(img, 12)
+                # elif 47< mean <=64:
+                #     pImg = self.process_image(img, 10)
+                # elif mean <=86.0:
+                #     pImg = self.process_image(img, 25)
+                # elif mean >=87.0:
+                #     pImg = self.process_image(img, 5)
+                # else:
+                #     pass
+                img=Image.open(path).convert('L')
+                imStat = ImageStat.Stat(img)
                 medi = list(map((lambda x: x / 25), imStat.mean))
-                print(max(medi))
-                if max(medi) < 3:
-                    brightness = ImageEnhance.Brightness(pImg)
-                    pImg = brightness.enhance(3 - max(medi))
-                pImg=pImg.convert('L')
+                # print(medi)
+                if max(medi) < 4:
+                    brightness = ImageEnhance.Brightness(img)
+                    img = brightness.enhance(4 - max(medi))
                 # brightImg.save(imgPath[:-4] + '_Bright'+ str(max(medi)) + '.jpg')
-                sharpness = ImageEnhance.Sharpness(pImg)
-                cvImg = np.array(pImg)
+                sharpness = ImageEnhance.Sharpness(img)
+                cvImg = np.array(img)
                 blur = self.variance_of_laplacian(cvImg)
                 if blur < 700:
-                    print("blur",blur)
                     sharpImg = sharpness.enhance(2)
                     cvImg = np.array(sharpImg)
                     blurA = self.variance_of_laplacian(cvImg)
                     contrast = ImageEnhance.Contrast(sharpImg)
-                    pImg = contrast.enhance(1.45)
-                pImg = np.array(pImg)
-                # else:
-                #     img = cv2.imread(path)
-                #     if mean==84.5215623913:
-                #         pImg=img
-                #     if mean < 20:
-                #         pImg=self.process_image(img,10)
-                #     elif 20 < mean <= 46:
-                #         pImg = self.process_image(img, 12)
-                #     elif 47< mean <=64:
-                #         pImg = self.process_image(img, 10)
-                #     elif mean <=86.0:
-                #         pImg = self.process_image(img, 25)
-                #     elif mean >=87.0:
-                #         pImg = self.process_image(img, 5)
-                #     else:
-                #         pass
+                    image = contrast.enhance(1.45)
+                    pImg = np.array(image)
             elif 'SSN' in doc_type:
                 img = cv2.imread(path)
                 head, tail = os.path.split(path)
@@ -93,7 +89,3 @@ class Denoising:
             return "../images/static/" + tail
         except Exception as e:
             print(e)
-
-
-# i=Denoising()
-# val=i.image_conversion_smooth(r"C:\Users\ankitaa\Desktop\Valid Driver Licenses\157217830.jpg",'License')
