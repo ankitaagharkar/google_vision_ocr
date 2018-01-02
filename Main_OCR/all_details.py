@@ -84,13 +84,14 @@ class Scan_OCR:
                 downloaded_image.close()
                 image_on_web.close()
             if 'License' in json_val[doc_id]:
+                add={}
                 thread = threading.Thread(target=self.image_processing_threading, args=("../images/documents_upload/"+filename, json_val[doc_id],))
                 thread.start()
                 image_path=self.image_processing.get()
                 thread = threading.Thread(target=self.get_doc, args=(image_path, json_val[doc_id],))
                 thread.start()
                 (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode, city,date_val) = self.scan_text.get()
-                if licence_id == 'null' and exp_date == 'null' and dob == 'null' and iss_date == 'null' and address == 'null' and name == '' and state == 'null' and zipcode == 'null' and city == 'null':
+                if licence_id == '' and exp_date == '' and dob == '' and iss_date == '' and address == '' and name == '' and state == '' and zipcode == '' and city == '':
 
                      file_path=''
                      self.scan_result['error_msg']= "Incorrect Document or Unable to Scan"
@@ -99,23 +100,30 @@ class Scan_OCR:
                      return self.scan_result,file_path
                 else:
                     if name == '':
-                        self.name_value.append("null")
-                        self.name_value.append("null")
-                        self.name_value.append("null")
+                        self.name_value.append("")
+                        self.name_value.append("")
+                        self.name_value.append("")
                     else:
                         self.name_value = name.split()
-                    if len(self.name_value) > 2:
+                        print(self.name_value)
+                    if len(self.name_value) == 1:
+                        add = {'first_name': "", 'dob': dob, 'issue_date': iss_date,
+                               'expiration_date': exp_date,
+                               'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
+                               "middle_name": "", "state": state, "postal_code": zipcode, "city": city,
+                               "date_val": date_val}
+                    elif len(self.name_value) > 2:
                         add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
                                'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
                                "middle_name": self.name_value[2],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
                     else:
                         add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date,
                                'expiration_date': exp_date, 'last_name': self.name_value[0], 'address': address,
-                               'license_id': licence_id, "middle_name": 'null',"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
+                               'license_id': licence_id, "middle_name": '',"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
                     actual_value = list(add.keys())
                     actual_value = sorted(actual_value)
                     add_value = list(add.values())
-                    detected_null_value_count = add_value.count('null')
+                    detected_null_value_count = add_value.count('')
                     print("detected_null_value_count value", detected_null_value_count, int(len(add_value) / 2))
                     partial_not_detected,partial_detected=[],[]
 
@@ -124,7 +132,7 @@ class Scan_OCR:
                             if response['fields'][i]['name'] == actual_value[j]:
                                 response['fields'][i]['field_value_original'] = add[actual_value[j]]
                                 pass
-                    thread = threading.Thread(target=self.get_location, args=(add,"../images/documents_upload/"+filename,application_id,self.config['base_url'], json_val[doc_id],))
+                    thread = threading.Thread(target=self.get_location, args=(add,image_path,application_id,self.config['base_url'], json_val[doc_id],))
                     thread.start()
                     (address_location, licence_id_location, dict_location,file_path) = self.location.get()
                     print("Type",type(address_location),type(licence_id_location),type(dict_location))
@@ -200,7 +208,7 @@ class Scan_OCR:
                                 response['fields'][i]['field_value_original'] = add[actual_value[j]]
                                 pass
                     thread = threading.Thread(target=self.get_location, args=(
-                    add, "../images/documents_upload/" + filename, application_id, self.config['base_url'],
+                    add, image_path, application_id, self.config['base_url'],
                     json_val[doc_id],))
                     thread.start()
                     (ssn_number_location,file_path) = self.location.get()
@@ -223,7 +231,7 @@ class Scan_OCR:
                 thread = threading.Thread(target=self.get_doc, args=("../images/documents_upload/" + filename, json_val[doc_id],))
                 thread.start()
                 (self.text, Employer_State, Employer_City, Employer_name, employment_Start_date, pay_frequency, gross_pay, net_pay,string_date_value) = self.scan_text.get()
-                if gross_pay == 'null' and net_pay == 'null' and pay_frequency == 'null' and Employer_name == 'null' and Employer_City == 'null' and Employer_State == 'null' and employment_Start_date == 'null':
+                if gross_pay == '' and net_pay == '' and pay_frequency == '' and Employer_name == '' and Employer_City == '' and Employer_State == '' and employment_Start_date == '':
                     file_path = ''
                     self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
                     self.scan_result['status'] = "INCORRECT_DOCUMENT"
@@ -237,7 +245,7 @@ class Scan_OCR:
                     actual_value = list(add.keys())
                     actual_value = sorted(actual_value)
                     add_value = list(add.values())
-                    detected_null_value_count = add_value.count('null')
+                    detected_null_value_count = add_value.count('')
                     partial_not_detected, partial_detected = [], []
 
                     for i in range(len(response['fields'])):

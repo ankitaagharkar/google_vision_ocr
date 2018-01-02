@@ -37,7 +37,7 @@ class Licence_details:
 
     def get_date(self,text):
         try:
-            iss_date=''
+            iss_date,max_date='',''
             #Todo:To get all date format from text
             # text=val.replace(' ','')
             print("date",text)
@@ -101,22 +101,22 @@ class Licence_details:
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+',iss_date):
                         iss_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',iss_date)[0]
                     elif re.search(r'(?!:)',iss_date):
-                        iss_date='null'
+                        iss_date=''
+
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',max_date):
                         max_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',max_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+',max_date):
                         max_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',max_date)[0]
                     elif re.search(r'(=?:)',max_date):
-                        max_date='null'
+                        max_date=''
 
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',min_date):
                         min_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',min_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+',min_date):
                         min_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',min_date)[0]
                     elif re.search(r'(=?:)',min_date):
-                        min_date='null'
+                        min_date=''
                     string_date_value=min_date+" "+max_date+" "+iss_date
-
 
             else:
                 if len(self.actual_date) == 3:
@@ -139,41 +139,42 @@ class Licence_details:
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', iss_date):
                         iss_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', iss_date)[0]
                     elif re.search(r'(?!:)', iss_date):
-                        iss_date = 'null'
+                        iss_date = ''
 
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', max_date):
                         max_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', max_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', max_date):
                         max_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', max_date)[0]
                     elif re.search(r'(=?:)', max_date):
-                        max_date = 'null'
+                        max_date = ''
 
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', min_date):
                         min_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', min_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', min_date):
                         min_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', min_date)[0]
                     elif re.search(r'(=?:)', min_date):
-                        min_date = 'null'
-                    string_date_value=min_date+" "+max_date+" "+iss_date
+                        min_date = ''
+            string_date_value=min_date+" "+max_date+" "+iss_date
             return max_date, min_date, iss_date,string_date_value
         except Exception as E:
 
-            max_date, min_date, iss_date,string_date_value = "null", "null", "null","null"
+            max_date, min_date, iss_date,string_date_value = "", "", "",""
             return max_date, min_date, iss_date,string_date_value
     def get_address(self,value):
         try:
             actual_city=''
             all_number = re.findall(
-                r"\w+\s\d{4}\s\w[A-Za-z]+|\s?\s\d{1}\s\w*|\d{2}-\d{2}\s\w+|\s?\d{3}\w?\s\w*\,?|\s\d{3}\s\d{1}|\w*\s\d{5}\s\w*|\w*\s\d{5}-\d{4}|\w*\s\d{5}"
-                r"|\d{2}\s\w*|\w{2}\s\d{3}\s\d{2}|\w*\s\d{3}\s\d{1}\s\d{1}"
-                r"|\w*\s\d{4}-\d{4}|\w*\s\d{2,5}\s\d{2,3}-\d{4}|\w*\s\d{2,5}\s\d{2,3}",
+                r"\w+\s\d{4}\s\w[A-Za-z]+|\s?\s\d{1}\s\w[A-Z]+|\d{2}\s\w+|\d{2}-\d{2}\s\w+|\s?\d{3}\w?\s\w*\,?"
+                r"|\s\d{3}\s\d{1}|\w*\s\d{5}\s\w*|\w*\s\d{5}-\d{4}|\w*\s\d{5}|\d{2}\s\w*"
+                r"|\w{2}\s\d{3}\s\d{2}|\w*\s\d{3}\s\d{1}\s\d{1}|\w*\s\d{4}-\d{4}|\w*\s\d{2,5}\s\d{2,3}-\d{4}"
+                r"|\w*\s\d{2,5}\s\d{2,3}",
                 value)
             number_val = ' '.join(map(str, all_number))
             print("Number val",number_val)
             data = re.findall(
                 r"\b((?=AL|AK|AS|AZ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI"
                 r"|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN"
-                r"|TX|UT|VT|VI|VA|WA|WV|WI|WY)[A-Z]{2}[, ])(\d{5}(?:-\d{4})?|\d{4}(?:-\d{4})?)", number_val)
+                r"|TX|UT|VT|VI|VA|WA|WV|WI|WY)[A-Z]{2}[, ])(\d{5}(?:-\d{4})?)", number_val)
             if data!=[]:
                 for item in data:
                     self.zip_code.append("".join(item))
@@ -211,11 +212,11 @@ class Licence_details:
                     full_address = street + full_address
                     return full_address, street, state, zipcode, city
             else:
-                full_address, street, state, zipcode, city = "null", "null", "null", "null", "null"
+                full_address, street, state, zipcode, city = "", "", "", "", ""
                 return full_address, street, state, zipcode, city
         except Exception as e:
             print("in address",e)
-            full_address, street, state, zipcode, city = "null", "null", "null", "null", "null"
+            full_address, street, state, zipcode, city = "", "", "", "", ""
             return full_address, street, state, zipcode, city
     def get_name(self,value,street):
         try:
@@ -238,7 +239,7 @@ class Licence_details:
             full_name = " ".join(map(str, name_reg))
             return full_name
         except Exception as e:
-            full_name = 'null'
+            full_name = ''
             return full_name
     def get_name_afterdate(self,value, date):
         try:
@@ -269,10 +270,10 @@ class Licence_details:
             get_licence_id = self.get_id(text)
             max_date, min_date, iss_date,date_val = self.get_date(text)
             address, street, state, zipcode, city, = self.get_address(text)
-            if street == "":
-                name = self.get_name_afterdate(text, max_date)
-            else:
-                name = self.get_name(text, street)
+            # if street == "":
+            #     name = self.get_name_afterdate(text, max_date)
+            # else:
+            name = self.get_name(text, street)
             return get_licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val
         # except Exception as e:
         #     get_licence_id, max_date, min_date, iss_date, address, name, \

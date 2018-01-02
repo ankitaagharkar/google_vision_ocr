@@ -139,23 +139,22 @@ class get_all_location:
             for key1, value1 in value_json.items():
                 if key != '' and value1 != '':
                     key = key.replace(',', '')
-                    key = key.replace(' ', '')
+                    # key = key.replace(' ', '')
                     key = key.replace('No:', '')
                     key = key.replace('Issued:', '')
                     key = key.replace('Expiros::', '')
                     key = key.replace('Expires', '')
-                    key = key.replace('1,374-48','1,374')
-
-                    if key in value_json['date_val']:
-                        print("in locations", value_json['date_val'])
-                        vrx = np.array(value, np.int32)
-                        vrx = vrx.reshape((-1, 1, 2))
-                        img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                        # print(key,value)
-                        print(key, value)
-                        self.dict.update({key: value})
-                    elif re.search(r'\b(=?' + re.escape(key) + r')\b', value1):
-                        if key in value_json['employer_name']:
+                    key = key.replace('-48','')
+                    if re.search(r'\b(=?' +re.escape(key)+ r')\b', value1):
+                        if key in value_json['date_val']:
+                            print("in locations", value_json['date_val'])
+                            vrx = np.array(value, np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                            # print(key,value)
+                            print(key, value)
+                            self.dict.update({key: value})
+                        elif key in value_json['employer_name']:
                             print("in locations", value_json['employer_name'])
                             vrx = np.array(value, np.int32)
                             vrx = vrx.reshape((-1, 1, 2))

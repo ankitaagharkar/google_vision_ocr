@@ -43,8 +43,10 @@ class Denoising:
                 blur = self.variance_of_laplacian(cvImg)
                 if blur < 700:
                     print("blur",blur)
+
                     sharpImg = sharpness.enhance(2)
                     cvImg = np.array(sharpImg)
+                    # cvImg = cv2.fastNlMeansDenoising(cvImg.copy(), None, 15, 7, 21)
                     blurA = self.variance_of_laplacian(cvImg)
                     contrast = ImageEnhance.Contrast(sharpImg)
                     pImg = contrast.enhance(1.45)
@@ -71,12 +73,7 @@ class Denoising:
                 mean = self.mean_using_mb(img)
                 print(mean)
                 pImg = self.process_image(img, 30)
-                for i in list(range(5)):  # to Iterate again
-                    mean = self.mean_using_mb(pImg)
-                    if (mean > 65.0):
-                        pImg = self.process_image(pImg, 20)
-                    else:
-                        break
+
             elif 'PayStub' in doc_type:
                 img = cv2.imread(path)
                 head, tail = os.path.split(path)
