@@ -175,65 +175,110 @@ class Paystub_details:
         try:
             if re.search(r'(=?amount|Amount|account|Account)',text):
                 value = re.findall(
-                    r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|account|Account)|\s?\$?\d{1,3}\s?\,?\s?\d+\.?\d+?)\b', text)
+                    r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|account|Account)|\s?\$?\d{1,3}\s?\,?\s?\d+\.?\-?\d+?)\b', text)
                 for item in value:
                     self.data.append("".join(item))
                 string_date = " ".join(map(str,self.data))
 
-                if re.search('(\w+\s\w+\s?\s?\$\d{1,3}\s?\,?\s?\d+\.?(\d+)?)', string_date) is not None:
-                    get_value = re.findall(
-                        r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|account|Account)|\s?\s?\$\d{1,3}\s?\,?\s?\d+\.?\d+?)\b',
-                        string_date)
+                if re.search('(\w+\s\w+\s?\s?\$\d{1,3}\s?\,?\s?\d+\s?\.?\-?(\d+)?)', string_date) is not None:
+                    if re.search('(=?amount|Amount)', string_date):
+                        get_value = re.findall(
+                            r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings)|\s?\s?\$\d{1,3}\s?\,?\s?\d+\s?\s?\.?\-?\d+?)\b',
+                            string_date)
+                    else:
+                        get_value = re.findall(
+                            r'(=?(Gross Pay|Gross Pa|Brose Pay|account|Account|Gross Earnings)|\s?\s?\$\d{1,3}\s?\,?\s?\d+\s?\s?\.?\-?\d+?)\b',
+                            string_date)
+
                 else:
-                    get_value = re.findall(
-                        r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|account|Account)\s?\s?\d{1,3}\s?\,?\s?\d+\.?\d+?)\b',
-                        string_date)
+                    if re.search('(=?amount|Amount)', string_date):
+                        get_value = re.findall(
+                            r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings)\s?\s?\d{1,3}\s?\,?\s?\d+\s?\s?\.?\-?\d+?)\b',
+                            string_date)
+                    else:
+                        get_value = re.findall(
+                            r'(=?(Gross Pay|Gross Pa|Brose Pay|Gross Earnings|account|Account)\s?\s?\d{1,3}\s?\,?\s?\s?\d+\s?\.?\-?\d+?)\b',
+                            string_date)
 
                 for item in get_value:
                     self.data1.append("".join(item))
                 get_gn_value = "".join(map(str, self.data1))
                 gross_net_value = re.findall(
-                    r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|account|Account)\s?\s?\$?\d{1,3}\s?\,?\s?\d+\.?(\d+)?)',
+                    r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|account|Account)\s?\s?\$?\d{1,3}\s?\,?\s?\d+\s?\s?\.?\-?(\d+)?)',
                     get_gn_value)
                 for item in gross_net_value:
                     self.value2.append("".join(item))
                 string_date1 = " ".join(map(str, self.value2))
 
-                gross_net_value = re.findall(r'(\s?\$?\d{1,3}\s?\,?\s?\d+\.?(\d+)?)', string_date1)
+                gross_net_value = re.findall(r'(\s?\$?\d{1,3}\s?\,?\s?\d+\s?\s?\.?\-?(\d+)?)', string_date1)
                 print(gross_net_value)
             else:
                 value = re.findall(
-                    r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|Net Pay|NET PAY|Net Pa)|\s?\$?\d{1,3}\s?\,?\s?\d+\.?\d+?)\b',
+                    r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|Net Pay|NET PAY|Net Pa)|\s?\$?\d{1,3}\s?\,?\s?\d+\.?\-?\d+?)\b',
                     text)
                 for item in value:
                     self.data.append("".join(item))
                 string_date = " ".join(map(str, self.data))
 
-                if re.search('(\w+\s\w+\s?\s?\$\d{1,3}\s?\,?\s?\d+\.?(\d+)?)', string_date) is not None:
+                if re.search('(\w+\s\w+\s?\s?\$\d{1,3}\s?\,?\s?\d+\.?\-?(\d+)?)', string_date) is not None:
                     get_value = re.findall(
-                        r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|Net Pay|NET PAY|Net Pa)|\s?\s?\$\d{1,3}\s?\,?\s?\d+\.?\d+?)\b',
+                        r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|Net Pay|NET PAY|Net Pa)|\s?\s?\$\d{1,3}\s?\,?\s?\d+\.?\-?\d+?)\b',
                         string_date)
                 else:
                     get_value = re.findall(
-                        r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|Net Pay|NET PAY|Net Pa)\s?\s?\d{1,3}\s?\,?\s?\d+\.?\d+?)\b',
+                        r'(=?(Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|Net Pay|NET PAY|Net Pa)\s?\s?\d{1,3}\s?\,?\s?\d+\.?\-?\d+?)\b',
                         string_date)
 
                 for item in get_value:
                     self.data1.append("".join(item))
                 get_gn_value = "".join(map(str, self.data1))
                 gross_net_value = re.findall(
-                    r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|Net Pay|NET PAY|Net Pa)\s?\s?\$?\d{1,3}\s?\,?\s?\d+\.?(\d+)?)',
+                    r'((=?Gross Pay|Gross Pa|Brose Pay|amount|Amount|Gross Earnings|Net Pay|NET PAY|Net Pa)\s?\s?\$?\d{1,3}\s?\,?\s?\d+\.?\-?(\d+)?)',
                     get_gn_value)
                 for item in gross_net_value:
                     self.value2.append("".join(item))
                 string_date1 = " ".join(map(str, self.value2))
 
-                gross_net_value = re.findall(r'(\s?\$?\d{1,3}\s?\,?\s?\d+\.?(\d+)?)', string_date1)
+                gross_net_value = re.findall(r'(\s?\$?\d{1,3}\s?\,?\s?\d+\.?\-?(\d+)?)', string_date1)
                 print(gross_net_value)
-            if re.search(r'\$?\d{2,3}\.\d+',gross_net_value[1][0].replace(" ", "")):
-                    return gross_net_value[0][0].replace("$", ""), gross_net_value[1][0].replace("$", "")
+
+            if re.search(r'\$?\d{2,3}\.?\d+',gross_net_value[1][0].replace(" ", "")):
+
+                    gross_net= gross_net_value[0][0].replace("$", "")
+                    gross_net = gross_net.replace('-','.')
+                    net_value=gross_net_value[1][0].replace("$", "")
+                    net_value = net_value.replace("-", ".")
+                    if re.search('\d+\s\d+',gross_net):
+                        gn=gross_net.split(" ")
+                        gross_net=gn[1]+"."+gn[2]
+                    elif re.search('\d+\s\s\d+',gross_net):
+                        gn=gross_net.split(" ")
+                        gross_net=gn[1]+"."+gn[3]
+                    if re.search('\d+\s\d+',net_value):
+                        nv = net_value.split(" ")
+                        gross_net = nv[1] + "." + nv[2]
+                    elif re.search('\d+\s\s\d+',net_value):
+                        nv = net_value.split(" ")
+                        gross_net = nv[1] + "." + nv[3]
+                    return gross_net.replace(" ",''), net_value.replace(" ",'')
             else:
-                return gross_net_value[0][0].replace("$", ""), gross_net_value[2][0].replace("$", "")
+                gross_net = gross_net_value[0][0].replace("$", "")
+                gross_net = gross_net.replace('-', '.')
+                net_value = gross_net_value[2][0].replace("$", "")
+                net_value = net_value.replace("-", ".")
+                if re.search('\d+\s\d+', gross_net):
+                    gn = gross_net.split(" ")
+                    gross_net = gn[1] + "." + gn[2]
+                elif re.search('\d+\s\s\d+', gross_net):
+                    gn = gross_net.split(" ")
+                    gross_net = gn[1] + "." + gn[3]
+                if re.search('\d+\s\d+', net_value):
+                    nv = net_value.split(" ")
+                    gross_net = nv[1] + "." + nv[2]
+                elif re.search('\d+\s\s\d+', net_value):
+                    nv = net_value.split(" ")
+                    gross_net = nv[1] + "." + nv[3]
+                return gross_net.replace(" ",''), net_value.replace(" ",'')
         except Exception as e:
             gross_val,net_val="",""
     def get_details(self,text):

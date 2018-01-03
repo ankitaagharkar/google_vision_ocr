@@ -32,7 +32,7 @@ class Licence_details:
                 return get_licence_id[0]
         except Exception as E:
             print("in licence id",E)
-            self.get_licence_id='null'
+            self.get_licence_id=''
             return self.get_licence_id
 
     def get_date(self,text):
