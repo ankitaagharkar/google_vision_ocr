@@ -26,7 +26,6 @@ class Denoising:
             print(height,width)
             pImg=''
             head, tail = os.path.split(path)
-            mean = self.mean_using_mb(img)
             if 'License' in doc_type:
 
                 pImg=Image.open(path)
@@ -70,8 +69,6 @@ class Denoising:
             elif 'SSN' in doc_type:
                 img = cv2.imread(path)
                 head, tail = os.path.split(path)
-                mean = self.mean_using_mb(img)
-                print(mean)
                 pImg = self.process_image(img, 30)
 
             elif 'PayStub' in doc_type:

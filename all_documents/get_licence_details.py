@@ -20,7 +20,7 @@ class Licence_details:
     def get_id(self,text):
         try:
             get_licence_id = re.findall(
-                r'\w*[A-Za-z]\d{4}\s\d{10}|\d{12}|[A-Za-z]?\d{7,9}|\w{1}\d{4}\s\d{5}\s\d{4,5}|\d{2,3}\s\d{3}\s\d{3}\s?\d?\d?\d?|[A-Za-z]{1}\d{3}\-\d{3}\-\d{2}\-\d{3}-\d{1}',
+                r'\b(\w[A-Za-z]\d{6}|\w*[A-Za-z]\d{4}\s\d{10}|\d{12}|[A-Za-z]?\d{7,9}|\w{1}\d{4}\s\d{5}\s\d{4,5}|\d{2,3}\s\d{3}\s\d{3}\s?\d?\d?\d?|[A-Za-z]{1}\d{3}\-\d{3}\-\d{2}\-\d{3}-\d{1})\b',
                 text)
             print(get_licence_id)
             get_licence = " ".join(map(str, get_licence_id))
@@ -35,11 +35,13 @@ class Licence_details:
             self.get_licence_id=''
             return self.get_licence_id
 
-    def get_date(self,text):
+    def get_date(self,text_value,licence_id):
         try:
             iss_date,max_date='',''
             #Todo:To get all date format from text
             # text=val.replace(' ','')
+            text=text_value.replace(licence_id,'')
+            print("in date",text)
             print("date",text)
             val = re.findall(
                 r'(\w*[A-Za-z]\d{1}\d{2}[./-](19|20|21|22|23|24)\d\d)|(\w*[A-Za-z]\d{1}[./-]\d{2}[./-](19|20|21|22|23|24)\d\d)'
@@ -79,6 +81,7 @@ class Licence_details:
                 else:
                     self.actual_date.append(datetime.datetime.strptime(value, '%m/%d/%Y').strftime('%Y/%m/%d'))
             data = " ".join(map(str, self.actual_date))
+            print("in date_val",data)
             #Todo:To get birth date,expire date and issue date value
 
             if re.match(r'\b\d{2}[./-]\d{2}[./-]\d{2}\b', data):
@@ -89,35 +92,35 @@ class Licence_details:
                         for date in self.actual_date:
                             if date > iss_date and date < min_date:
                                 max_date = date
-                        max_date = datetime.datetime.strptime(max_date, '%y/%m/%d').strftime('%m/%d/%y')
-                        min_date = datetime.datetime.strptime(min_date, '%y/%m/%d').strftime('%m/%d/%y')
-                        iss_date = datetime.datetime.strptime(iss_date, '%y/%m/%d').strftime('%m/%d/%y')
+                        actual_max_date = datetime.datetime.strptime(max_date, '%y/%m/%d').strftime('%m/%d/%y')
+                        actual_min_date = datetime.datetime.strptime(min_date, '%y/%m/%d').strftime('%m/%d/%y')
+                        actual_iss_date = datetime.datetime.strptime(iss_date, '%y/%m/%d').strftime('%m/%d/%y')
                 else:
                     iss_date = ' '.join(map(str, text.split(re.findall(r'\b(=?EXP|Expires|EXP|Expiros|EXPIRES|EXPIROS)\b',text)[0], 1)[1].split()[0:1]))
-                    max_date = ' '.join(map(str, text.split(re.findall(r'\b(=?dob|DOB)\b',text)[0], 1)[1].split()[0:1]))
+                    max_date = ' '.join(map(str, text.split(re.findall(r'\b(=?dob|DOB|BIRTHDATE|birthdate)\b',text)[0], 1)[1].split()[0:1]))
                     min_date = ' '.join(map(str, text.split(re.findall(r'\b(=?Issued|ISS|Iss|ISSUED)\b',text)[0], 1)[1].split()[0:1]))
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',iss_date):
-                        iss_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',iss_date)[0]
+                        actual_iss_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',iss_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+',iss_date):
-                        iss_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',iss_date)[0]
+                        actual_iss_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',iss_date)[0]
                     elif re.search(r'(?!:)',iss_date):
-                        iss_date=''
+                        actual_iss_date=''
 
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',max_date):
-                        max_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',max_date)[0]
+                        actual_max_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',max_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+',max_date):
-                        max_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',max_date)[0]
+                        actual_max_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',max_date)[0]
+                        print("birth", actual_max_date)
                     elif re.search(r'(=?:)',max_date):
-                        max_date=''
+                        actual_max_date=''
 
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',min_date):
-                        min_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',min_date)[0]
+                        actual_min_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',min_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+',min_date):
-                        min_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',min_date)[0]
+                        actual_min_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',min_date)[0]
                     elif re.search(r'(=?:)',min_date):
-                        min_date=''
-                    string_date_value=min_date+" "+max_date+" "+iss_date
-
+                        actual_min_date=''
+                    # string_date_value=actual_min_date+" "+actual_max_date+" "+actual_iss_date
             else:
                 if len(self.actual_date) == 3:
                     max_date = max(self.actual_date)
@@ -127,35 +130,37 @@ class Licence_details:
                         for date in self.actual_date:
                             if date > min_date and date < max_date:
                                 iss_date = date
-                        max_date = datetime.datetime.strptime(max_date, '%Y/%m/%d').strftime('%m/%d/%Y')
-                        min_date = datetime.datetime.strptime(min_date, '%Y/%m/%d').strftime('%m/%d/%Y')
-                        iss_date = datetime.datetime.strptime(iss_date, '%Y/%m/%d').strftime('%m/%d/%Y')
+                        actual_max_date = datetime.datetime.strptime(max_date, '%Y/%m/%d').strftime('%m/%d/%Y')
+                        actual_min_date = datetime.datetime.strptime(min_date, '%Y/%m/%d').strftime('%m/%d/%Y')
+                        actual_iss_date = datetime.datetime.strptime(iss_date, '%Y/%m/%d').strftime('%m/%d/%Y')
                 else:
                     iss_date = ' '.join(map(str, text.split(re.findall(r'\b(=?Issued|ISS|Iss|ISSUED)\b',text)[0], 1)[1].split()[0:1]))
                     max_date = ' '.join(map(str, text.split(re.findall(r'\b(=?EXP|Expires|EXP|Expiros|EXPIRES|EXPIROS)\b',text)[0], 1)[1].split()[0:1]))
-                    min_date = ' '.join(map(str, text.split(re.findall(r'\b(=?dob|DOB)\b',text)[0], 1)[1].split()[0:1]))
+                    min_date = ' '.join(map(str, text.split(re.findall(r'\b(=?dob|DOB|BIRTHDATE|birthdate)\b',text)[0], 1)[1].split()[0:1]))
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', iss_date):
-                        iss_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', iss_date)[0]
+                        actual_iss_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', iss_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', iss_date):
-                        iss_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', iss_date)[0]
+                        actual_iss_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', iss_date)[0]
                     elif re.search(r'(?!:)', iss_date):
-                        iss_date = ''
+                        actual_iss_date = ''
 
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', max_date):
-                        max_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', max_date)[0]
+                        actual_max_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', max_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', max_date):
-                        max_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', max_date)[0]
+                        actual_max_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', max_date)[0]
+
                     elif re.search(r'(=?:)', max_date):
-                        max_date = ''
+                        actual_max_date = ''
 
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', min_date):
-                        min_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', min_date)[0]
+                        actual_min_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', min_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', min_date):
-                        min_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', min_date)[0]
+                        actual_min_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', min_date)[0]
+                        print("birth", actual_min_date)
                     elif re.search(r'(=?:)', min_date):
-                        min_date = ''
-            string_date_value=min_date+" "+max_date+" "+iss_date
-            return max_date, min_date, iss_date,string_date_value
+                        actual_min_date = ''
+            string_date_value=actual_min_date+" "+actual_max_date+" "+actual_iss_date
+            return actual_max_date, actual_min_date, actual_iss_date,string_date_value
         except Exception as E:
 
             max_date, min_date, iss_date,string_date_value = "", "", "",""
@@ -268,7 +273,7 @@ class Licence_details:
     def get_licence_details1(self,text):
 
             get_licence_id = self.get_id(text)
-            max_date, min_date, iss_date,date_val = self.get_date(text)
+            max_date, min_date, iss_date,date_val = self.get_date(text,get_licence_id)
             address, street, state, zipcode, city, = self.get_address(text)
             # if street == "":
             #     name = self.get_name_afterdate(text, max_date)
