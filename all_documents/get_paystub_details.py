@@ -281,6 +281,7 @@ class Paystub_details:
                 return gross_net.replace(" ",''), net_value.replace(" ",'')
         except Exception as e:
             gross_val,net_val="",""
+            return gross_val,net_val
     def get_details(self,text):
         try:
             address, street, state, zipcode, city, = self.get_Paystub_address(text)

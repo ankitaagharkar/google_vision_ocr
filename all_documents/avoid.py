@@ -15,6 +15,7 @@ def replace(actual_name):
     actual_name = actual_name.replace('ORDER ', "")
     actual_name = actual_name.replace('No ', "")
     actual_name = actual_name.replace('Payro', "")
+    actual_name = actual_name.replace('OC', "")
     actual_name = actual_name.replace('OF ', "")
     # actual_name = actual_name.replace('AP', "")
     actual_name = actual_name.replace('Expires', "")

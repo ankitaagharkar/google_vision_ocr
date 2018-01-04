@@ -6,6 +6,7 @@ sys.path.insert(0, '../image_processing')
 sys.path.insert(0, '../all_documents')
 import avoid
 import Common
+import get_paystub_details
 class Licence_details:
     def __init__(self):
         self.date_val=[]
@@ -14,7 +15,9 @@ class Licence_details:
         self.date_val1 = []
         self.zip_code=[]
         self.get_licence_id=''
+
         self.c= Common.Common()
+
         with open('../config/city.json', 'r') as data_file:
             self.cities = json.load(data_file)
     def get_id(self,text):
@@ -34,10 +37,9 @@ class Licence_details:
             print("in licence id",E)
             self.get_licence_id=''
             return self.get_licence_id
-
     def get_date(self,text_value,licence_id):
+        actual_max_date, actual_min_date, actual_iss_date, iss_date, data, text,string_date_value = '', '', '', '', '', '',''
         try:
-            iss_date,max_date='',''
             #Todo:To get all date format from text
             # text=val.replace(' ','')
             text=text_value.replace(licence_id,'')
@@ -85,7 +87,6 @@ class Licence_details:
             #Todo:To get birth date,expire date and issue date value
 
             if re.match(r'\b\d{2}[./-]\d{2}[./-]\d{2}\b', data):
-                if len(self.actual_date)==3:
                     min_date = max(self.actual_date)
                     iss_date = min(self.actual_date)
                     if min_date != "" and iss_date != "":
@@ -95,48 +96,59 @@ class Licence_details:
                         actual_max_date = datetime.datetime.strptime(max_date, '%y/%m/%d').strftime('%m/%d/%y')
                         actual_min_date = datetime.datetime.strptime(min_date, '%y/%m/%d').strftime('%m/%d/%y')
                         actual_iss_date = datetime.datetime.strptime(iss_date, '%y/%m/%d').strftime('%m/%d/%y')
-                else:
-                    iss_date = ' '.join(map(str, text.split(re.findall(r'\b(=?EXP|Expires|EXP|Expiros|EXPIRES|EXPIROS)\b',text)[0], 1)[1].split()[0:1]))
-                    max_date = ' '.join(map(str, text.split(re.findall(r'\b(=?dob|DOB|BIRTHDATE|birthdate)\b',text)[0], 1)[1].split()[0:1]))
-                    min_date = ' '.join(map(str, text.split(re.findall(r'\b(=?Issued|ISS|Iss|ISSUED)\b',text)[0], 1)[1].split()[0:1]))
-                    if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',iss_date):
-                        actual_iss_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',iss_date)[0]
-                    elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+',iss_date):
-                        actual_iss_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',iss_date)[0]
-                    elif re.search(r'(?!:)',iss_date):
-                        actual_iss_date=''
-
-                    if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',max_date):
-                        actual_max_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',max_date)[0]
-                    elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+',max_date):
-                        actual_max_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',max_date)[0]
-                        print("birth", actual_max_date)
-                    elif re.search(r'(=?:)',max_date):
-                        actual_max_date=''
-
-                    if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',min_date):
-                        actual_min_date=re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])',min_date)[0]
-                    elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+',min_date):
-                        actual_min_date=re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+',min_date)[0]
-                    elif re.search(r'(=?:)',min_date):
-                        actual_min_date=''
-                    # string_date_value=actual_min_date+" "+actual_max_date+" "+actual_iss_date
             else:
-                if len(self.actual_date) == 3:
-                    max_date = max(self.actual_date)
-                    min_date = min(self.actual_date)
+                max_date = max(self.actual_date)
+                min_date = min(self.actual_date)
+                if max_date != "" and min_date != "":
+                    for date in self.actual_date:
+                        if date > min_date and date < max_date:
+                            iss_date = date
+                    actual_max_date = datetime.datetime.strptime(max_date, '%Y/%m/%d').strftime('%m/%d/%Y')
+                    actual_min_date = datetime.datetime.strptime(min_date, '%Y/%m/%d').strftime('%m/%d/%Y')
+                    actual_iss_date = datetime.datetime.strptime(iss_date, '%Y/%m/%d').strftime('%m/%d/%Y')
 
-                    if max_date != "" and min_date != "":
-                        for date in self.actual_date:
-                            if date > min_date and date < max_date:
-                                iss_date = date
-                        actual_max_date = datetime.datetime.strptime(max_date, '%Y/%m/%d').strftime('%m/%d/%Y')
-                        actual_min_date = datetime.datetime.strptime(min_date, '%Y/%m/%d').strftime('%m/%d/%Y')
-                        actual_iss_date = datetime.datetime.strptime(iss_date, '%Y/%m/%d').strftime('%m/%d/%Y')
+            print('string_val',string_date_value)
+            return actual_max_date, actual_min_date, actual_iss_date,string_date_value
+        except Exception as E:
+            try:
+                if re.match(r'\b\d{2}[./-]\d{2}[./-]\d{2}\b', data):
+                    iss_date = ' '.join(map(str, text.split(
+                        re.findall(r'\b(=?EXP|Expires|EXP|Expiros|EXPIRES|EXPIROS)\b', text)[0], 1)[1].split()[0:2]))
+                    max_date = ' '.join(map(str,
+                                            text.split(re.findall(r'\b(=?dob|DOB|BIRTHDATE|birthdate)\b', text)[0], 1)[
+                                                1].split()[0:2]))
+                    min_date = ' '.join(
+                        map(str, text.split(re.findall(r'\b(=?Issued|ISS|Iss|ISSUED)\b', text)[0], 1)[1].split()[0:2]))
+                    if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', iss_date):
+                        actual_iss_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', iss_date)[0]
+                    elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', iss_date):
+                        actual_iss_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', iss_date)[0]
+                    elif re.search(r'(?!:)', iss_date):
+                        actual_iss_date = ''
+
+                    if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', max_date):
+                        actual_max_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', max_date)[0]
+                    elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', max_date):
+                        actual_max_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', max_date)[0]
+                        print("birth", actual_max_date)
+                    elif re.search(r'(=?:)', max_date):
+                        actual_max_date = ''
+
+                    if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', min_date):
+                        actual_min_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', min_date)[0]
+                    elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', min_date):
+                        actual_min_date = re.findall(r'(?!:)\d+[-/.]\d+[-/.]\d+', min_date)[0]
+                    elif re.search(r'(=?:)', min_date):
+                        actual_min_date = ''
                 else:
-                    iss_date = ' '.join(map(str, text.split(re.findall(r'\b(=?Issued|ISS|Iss|ISSUED)\b',text)[0], 1)[1].split()[0:1]))
-                    max_date = ' '.join(map(str, text.split(re.findall(r'\b(=?EXP|Expires|EXP|Expiros|EXPIRES|EXPIROS)\b',text)[0], 1)[1].split()[0:1]))
-                    min_date = ' '.join(map(str, text.split(re.findall(r'\b(=?dob|DOB|BIRTHDATE|birthdate)\b',text)[0], 1)[1].split()[0:1]))
+
+                    iss_date = ' '.join(
+                        map(str, text.split(re.findall(r'\b(=?Issued|ISS|Iss|ISSUED)\b', text)[0], 1)[1].split()[0:2]))
+                    max_date = ' '.join(map(str, text.split(
+                        re.findall(r'\b(=?EXP|Expires|EXP|Expiros|EXPIRES|EXPIROS)\b', text)[0], 1)[1].split()[0:2]))
+                    min_date = ' '.join(map(str,
+                                            text.split(re.findall(r'\b(=?dob|DOB|BIRTHDATE|birthdate)\b', text)[0], 1)[
+                                                1].split()[0:2]))
                     if re.search(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', iss_date):
                         actual_iss_date = re.findall(r'\d+[-/.]\d+[-/.]\d+(?=[A-Za-z])', iss_date)[0]
                     elif re.search(r'(?!:)\d+[-/.]\d+[-/.]\d+', iss_date):
@@ -159,12 +171,14 @@ class Licence_details:
                         print("birth", actual_min_date)
                     elif re.search(r'(=?:)', min_date):
                         actual_min_date = ''
-            string_date_value=actual_min_date+" "+actual_max_date+" "+actual_iss_date
-            return actual_max_date, actual_min_date, actual_iss_date,string_date_value
-        except Exception as E:
 
-            max_date, min_date, iss_date,string_date_value = "", "", "",""
-            return max_date, min_date, iss_date,string_date_value
+                return actual_max_date, actual_min_date, actual_iss_date, string_date_value
+            except Exception as e:
+                actual_min_date=''
+                actual_max_date=''
+                actual_iss_date=''
+                string_date_value = actual_min_date + " " + actual_max_date + " " + actual_iss_date
+                return actual_max_date, actual_min_date, actual_iss_date, string_date_value
     def get_address(self,value):
         try:
             actual_city=''
@@ -215,6 +229,7 @@ class Licence_details:
                         city=actual_city
                     full_address = self.c.find_between_r(value, street, city)
                     full_address = street + full_address
+                    full_address=' '.join(s[:1].upper() + s[1:] for s in full_address.split())
                     return full_address, street, state, zipcode, city
             else:
                 full_address, street, state, zipcode, city = "", "", "", "", ""
@@ -271,15 +286,23 @@ class Licence_details:
             full_name = "null"
             return full_name
     def get_licence_details1(self,text):
-
-            get_licence_id = self.get_id(text)
-            max_date, min_date, iss_date,date_val = self.get_date(text,get_licence_id)
-            address, street, state, zipcode, city, = self.get_address(text)
-            # if street == "":
-            #     name = self.get_name_afterdate(text, max_date)
-            # else:
-            name = self.get_name(text, street)
-            return get_licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val
+            try:
+                self.paystub = get_paystub_details.Paystub_details()
+                get_licence_id = self.get_id(text)
+                max_date, min_date, iss_date,date_val = self.get_date(text,get_licence_id)
+                address, street, state, zipcode, city, = self.get_address(text)
+                # if street == "":
+                #     name = self.get_name_afterdate(text, max_date)
+                # else:
+                name = self.get_name(text, street)
+                gross_net,net_value=self.paystub.gross_net(text)
+                if gross_net=='':
+                    return get_licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val
+                else:
+                    get_licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city, date_val='','','','','','','','','',''
+                    return get_licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val
+            except Exception as e:
+                pass
         # except Exception as e:
         #     get_licence_id, max_date, min_date, iss_date, address, name, \
         #     state, zipcode, city, date_val="null","null","null","null","null","null","null","null","null","null"
