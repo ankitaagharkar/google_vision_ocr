@@ -4,6 +4,11 @@ from multiprocessing import Queue
 from urllib.request import urlopen
 import sys
 import os
+
+import PyPDF2
+import re
+from wand.image import Image
+
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../image_processing')
@@ -13,17 +18,20 @@ import get_ssn_details
 import get_licence_details
 import get_paystub_details
 import image_denoising
-
 import get_all_locations
+import Common
+
 class Scan_OCR:
     def __init__(self):
         self.scan_text = Queue()
         self.image_processing = Queue()
+        self.img2pdf = Queue()
         self.location = Queue()
         self.scan_result={}
         self.text=''
         self.name_value = []
         self.location_val = []
+        self.c = Common.Common()
         self.licence=get_licence_details.Licence_details()
         self.ssn=get_ssn_details.SSN_details()
         self.Paystub=get_paystub_details.Paystub_details()
@@ -35,9 +43,35 @@ class Scan_OCR:
     def image_processing_threading(self,image_path,doc_type):
         try:
             image=self.denoising.image_conversion_smooth(image_path,doc_type)
+            print("in img pro",image)
             self.image_processing.put(image)
         except Exception as e:
             print(e)
+            pass
+
+    def image_to_pdf(self, image_path, doc_type):
+        try:
+
+            if 'Pay Stub' in doc_type:
+                _,filename = os.path.split(image_path)
+
+                src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"))
+                file = self.c.pdf_page_to_png(src_pdf,doc_type, pagenum=0, resolution=290)
+                filename = filename.rsplit('.', 1)[0] + ".jpg"
+                print('in paystub', filename)
+                file.save(filename="../images/documents_upload/"+filename)
+                path="../images/documents_upload/"+filename
+            else:
+                _, filename = os.path.split(image_path)
+                src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"),strict = False)
+                file = self.c.pdf_page_to_png(src_pdf, doc_type,pagenum=0, resolution=200)
+                filename = filename.rsplit('.', 1)[0] + ".jpg"
+                file.save(filename=os.path.join("../images/documents_upload/", filename))
+                path=os.path.join("../images/documents_upload/", filename)
+            self.img2pdf.put(path)
+        except Exception as e:
+            print("in image to pdf",e)
+            pass
     def get_location(self,value_json,image,application_id,base_url,doc_type):
         try:
             if 'License' in doc_type:
@@ -53,7 +87,7 @@ class Scan_OCR:
             print(e)
     def get_doc(self,path, doc_type):
         try:
-            self.text = self.Location.get_text(path)
+            self.text = self.Location.get_text(path,doc_type)
             if 'License' in doc_type:
                 licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val = self.licence.get_licence_details1(self.text)
                 self.scan_text.put((self.text, licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val))
@@ -74,21 +108,33 @@ class Scan_OCR:
             url=url.replace(" ","%20")
             image_on_web = urlopen(url)
             filename = os.path.basename(url)
-            r = requests.post(self.config['base_url']+'/getAllDocumentsMaster')
-            resp_dict = json.loads(json.dumps(r.json()))
-            value = resp_dict.get('records')
-            json_val = dict([(value[i]['id'], value[i]['name']) for i in range(len(value))])
             buf = image_on_web.read()
             with open("../images/documents_upload/" + filename, "wb") as downloaded_image:
                 downloaded_image.write(buf)
                 downloaded_image.close()
                 image_on_web.close()
+
+            r = requests.post(self.config['base_url']+'/getAllDocumentsMaster')
+            resp_dict = json.loads(json.dumps(r.json()))
+            value = resp_dict.get('records')
+            json_val = dict([(value[i]['id'], value[i]['name']) for i in range(len(value))])
             if 'License' in json_val[doc_id]:
                 add={}
-                thread = threading.Thread(target=self.image_processing_threading, args=("../images/documents_upload/"+filename, json_val[doc_id],))
+                if filename.rsplit('.', 1)[1] == 'pdf':
+                    thread = threading.Thread(target=self.image_to_pdf,
+                                              args=("../images/documents_upload/" + filename, json_val[doc_id],))
+                    thread.start()
+                    path = self.img2pdf.get()
+                    thread = threading.Thread(target=self.image_processing_threading,
+                                              args=(path, json_val[doc_id],))
+                else:
+                    thread = threading.Thread(target=self.image_processing_threading,
+                                              args=("../images/documents_upload/" + filename, json_val[doc_id],))
+
+
                 thread.start()
-                image_path=self.image_processing.get()
-                thread = threading.Thread(target=self.get_doc, args=(image_path, json_val[doc_id],))
+                image_path = self.image_processing.get()
+                thread = threading.Thread(target=self.get_doc,args=(image_path, json_val[doc_id],))
                 thread.start()
                 (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode, city,date_val) = self.scan_text.get()
                 if licence_id == '' and exp_date == '' and dob == '' and iss_date == '' and address == '' and name == '' and state == '' and zipcode == '' and city == '':
@@ -106,6 +152,8 @@ class Scan_OCR:
                     else:
                         self.name_value = name.split()
                         print(self.name_value)
+
+
                     if len(self.name_value) == 1:
                         add = {'first_name': "", 'dob': dob, 'issue_date': iss_date,
                                'expiration_date': exp_date,
@@ -162,14 +210,14 @@ class Scan_OCR:
                     self.scan_result = response
 
 
-                    if detected_null_value_count !=0:
+                    if detected_null_value_count > 1:
                         print("in If statement")
                         for key, value in add.items():
                             if value == 'null':
                                 partial_not_detected.append(key)
                             else:
                                 partial_detected.append(key)
-                        self.scan_result['error_msg'] = "Partially Detected: "+", ".join(map(str,partial_detected))+"\n""Unable to Detectect: "+", ".join(map(str,partial_not_detected))
+                        self.scan_result['error_msg'] = "Partially Detected: "+", ".join(map(str,partial_detected))+"Unable to Detect: "+", ".join(map(str,partial_not_detected))
 
                         self.scan_result['status']="PARTIAL_DETECTION"
 
@@ -177,11 +225,22 @@ class Scan_OCR:
                         self.scan_result['error_msg']= "Successfully Scanned"
                         self.scan_result["status"]= "SUCCESSFUL"
             elif 'SSN' in json_val[doc_id]:
-                thread = threading.Thread(target=self.image_processing_threading,
-                                          args=("../images/documents_upload/" + filename, json_val[doc_id],))
+                if filename.rsplit('.', 1)[1] == 'pdf':
+                    thread = threading.Thread(target=self.image_to_pdf,
+                                              args=("../images/documents_upload/" + filename, json_val[doc_id],))
+                    thread.start()
+                    path = self.img2pdf.get()
+                    thread = threading.Thread(target=self.image_processing_threading,
+                                              args=(path, json_val[doc_id],))
+                else:
+                    thread = threading.Thread(target=self.image_processing_threading,
+                                              args=("../images/documents_upload/" + filename, json_val[doc_id],))
+
+
                 thread.start()
                 image_path = self.image_processing.get()
-                thread = threading.Thread(target=self.get_doc, args=(image_path, json_val[doc_id],))
+
+                thread = threading.Thread(target=self.get_doc,args=(image_path, json_val[doc_id],))
                 thread.start()
                 (self.text, SSN_Number ) = self.scan_text.get()
                 if SSN_Number == 'null':
@@ -227,8 +286,17 @@ class Scan_OCR:
                     self.scan_result["status"] = "SUCCESSFUL"
                     print('ssn_location',self.scan_result)
             elif 'Pay Stub' in json_val[doc_id]:
+                if filename.rsplit('.', 1)[1] == 'pdf':
+                    thread = threading.Thread(target=self.image_to_pdf,
+                                              args=("../images/documents_upload/" + filename, json_val[doc_id],))
+                    thread.start()
+                    path=self.img2pdf.get()
+                    _,filename=os.path.split(path)
+                    print("in display paystub",path)
+                    thread = threading.Thread(target=self.get_doc, args=(path, json_val[doc_id],))
+                else:
+                    thread = threading.Thread(target=self.get_doc,args=("../images/documents_upload/" + filename, json_val[doc_id],))
 
-                thread = threading.Thread(target=self.get_doc, args=("../images/documents_upload/" + filename, json_val[doc_id],))
                 thread.start()
                 (self.text, Employer_State, Employer_City, Employer_name, employment_Start_date, pay_frequency, gross_pay, net_pay,string_date_value) = self.scan_text.get()
                 if gross_pay == '' and net_pay == '' and pay_frequency == '' and Employer_name == '' and Employer_City == '' and Employer_State == '' and employment_Start_date == '':

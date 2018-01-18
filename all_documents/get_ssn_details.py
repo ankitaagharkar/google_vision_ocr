@@ -1,9 +1,9 @@
 import re
 class SSN_details:
 
-    def get_all_snn_details(self,text):
+    def get_all_snn_details(self,text_value):
         try:
-            # text = val.replace(' ', '')
+            text = text_value.replace(' ', '')
             print(text)
             data = re.findall(
                 r'(((?!000|666)(?:[0-6]\d{2}|7[0-2][0-9]|73[0-3]|7[5-6][0-9]|77[0-2]))[-.]+?((?!00)\d{2})[-.]+?(((?!0000)\d{4})))',

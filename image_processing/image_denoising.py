@@ -1,6 +1,7 @@
 import cv2,os
 import numpy as np
-from PIL import ImageStat, ImageEnhance, Image
+from PIL import ImageStat, ImageEnhance
+from PIL import Image as I
 
 
 class Denoising:
@@ -27,8 +28,9 @@ class Denoising:
             pImg=''
             head, tail = os.path.split(path)
             if 'License' in doc_type:
-
-                pImg=Image.open(path)
+                print("im method",path)
+                pImg=I.open(path)
+                print(pImg)
                 imStat = ImageStat.Stat(pImg)
                 medi = list(map((lambda x: x / 25), imStat.mean))
                 print(max(medi))
@@ -65,12 +67,11 @@ class Denoising:
                 #     elif mean >=87.0:
                 #         pImg = self.process_image(img, 5)
                 #     else:
-                #         pass
+                #         pas
             elif 'SSN' in doc_type:
                 img = cv2.imread(path)
                 head, tail = os.path.split(path)
                 pImg = self.process_image(img, 30)
-
             elif 'PayStub' in doc_type:
                 img = cv2.imread(path)
                 head, tail = os.path.split(path)

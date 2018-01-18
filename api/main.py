@@ -7,7 +7,6 @@ import requests
 from flask import Flask, request
 sys.path.insert(0, '../Main_OCR')
 import all_details
-
 app = Flask(__name__)
 file_path=''
 response={}
