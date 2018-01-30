@@ -1,5 +1,6 @@
 import io
 # from wand.image import Image as I
+import re
 from wand.image import Image
 import PyPDF2
 from wand.api import library
@@ -30,11 +31,19 @@ class Common:
         return self.result
     def get_address_zipcode(self,full_address,zipcode):
         try:
-            zipcode = zipcode.replace(' ', "")
-            zipcode = zipcode[0:2] + " " + zipcode[2:]
-            code = zipcode.split()
-            city = ' '.join(map(str, full_address.split(code[0], 1)[0].split()[-2:]))
-            return code[0], code[1], city
+            if re.search('\w+\s\d+',zipcode):
+                zipcode = zipcode.replace(' ', "")
+                zipcode = zipcode[0:2] + " " + zipcode[2:]
+                code = zipcode.split()
+                city = ' '.join(map(str, full_address.split(code[0], 1)[0].split()[-2:]))
+                return code[0], code[1], city
+            else:
+                code=[]
+                code.append(zipcode)
+                city = ' '.join(map(str, full_address.split(code[0], 1)[0].split()[-2:]))
+                code.append("")
+                return code[0], code[1], city
+
         except Exception as e:
             print(e)
 

@@ -2,7 +2,7 @@ import re
 
 
 def replace(actual_name):
-    actual_name=re.sub(r"\s?(!?HGT|Earnings|GIN| AD| SU |MWAberty|FILE|Beginning|Statement|ll| l|JTD|LICENSE"
+    actual_name=re.sub(r"\s?(!?HGT|Earnings|am| E |CGA|CONG|EENHANCED | am | Mal | OL |GIN|CASS| D | AD | SU |MWAberty|FILE|Beginning|Statement|ll| l|JTD|LICENSE"
                        r"|USA|EYES|PAYTOTHE|DiP|DIP|IS| TO | THE |ORDER|No|Payro| OC | OF | LN | EN | AP |Expires|Name|DENONE|NONE"
                        r"|Address|CLASS|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class|DM|Height|Expiros"
                        r"|Cass|ORGAN|DONOR|DONORJawa|DOB|ub|CD)", "", actual_name)

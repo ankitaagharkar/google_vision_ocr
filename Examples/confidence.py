@@ -33,8 +33,8 @@ def detect_document(path):
                 word_text = ''
                 for symbol in word.symbols:
                     word_text = word_text + symbol.text
-                    print(u'\tSymbol text: {} (confidence: {})'.format(
-                        symbol.text, symbol.confidence))
+                    # print(u'\tSymbol text: {} (confidence: {})'.format(
+                    #     symbol.text, symbol.confidence))
                 print(u'Word text: {} (confidence: {})\n'.format(
                     word_text, word.confidence))
 
@@ -43,4 +43,4 @@ def detect_document(path):
         print(val)
                 # print(u'Block Content: {}\n'.format())
                 # print(u'Block Confidence:\n {}\n'.format(block.confidence))
-detect_document(r"C:\Users\ankitaa\Desktop\idocufy\Images\Valid Driver Licenses\157217830.jpg")
+detect_document(r"C:\Users\ankitaa\Desktop\idocufy\Images\Valid Licence and SSN\CT DL Example 091117.jpg")

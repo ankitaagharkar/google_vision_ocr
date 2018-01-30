@@ -20,6 +20,7 @@ import get_paystub_details
 import image_denoising
 import get_all_locations
 import Common
+import confidence_score
 
 class Scan_OCR:
     def __init__(self):
@@ -27,6 +28,7 @@ class Scan_OCR:
         self.image_processing = Queue()
         self.img2pdf = Queue()
         self.location = Queue()
+        self.confidence=Queue()
         self.scan_result={}
         self.text=''
         self.name_value = []
@@ -37,6 +39,7 @@ class Scan_OCR:
         self.Paystub=get_paystub_details.Paystub_details()
         self.denoising=image_denoising.Denoising()
         self.Location = get_all_locations.get_all_location()
+        self.score=confidence_score.text_score()
 
         with open('../config/config.json') as data_file:
             self.config = json.load(data_file)
@@ -48,7 +51,6 @@ class Scan_OCR:
         except Exception as e:
             print(e)
             pass
-
     def image_to_pdf(self, image_path, doc_type):
         try:
 
@@ -64,7 +66,7 @@ class Scan_OCR:
             else:
                 _, filename = os.path.split(image_path)
                 src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"),strict = False)
-                file = self.c.pdf_page_to_png(src_pdf, doc_type,pagenum=0, resolution=200)
+                file = self.c.pdf_page_to_png(src_pdf, doc_type,pagenum=0, resolution=220)
                 filename = filename.rsplit('.', 1)[0] + ".jpg"
                 file.save(filename=os.path.join("../images/documents_upload/", filename))
                 path=os.path.join("../images/documents_upload/", filename)
@@ -97,6 +99,17 @@ class Scan_OCR:
             elif 'Pay Stub' in doc_type:
                 Employer_State, Employer_City, Employer_name, employment_Start_date, pay_frequency, gross_pay, net_pay,string_date_value = self.Paystub.get_details(self.text)
                 self.scan_text.put((self.text, Employer_State, Employer_City, Employer_name, employment_Start_date, pay_frequency, gross_pay, net_pay,string_date_value))
+        except Exception as e:
+            print(e)
+    def confidence_score(self,path, doc_type,data):
+        try:
+            text_val = self.score.get_confidence_score(path)
+            if 'License' in doc_type:
+                date_dict,date_score,address_score,license_score,other_score=self.score.license_confidence(data)
+                self.confidence.put((date_dict,date_score,address_score,license_score,other_score))
+            elif 'SSN' in doc_type:
+                ssn_score=self.score.ssn_confidence(data)
+                self.confidence.put((ssn_score))
         except Exception as e:
             print(e)
     def all_details(self,response):
@@ -167,7 +180,8 @@ class Scan_OCR:
                     else:
                         add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date,
                                'expiration_date': exp_date, 'last_name': self.name_value[0], 'address': address,
-                               'license_id': licence_id, "middle_name": '',"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
+                               'license_id': licence_id, "middle_name":'',"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
+                    print(add)
                     actual_value = list(add.keys())
                     actual_value = sorted(actual_value)
                     add_value = list(add.values())
@@ -183,33 +197,54 @@ class Scan_OCR:
                     thread = threading.Thread(target=self.get_location, args=(add,image_path,application_id,self.config['base_url'], json_val[doc_id],))
                     thread.start()
                     (address_location, licence_id_location, dict_location,file_path) = self.location.get()
-                    print("Type",type(address_location),type(licence_id_location),type(dict_location))
+                    thread = threading.Thread(target=self.confidence_score, args=(image_path,json_val[doc_id],add,))
+                    thread.start()
+                    (date_dict,date_score, address_score, license_score, other_score)=self.confidence.get()
+
                     for i in range(len(response['fields'])):
                         for j in range(len(actual_value)):
                             if response['fields'][i]['name']=="address":
-
                                 for key,value in address_location.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original']:
-                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                    if response['fields'][i]['field_value_original']!= '':
+                                        if key in response['fields'][i]['field_value_original']:
+                                            response['fields'][i]['location'] = str(list(self.location_val))
+                                            response['fields'][i]['confidence'] = address_score
                             elif response['fields'][i]['name']=="license_id":
                                 self.location_val.clear()
                                 for key,value in licence_id_location.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original']:
-
-                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                    if response['fields'][i]['field_value_original'] != '':
+                                        if key in response['fields'][i]['field_value_original']:
+                                            response['fields'][i]['location'] = str(list(self.location_val))
+                                        response['fields'][i]['confidence'] = license_score
+                            elif response['fields'][i]['name'] == "dob":
+                                if date_score != 0:
+                                    for key, value in date_dict.items():
+                                        if response['fields'][i]['field_value_original'] != '':
+                                            if key in response['fields'][i]['field_value_original']:
+                                                    response['fields'][i]['confidence'] = date_score
+                            elif response['fields'][i]['name'] == "issue_date":
+                                for key, value in date_dict.items():
+                                    if response['fields'][i]['field_value_original'] != '':
+                                        if key in response['fields'][i]['field_value_original']:
+                                            response['fields'][i]['confidence'] = date_score
+                            elif response['fields'][i]['name'] == "expiration_date":
+                                for key, value in date_dict.items():
+                                    if response['fields'][i]['field_value_original'] != '':
+                                        if key in response['fields'][i]['field_value_original']:
+                                            response['fields'][i]['confidence'] = date_score
                             else:
                                 self.location_val.clear()
                                 for key,value in dict_location.items():
-                                    self.location_val.clear()
                                     self.location_val.append(value)
                                     key=key.replace(',','')
-                                    if response['fields'][i]['field_value_original'] in key :
-                                        response['fields'][i]['location']=str(self.location_val)
+                                    if response['fields'][i]['field_value_original'] is not "":
+                                        if response['fields'][i]['field_value_original'] in key:
+                                            response['fields'][i]['location']=str(self.location_val)
+                                            response['fields'][i]['confidence'] = other_score
+
                     self.scan_result = response
-
-
                     if detected_null_value_count > 1:
                         print("in If statement")
                         for key, value in add.items():
@@ -271,7 +306,9 @@ class Scan_OCR:
                     json_val[doc_id],))
                     thread.start()
                     (ssn_number_location,file_path) = self.location.get()
-
+                    thread = threading.Thread(target=self.confidence_score, args=(image_path, json_val[doc_id], add,))
+                    thread.start()
+                    (ssn_score) = self.confidence.get()
                     for i in range(len(response['fields'])):
                         for j in range(len(actual_value)):
                             if response['fields'][i]['name'] == "ssn_number":
@@ -280,6 +317,7 @@ class Scan_OCR:
                                     self.location_val.append(value)
                                     if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str([self.location_val])
+                                        response['fields'][i]['confidence'] = ssn_score
 
                     self.scan_result = response
                     self.scan_result['error_msg'] = "Successfully Scanned"
@@ -296,7 +334,6 @@ class Scan_OCR:
                     thread = threading.Thread(target=self.get_doc, args=(path, json_val[doc_id],))
                 else:
                     thread = threading.Thread(target=self.get_doc,args=("../images/documents_upload/" + filename, json_val[doc_id],))
-
                 thread.start()
                 (self.text, Employer_State, Employer_City, Employer_name, employment_Start_date, pay_frequency, gross_pay, net_pay,string_date_value) = self.scan_text.get()
                 if gross_pay == '' and net_pay == '' and pay_frequency == '' and Employer_name == '' and Employer_City == '' and Employer_State == '' and employment_Start_date == '':
@@ -332,7 +369,7 @@ class Scan_OCR:
 
                                 for key, value in emp_name.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original']:
+                                    if key in response['fields'][i]['field_value_original'] :
                                         response['fields'][i]['location'] = str(list(self.location_val))
                             else:
                                 self.location_val.clear()
@@ -340,7 +377,7 @@ class Scan_OCR:
                                     self.location_val.clear()
                                     self.location_val.append(value)
                                     key = key.replace(',', '')
-                                    if response['fields'][i]['field_value_original'] in key:
+                                    if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(self.location_val)
                     self.scan_result = response
                     if detected_null_value_count >= int(len(actual_value) / 2):
@@ -358,7 +395,7 @@ class Scan_OCR:
                     else:
                         self.scan_result['error_msg'] = "Successfully Scanned"
                         self.scan_result["status"] = "SUCCESSFUL"
-            print(self.scan_result)
+            print(self.text)
             self.scan_result['raw_data'] = self.text
             print("all response", self.scan_result)
             # data=json.dumps(self.scan_result)

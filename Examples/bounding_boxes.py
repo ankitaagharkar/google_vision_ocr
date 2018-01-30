@@ -22,6 +22,10 @@ def draw_boxes(image, bounds, color):
     draw = ImageDraw.Draw(image)
 
     for bound in bounds:
+        # print(bound.vertices[0].x, bound.vertices[0].y,
+        #     bound.vertices[1].x, bound.vertices[1].y,
+        #     bound.vertices[2].x, bound.vertices[2].y,
+        #     bound.vertices[3].x, bound.vertices[3].y)
         draw.polygon([
             bound.vertices[0].x, bound.vertices[0].y,
             bound.vertices[1].x, bound.vertices[1].y,
@@ -52,6 +56,7 @@ def get_document_bounds(image_file, feature):
             for paragraph in block.paragraphs:
                 for word in paragraph.words:
                     for symbol in word.symbols:
+                        print(symbol)
                         if (feature == FeatureType.SYMBOL):
                             bounds.append(symbol.bounding_box)
 
@@ -75,12 +80,12 @@ def get_document_bounds(image_file, feature):
 def render_doc_text(filein, fileout):
     # [START render_doc_text]
     image = Image.open(filein)
-    bounds = get_document_bounds(filein, FeatureType.PAGE)
-    draw_boxes(image, bounds, 'blue')
+    # bounds = get_document_bounds(filein, FeatureType.PAGE)
+    # draw_boxes(image, bounds, 'blue')
+    # bounds = get_document_bounds(filein, FeatureType.PARA)
+    # draw_boxes(image, bounds, 'red')
     bounds = get_document_bounds(filein, FeatureType.PARA)
     draw_boxes(image, bounds, 'red')
-    bounds = get_document_bounds(filein, FeatureType.WORD)
-    draw_boxes(image, bounds, 'yellow')
 
     if fileout is not 0:
         image.save(fileout)
@@ -90,4 +95,4 @@ def render_doc_text(filein, fileout):
 
 
 if __name__ == '__main__':
-    render_doc_text(r"C:\Users\ankitaa\Desktop\idocufy\Images\Paystub\1.jpg",'test.jpg')
+    render_doc_text(r"C:\Users\ankitaa\Desktop\Thrive Template 1 06162017-1.jpg",'test.jpg')

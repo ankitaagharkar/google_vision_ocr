@@ -29,7 +29,7 @@ def scan():
         requests_json = request.json
         start = datetime.now()
         print("request time",start)
-
+        print(requests_json)
         response,file_path=scan_ocr.all_details(requests_json)
 
         print(type(response))
