@@ -117,7 +117,7 @@ class Denoising:
                     contrast = ImageEnhance.Contrast(sharpImg)
                     pImg = contrast.enhance(1.47)
                 image = np.array(pImg)
-                pImg = self.denoise(image, weight=10.5)
+                pImg = cv2.GaussianBlur(image,(5,5),0)
                 # else:
                 #     img = cv2.imread(path)
                 #     if mean==84.5215623913:

@@ -18,7 +18,9 @@ class get_all_location:
         self.keys=[]
         self.values=[]
         self.dict = {}
-        self.emp_name={}
+        self.emp_name,self.employee_name={},{}
+        self.emp_address,self.employee_address={},{}
+        self.description=[]
         self.text_val=[]
         self.location_json=''
 
@@ -50,13 +52,13 @@ class get_all_location:
                     text.append(block_text)
 
             actual_text = " ".join(map(str, text))
-            print(actual_text)
+            self.description=response.text_annotations[0]
             for text in response.text_annotations[1:]:
 
-                print(text.description)
+                #print(text.description)
                 vertices = [(vertex.x, vertex.y)
                             for vertex in text.bounding_poly.vertices]
-                print(vertices)
+                #print(vertices)
                 self.keys.append(text.description)
                 self.values.append(vertices)
             self.result = zip(self.keys, self.values)
@@ -70,12 +72,12 @@ class get_all_location:
             # empty_key_vals = list(k for k,v in data.items() if v)
             # for k in empty_key_vals:
             #     del [k]
-            print(value_json)
+            #print(value_json)
             img=cv2.imread(image)
             _,filename= os.path.split(image)
 
             for key, value in enumerate(self.result):
-                print(value[0], value[1])
+                #print(value[0], value[1])
                 for key1, value1 in value_json.items():
                     if value[0]!='' and value1!='':
                         value=list(value)
@@ -107,12 +109,12 @@ class get_all_location:
                         if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
 
                             if value[0] in value_json['date_val']:
-                                print("in locations",value_json['date_val'])
+                                #print("in locations",value_json['date_val'])
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                # print(key,value)
-                                print(value[0],value[1])
+                                # #print(key,value)
+                                #print(value[0],value[1])
                                 self.dict.update({value[0]: value[1]})
                             elif value[0] in value_json['address']:
                                 vrx = np.array(value[1], np.int32)
@@ -139,7 +141,7 @@ class get_all_location:
         img = cv2.imread(image)
         _, filename = os.path.split(image)
         for key, value in enumerate(self.result):
-            print(value[0], value[1])
+            #print(value[0], value[1])
             for key1, value1 in value_json.items():
                 if value[0] != '' and value1 != '':
                     value = list(value)
@@ -158,11 +160,12 @@ class get_all_location:
         date_val = dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
         cv2.imwrite("../images/processed/" + date_val + ".jpg", img)
         return self.ssn,"../images/processed/" + date_val + ".jpg"
-    def paystub_get_location(self,value_json,image,application_id,base_url):
+    def paystub_get_location(self,value_data,image,application_id,base_url):
         img = cv2.imread(image)
         _, filename = os.path.split(image)
+        value_json = {key: value for key, value in value_data.items() if value != ""}
         for key, value in enumerate(self.result):
-            print(value[0], value[1])
+            #print(value[0], value[1])
             for key1, value1 in value_json.items():
                 # if key1 == 'employment_start_date' or key1 == 'expiration_date' or key == 'dob':
                 #     value1 = value1[0:2] + ' ' + value1[2:4] + ' ' + value1[4:8]
@@ -191,34 +194,53 @@ class get_all_location:
                     values = values.replace('Expires', '')
                     values = values.replace('-48','')
                     value[0] = values
-                    if re.search(r'\b(=?' +re.escape(value[0])+ r')\b', value1):
+                    if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
                         if value[0] in value_json['date_val']:
-                            print("in locations", value_json['date_val'])
+
                             vrx = np.array(value[1], np.int32)
                             vrx = vrx.reshape((-1, 1, 2))
                             img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                            # print(key,value)
-                            print(value[0], value[1])
-                            self.dict.update({value[0]: value[1]})
+                            # #print(key,value)
+                            self.dict.update({str(value[0]): value[1]})
+
+                        elif value[0] in value_json['employee_address']:
+                            vrx = np.array(value[1], np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (255, 255, 0), 1)
+                            self.employee_address.update({str(value[0]): value[1]})
+
+                        elif value[0] in value_json['employer_address']:
+                            vrx = np.array(value[1], np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (255, 255, 0), 1)
+                            self.emp_address.update({str(value[0]): value[1]})
+
+                        elif value[0] in value_json['employee_name']:
+                            vrx = np.array(value[1], np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                            # #print(key,value)
+                            #print(value[0], value[1])
+                            self.employee_name.update({str(value[0]): value[1]})
+
                         elif value[0] in value_json['employer_name']:
-                            print("in locations", value_json['employer_name'])
                             vrx = np.array(value[1], np.int32)
                             vrx = vrx.reshape((-1, 1, 2))
                             img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                            # print(key,value)
-                            print(value[0], value[1])
-                            self.emp_name.update({value[0]: value[1]})
+                            # #print(key,value)
+                            #print(value[0], value[1])
+                            self.emp_name.update({str(value[0]): value[1]})
 
                         else:
                             vrx = np.array(value[1], np.int32)
                             vrx = vrx.reshape((-1, 1, 2))
                             img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
-                            self.dict.update({value[0]: value[1]})
-        print('emp_name',self.emp_name,self.dict)
+                            self.dict.update({str(value[0]): value[1]})
+        #print('emp_name',self.emp_name,self.dict)
         dt = datetime.datetime.now()
         date_val = dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
         cv2.imwrite("../images/processed/" + date_val + ".jpg", img)
-        return self.emp_name, self.dict, "../images/processed/" + date_val + ".jpg"
+        return self.emp_name,self.employee_name,self.emp_address,self.employee_address, self.dict, "../images/processed/" + date_val + ".jpg"
 
 
 

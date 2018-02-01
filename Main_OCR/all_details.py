@@ -1,14 +1,11 @@
 import json
 import threading
-from multiprocessing import Queue
+from multiprocessing import Process, Queue
+from time import sleep
 from urllib.request import urlopen
 import sys
 import os
-
 import PyPDF2
-import re
-from wand.image import Image
-
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../image_processing')
@@ -21,12 +18,15 @@ import image_denoising
 import get_all_locations
 import Common
 import confidence_score
+import paystub_block_values
 
 class Scan_OCR:
     def __init__(self):
+
         self.scan_text = Queue()
-        self.image_processing = Queue()
+        self.image_processing =Queue()
         self.img2pdf = Queue()
+        self.doc_text = Queue()
         self.location = Queue()
         self.confidence=Queue()
         self.scan_result={}
@@ -40,17 +40,22 @@ class Scan_OCR:
         self.denoising=image_denoising.Denoising()
         self.Location = get_all_locations.get_all_location()
         self.score=confidence_score.text_score()
+        self.paystub_block=paystub_block_values.get_all_location()
 
         with open('../config/config.json') as data_file:
             self.config = json.load(data_file)
     def image_processing_threading(self,image_path,doc_type):
         try:
             image=self.denoising.image_conversion_smooth(image_path,doc_type)
-            print("in img pro",image)
+            #print("in img pro",image)
             self.image_processing.put(image)
         except Exception as e:
             print(e)
             pass
+    def get_doc_text(self,path,doc_type):
+        self.text = self.Location.get_text(path,doc_type)
+        self.doc_text.put(self.text)
+
     def image_to_pdf(self, image_path, doc_type):
         try:
 
@@ -60,7 +65,7 @@ class Scan_OCR:
                 src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"))
                 file = self.c.pdf_page_to_png(src_pdf,doc_type, pagenum=0, resolution=290)
                 filename = filename.rsplit('.', 1)[0] + ".jpg"
-                print('in paystub', filename)
+                #print('in paystub', filename)
                 file.save(filename="../images/documents_upload/"+filename)
                 path="../images/documents_upload/"+filename
             else:
@@ -83,22 +88,25 @@ class Scan_OCR:
                 ssn_location,filename = self.Location.ssn_get_location(value_json, image, application_id, base_url)
                 self.location.put((ssn_location,filename))
             elif 'Pay Stub' in doc_type:
-                emp_name,dic_name,filename = self.Location.paystub_get_location(value_json, image, application_id, base_url)
-                self.location.put((emp_name,dic_name,filename))
+                emp_name,employee_name,employer_address,employee_address,dic_name,filename = self.Location.paystub_get_location(value_json, image, application_id, base_url)
+                self.location.put((emp_name,employee_name,employer_address,employee_address,dic_name,filename))
         except Exception as e:
             print(e)
     def get_doc(self,path, doc_type):
         try:
-            self.text = self.Location.get_text(path,doc_type)
+            self.text = self.Location.get_text(path, doc_type)
             if 'License' in doc_type:
+
                 licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val = self.licence.get_licence_details1(self.text)
                 self.scan_text.put((self.text, licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val))
             elif 'SSN' in doc_type:
                 SSN_Number = self.ssn.get_all_snn_details(self.text)
                 self.scan_text.put((self.text, SSN_Number))
             elif 'Pay Stub' in doc_type:
-                Employer_State, Employer_City, Employer_name, employment_Start_date, pay_frequency, gross_pay, net_pay,string_date_value = self.Paystub.get_details(self.text)
-                self.scan_text.put((self.text, Employer_State, Employer_City, Employer_name, employment_Start_date, pay_frequency, gross_pay, net_pay,string_date_value))
+                # self.text1=self.paystub_block.get_text(path)
+                employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, gross_pay, net_pay,pay_end_date = self.Paystub.get_details(self.text,path)
+                self.scan_text.put((self.text, employer_full_address, employer_street, employer_state, employer_zipcode, employer_city,employee_full_address, employee_street, employee_state, employee_zipcode, employee_city,start_date,pay_frequency, string_date_value,employer_name,employee_name,gross_pay,net_pay,pay_end_date))
+
         except Exception as e:
             print(e)
     def confidence_score(self,path, doc_type,data):
@@ -110,6 +118,9 @@ class Scan_OCR:
             elif 'SSN' in doc_type:
                 ssn_score=self.score.ssn_confidence(data)
                 self.confidence.put((ssn_score))
+            elif 'Pay Stub' in doc_type:
+                paystub_score=self.score.paystub_confidence(data)
+                self.confidence.put((paystub_score))
         except Exception as e:
             print(e)
     def all_details(self,response):
@@ -150,12 +161,12 @@ class Scan_OCR:
                 thread = threading.Thread(target=self.get_doc,args=(image_path, json_val[doc_id],))
                 thread.start()
                 (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode, city,date_val) = self.scan_text.get()
-                if licence_id == '' and exp_date == '' and dob == '' and iss_date == '' and address == '' and name == '' and state == '' and zipcode == '' and city == '':
+                if licence_id == ' ' and exp_date == '' and dob == '' and iss_date == '' and address == '' and name == '' and state == '' and zipcode == '' and city == '':
 
                      file_path=''
                      self.scan_result['error_msg']= "Incorrect Document or Unable to Scan"
                      self.scan_result['status'] = "INCORRECT_DOCUMENT"
-                     print(self.scan_result)
+                     #print(self.scan_result)
                      return self.scan_result,file_path
                 else:
                     if name == '':
@@ -164,7 +175,7 @@ class Scan_OCR:
                         self.name_value.append("")
                     else:
                         self.name_value = name.split()
-                        print(self.name_value)
+                        #print(self.name_value)
 
 
                     if len(self.name_value) == 1:
@@ -181,12 +192,12 @@ class Scan_OCR:
                         add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date,
                                'expiration_date': exp_date, 'last_name': self.name_value[0], 'address': address,
                                'license_id': licence_id, "middle_name":'',"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
-                    print(add)
+                    #print(add)
                     actual_value = list(add.keys())
                     actual_value = sorted(actual_value)
                     add_value = list(add.values())
                     detected_null_value_count = add_value.count('')
-                    print("detected_null_value_count value", detected_null_value_count, int(len(add_value) / 2))
+                    #print("detected_null_value_count value", detected_null_value_count, int(len(add_value) / 2))
                     partial_not_detected,partial_detected=[],[]
 
                     for i in range(len(response['fields'])):
@@ -240,13 +251,13 @@ class Scan_OCR:
                                     self.location_val.append(value)
                                     key=key.replace(',','')
                                     if response['fields'][i]['field_value_original'] is not "":
-                                        if response['fields'][i]['field_value_original'] in key:
+                                        if key in response['fields'][i]['field_value_original'] :
                                             response['fields'][i]['location']=str(self.location_val)
                                             response['fields'][i]['confidence'] = other_score
 
                     self.scan_result = response
-                    if detected_null_value_count > 1:
-                        print("in If statement")
+                    if detected_null_value_count != 0:
+                        #print("in If statement")
                         for key, value in add.items():
                             if value == 'null':
                                 partial_not_detected.append(key)
@@ -282,11 +293,11 @@ class Scan_OCR:
                     file_path = ''
                     self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
                     self.scan_result['status'] = "INCORRECT_DOCUMENT"
-                    print(self.scan_result)
+                    #print(self.scan_result)
                     return self.scan_result, file_path
                 else:
                     # self.name_value = name.split()
-                    # print("self.name_value", self.name_value)
+                    # #print("self.name_value", self.name_value)
                     # if len( self.name_value) > 2:
                     #     add = {"ssn_number": SSN_Number, "first_name":  self.name_value[0], "last_name":  self.name_value[2],
                     #            "middle_name":  self.name_value[1]}
@@ -322,7 +333,7 @@ class Scan_OCR:
                     self.scan_result = response
                     self.scan_result['error_msg'] = "Successfully Scanned"
                     self.scan_result["status"] = "SUCCESSFUL"
-                    print('ssn_location',self.scan_result)
+                    #print('ssn_location',self.scan_result)
             elif 'Pay Stub' in json_val[doc_id]:
                 if filename.rsplit('.', 1)[1] == 'pdf':
                     thread = threading.Thread(target=self.image_to_pdf,
@@ -330,23 +341,41 @@ class Scan_OCR:
                     thread.start()
                     path=self.img2pdf.get()
                     _,filename=os.path.split(path)
-                    print("in display paystub",path)
+                    #print("in display paystub",path)
                     thread = threading.Thread(target=self.get_doc, args=(path, json_val[doc_id],))
+                    thread.start()
+                    while not self.scan_text.empty():  # wait for Worker to finish
+                        sleep(.5)
+                    (self.text, employer_full_address, employer_street, employer_state, employer_zipcode, employer_city,
+                     employee_full_address, employee_street, employee_state, employee_zipcode, employee_city,
+                     start_date, pay_frequency, string_date_value, employer_name, employee_name, gross_pay, net_pay,
+                     pay_end_date) = self.scan_text.get()
                 else:
-                    thread = threading.Thread(target=self.get_doc,args=("../images/documents_upload/" + filename, json_val[doc_id],))
-                thread.start()
-                (self.text, Employer_State, Employer_City, Employer_name, employment_Start_date, pay_frequency, gross_pay, net_pay,string_date_value) = self.scan_text.get()
-                if gross_pay == '' and net_pay == '' and pay_frequency == '' and Employer_name == '' and Employer_City == '' and Employer_State == '' and employment_Start_date == '':
+                    thread = threading.Thread(target=self.get_doc_text, args=("../images/documents_upload/" + filename,json_val[doc_id],))
+                    thread.start()
+                    self.text=self.doc_text.get()
+                    employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, gross_pay, net_pay, pay_end_date = self.Paystub.get_details(
+                        self.text, "../images/documents_upload/" + filename)
+                    # thread = threading.Thread(target=self.get_doc,args=("../images/documents_upload/" + filename, json_val[doc_id],))
+                # thread.start()
+                # while not self.scan_text.empty():  # wait for Worker to finish
+                #     sleep(.5)
+                # (self.text, employer_full_address, employer_street, employer_state, employer_zipcode, employer_city,employee_full_address, employee_street, employee_state, employee_zipcode, employee_city,start_date,pay_frequency, string_date_value,employer_name,employee_name,gross_pay,net_pay,pay_end_date) = self.scan_text.get()
+                if gross_pay == '' and net_pay == '' and pay_frequency == '' and employee_full_address=='' and employer_full_address=='' and employee_name == '' and employee_city == '' and employee_state == '' and employer_name == '' and employer_city == '' and employer_state == '' and start_date == '':
                     file_path = ''
                     self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
                     self.scan_result['status'] = "INCORRECT_DOCUMENT"
-                    print(self.scan_result)
+                    #print(self.scan_result)
                     return self.scan_result, file_path
                 else:
-                    add = {'gross_pay': gross_pay, 'net_pay': net_pay, 'pay_frequency': pay_frequency,
-                           'employer_name': Employer_name,
-                           'employer_city': Employer_City, 'employer_state': Employer_State,
-                           "employment_start_date": employment_Start_date, 'position': '','date_val':string_date_value}
+                    add = {'gross_pay': gross_pay,'mi':'', 'net_pay': net_pay, 'pay_frequency': pay_frequency,'employee_address':employee_full_address,'employer_address':employer_full_address,
+                           'employer_name': employer_name,'position':'','employee_number':'','pay_period_start_date':start_date,
+                           'pay_date':'','pay_period_end_date':pay_end_date,'employer_city': employer_city, 'employer_state': employer_state,
+                           'employee_name': employee_name,'employee_federal_tax_withholding':'',
+                            'employee_city': employee_city, 'employee_state': employee_state,
+                           "employment_start_date": '', 'employer/company_code': '','date_val':string_date_value,'regular_wages':'','salary_wages':'','overtime_wages':'',
+                           'commission_wages':'','gratuity_wages':'','total_gross_wages_for_pay_period':'','federal_income_tax':'','ssi_withholding':'','state_income_tax':'','state_unemployment':'',
+                           'disability_insurance_(di)_withholding':'',}
                     actual_value = list(add.keys())
                     actual_value = sorted(actual_value)
                     add_value = list(add.values())
@@ -362,15 +391,45 @@ class Scan_OCR:
                     add, "../images/documents_upload/" + filename, application_id, self.config['base_url'],
                     json_val[doc_id],))
                     thread.start()
-                    (emp_name, dict_location, file_path) = self.location.get()
+                    (emp_name,employee_name,employer_address,employee_address, dict_location, file_path) = self.location.get()
+                    thread = threading.Thread(target=self.confidence_score, args=("../images/documents_upload/" + filename, json_val[doc_id], add,))
+                    thread.start()
+                    (paystub_score) = self.confidence.get()
+
                     for i in range(len(response['fields'])):
                         for j in range(len(actual_value)):
                             if response['fields'][i]['name'] == "employer_name":
-
+                                self.location_val.clear()
                                 for key, value in emp_name.items():
                                     self.location_val.append(value)
                                     if key in response['fields'][i]['field_value_original'] :
                                         response['fields'][i]['location'] = str(list(self.location_val))
+                                        response['fields'][i]['confidence'] = paystub_score
+
+                            elif response['fields'][i]['name'] == "employee_name":
+                                self.location_val.clear()
+                                for key, value in employee_name.items():
+                                    self.location_val.append(value)
+                                    if key in response['fields'][i]['field_value_original'] :
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        response['fields'][i]['confidence'] = paystub_score
+
+                            elif response['fields'][i]['name'] == "employer_address":
+                                self.location_val.clear()
+                                for key, value in employer_address.items():
+                                    self.location_val.append(value)
+                                    if key in response['fields'][i]['field_value_original'] :
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        response['fields'][i]['confidence'] = paystub_score
+
+                            elif response['fields'][i]['name'] == "employee_address":
+                                self.location_val.clear()
+                                for key, value in employee_address.items():
+                                    self.location_val.append(value)
+                                    if key in response['fields'][i]['field_value_original'] :
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        response['fields'][i]['confidence'] = paystub_score
+
                             else:
                                 self.location_val.clear()
                                 for key, value in dict_location.items():
@@ -379,6 +438,7 @@ class Scan_OCR:
                                     key = key.replace(',', '')
                                     if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(self.location_val)
+                                        response['fields'][i]['confidence'] = paystub_score
                     self.scan_result = response
                     if detected_null_value_count >= int(len(actual_value) / 2):
                         for key, value in add.items():
@@ -395,7 +455,7 @@ class Scan_OCR:
                     else:
                         self.scan_result['error_msg'] = "Successfully Scanned"
                         self.scan_result["status"] = "SUCCESSFUL"
-            print(self.text)
+            #print(self.text)
             self.scan_result['raw_data'] = self.text
             print("all response", self.scan_result)
             # data=json.dumps(self.scan_result)

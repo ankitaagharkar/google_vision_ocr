@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw
 from google.cloud import vision_v1p1beta1 as vision
 def detect_document(path):
     """Detects document features in an image."""
+
     client = vision.ImageAnnotatorClient()
     word_val = []
     with io.open(path, 'rb') as image_file:
@@ -42,4 +43,4 @@ def detect_document(path):
         print(val)
                 # print(u'Block Content: {}\n'.format())
                 # print(u'Block Confidence:\n {}\n'.format(block.confidence))
-detect_document(r"C:\Users\ankitaa\Desktop\Images\Valid Driver Licenses\28 246 416.JPG")
+detect_document(r"C:\Users\ankitaa\Desktop\idocufy\Images\Valid Driver Licenses\157217830.jpg")

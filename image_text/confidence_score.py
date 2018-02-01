@@ -11,9 +11,11 @@ class text_score:
         self.ssn_confidence_score=0.0
         self.date_confidence_score = 0.0
         self.license_confidence_score=0.0
-        self.date_score, self.address_score, self.other_score,self.license_score, self.ssn_score=0,0,0,0,0
+        self.date_score, self.address_score, self.other_score,self.license_score, self.ssn_score,self.paystub_score=0,0,0,0,0,0
         self.full_address = ''
         self.result={}
+        self.paystub={}
+        self.paystub_confidence_score = 0.0
         self.other_confidence=0.0
 
 
@@ -35,7 +37,7 @@ class text_score:
                     word_text = ''
                     for symbol in word.symbols:
                         word_text = word_text + symbol.text
-                    # #print(u'Word text: {} (confidence: {})\n'.format(
+                    # ##print(u'Word text: {} (confidence: {})\n'.format(
                     #     word_text, word.confidence))
                     self.keys.append(word_text)
                     self.values.append(word.confidence)
@@ -46,7 +48,7 @@ class text_score:
             # empty_key_vals = list(k for k,v in data.items() if v)
             # for k in empty_key_vals:
             #     del [k]
-            #print(data)
+            ##print(data)
             for key, value in enumerate(self.result):
                 for key1, value1 in data.items():
                     if value[0] != '' and value1 != '':
@@ -70,16 +72,16 @@ class text_score:
                     self.address_score=97
 
 
-            #print("score:", self.address_score)
+            ##print("score:", self.address_score)
             self.license_score = int((self.license_confidence_score * 100))
             for key2, value2 in self.dict.items():
                 self.date_confidence_score = self.date_confidence_score + value2
             for key4, value4 in self.others.items():
                 self.other_confidence = self.other_confidence + value4
-            #print("total score",self.date_confidence_score,self.other_confidence)
+            ##print("total score",self.date_confidence_score,self.other_confidence)
             dict_length=len(self.dict)
             other_length=len(self.others)
-            #print("length",dict_length,other_length)
+            ##print("length",dict_length,other_length)
             if other_length>1:
                 self.date_score = int((self.date_confidence_score / dict_length) * 100)
                 self.other_score = int((self.other_confidence / other_length) * 100)
@@ -98,4 +100,9 @@ class text_score:
             return self.ssn_score
         except Exception as E:
             return self.ssn_score
-
+    def paystub_confidence(self,data):
+        try:
+            self.paystub_score='87'
+            return self.paystub_score
+        except Exception as E:
+            return self.paystub_score
