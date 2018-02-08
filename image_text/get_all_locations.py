@@ -62,7 +62,7 @@ class get_all_location:
                 self.keys.append(text.description)
                 self.values.append(vertices)
             self.result = zip(self.keys, self.values)
-            return actual_text
+            return actual_text,self.description,self.result
 
         except Exception as E:
             print(E)
@@ -106,31 +106,50 @@ class get_all_location:
                                 value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:8]
                             else:
                                 pass
-                        if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
+                        if re.search(r'\b(=?' + re.escape(value[0]) + r')\b', value1):
 
                             if value[0] in value_json['date_val']:
-                                #print("in locations",value_json['date_val'])
+
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                # #print(key,value)
-                                #print(value[0],value[1])
                                 self.dict.update({value[0]: value[1]})
+
                             elif value[0] in value_json['address']:
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img.copy(), [vrx], True, (255, 255, 0), 1)
                                 self.address_val.update({value[0]: value[1]})
-                            elif value[0] in value_json['license_id']:
+
+                            elif any(char in value_json['license_id'] for char in value[0]):
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img.copy(), [vrx], True, (0, 0, 255), 1)
                                 self.licence_id.update({value[0]: value[1]})
+
+                            elif any(char in value_json['first_name'] for char in value[0]):
+                                vrx = np.array(value[1], np.int32)
+                                vrx = vrx.reshape((-1, 1, 2))
+                                img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
+                                self.dict.update({value[0]: value[1]})
+
+                            elif any(char in value_json['last_name'] for char in value[0]):
+                                vrx = np.array(value[1], np.int32)
+                                vrx = vrx.reshape((-1, 1, 2))
+                                img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
+                                self.dict.update({value[0]: value[1]})
+
+                            elif any(char in value_json['middle_name'] for char in value[0]):
+                                vrx = np.array(value[1], np.int32)
+                                vrx = vrx.reshape((-1, 1, 2))
+                                img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
+                                self.dict.update({value[0]: value[1]})
                             else:
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
                                 self.dict.update({value[0]: value[1]})
+            print("Dictionary",self.dict)
             dt = datetime.datetime.now()
             date_val=dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
             cv2.imwrite("../images/processed/"+date_val+".jpg", img)

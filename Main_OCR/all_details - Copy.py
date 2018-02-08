@@ -55,18 +55,10 @@ class Scan_OCR:
     def get_doc_text(self,path,doc_type):
         self.text,description,result = self.Location.get_text(path,doc_type)
 
-        employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address,\
-        employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value,\
-        employer_name, employee_name,earnings, current_earnings,ytd_earnings, deduction, current_deduction,\
-        ytd_deduction,other, current_other, ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay, \
-        pay_end_date,end_date = self.Paystub.get_details(
+        employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, gross_pay, net_pay, pay_end_date = self.Paystub.get_details(
             self.text,path,description,result)
-        self.doc_text.put((self.text, employer_full_address, employer_street, employer_state, employer_zipcode,
-                           employer_city, employee_full_address,employee_street, employee_state, employee_zipcode,
-                           employee_city, start_date, pay_frequency, string_date_value,employer_name, employee_name,
-                           earnings, current_earnings,ytd_earnings, deduction, current_deduction,ytd_deduction,other,
-                           current_other, ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay,
-                           pay_end_date,end_date))
+        self.doc_text.put((self.text, employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, gross_pay, net_pay, pay_end_date))
+
     def image_to_pdf(self, image_path, doc_type):
         try:
 
@@ -183,6 +175,8 @@ class Scan_OCR:
                     else:
                         self.name_value = name.split()
                         #print(self.name_value)
+
+
                     if len(self.name_value) == 1:
                         add = {'first_name': "", 'dob': dob, 'issue_date': iss_date,
                                'expiration_date': exp_date,
@@ -236,6 +230,8 @@ class Scan_OCR:
                                             response['fields'][i]['location'] = str(list(self.location_val))
                                         response['fields'][i]['confidence'] = license_score
 
+
+
                             elif response['fields'][i]['name'] == "dob":
                                 self.location_val.clear()
                                 for key, value in date_dict.items():
@@ -244,36 +240,6 @@ class Scan_OCR:
                                         if key in response['fields'][i]['field_value_original']:
                                             response['fields'][i]['confidence'] = date_score
                                             response['fields'][i]['location'] = str(list(self.location_val))
-
-                            elif response['fields'][i]['name'] == "first_name":
-                                self.location_val.clear()
-                                for key, value in dict_location.items():
-                                    self.location_val.append(value)
-                                    key = key.replace(',', '')
-                                    if response['fields'][i]['field_value_original'] is not "":
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(self.location_val)
-                                            response['fields'][i]['confidence'] = other_score
-
-                            elif response['fields'][i]['name'] == "last_name":
-                                self.location_val.clear()
-                                for key, value in dict_location.items():
-                                    self.location_val.append(value)
-                                    key = key.replace(',', '')
-                                    if response['fields'][i]['field_value_original'] is not "":
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(self.location_val)
-                                            response['fields'][i]['confidence'] = other_score
-
-                            elif response['fields'][i]['name'] == "middle_name":
-                                self.location_val.clear()
-                                for key, value in dict_location.items():
-                                    self.location_val.append(value)
-                                    key = key.replace(',', '')
-                                    if response['fields'][i]['field_value_original'] is not "":
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(self.location_val)
-                                            response['fields'][i]['confidence'] = other_score
 
                             elif response['fields'][i]['name'] == "issue_date":
                                 self.location_val.clear()
@@ -292,7 +258,6 @@ class Scan_OCR:
                                         if key in response['fields'][i]['field_value_original']:
                                             response['fields'][i]['confidence'] = date_score
                                             response['fields'][i]['location'] = str(list(self.location_val))
-
                             else:
                                 self.location_val.clear()
                                 for key,value in dict_location.items():
@@ -395,168 +360,107 @@ class Scan_OCR:
                 else:
                     thread = threading.Thread(target=self.get_doc_text, args=("../images/documents_upload/" + filename,json_val[doc_id],))
                 thread.start()
-                (self.text, employer_full_address, employer_street, employer_state, employer_zipcode,
-                           employer_city, employee_full_address,employee_street, employee_state, employee_zipcode,
-                           employee_city, start_date, pay_frequency, string_date_value,employer_name, employee_name,
-                           earnings, current_earnings,ytd_earnings, deduction, current_deduction,ytd_deduction,other,
-                           current_other, ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay,
-                           pay_end_date,end_date)=self.doc_text.get()
-                if current_gross_net == '' and current_net == '' and pay_frequency == '' and employee_full_address=='' and employer_full_address=='' and employee_name == '' and employee_city == '' and employee_state == '' and employer_name == '' and employer_city == '' and employer_state == '' and start_date == '':
+                (self.text,employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, gross_pay, net_pay, pay_end_date)=self.doc_text.get()
+
+                    # thread = threading.Thread(target=self.get_doc,args=("../images/documents_upload/" + filename, json_val[doc_id],))
+                # thread.start()
+                # while not self.scan_text.empty():  # wait for Worker to finish
+                #     sleep(.5)
+                # (self.text, employer_full_address, employer_street, employer_state, employer_zipcode, employer_city,employee_full_address, employee_street, employee_state, employee_zipcode, employee_city,start_date,pay_frequency, string_date_value,employer_name,employee_name,gross_pay,net_pay,pay_end_date) = self.scan_text.get()
+                if gross_pay == '' and net_pay == '' and pay_frequency == '' and employee_full_address=='' and employer_full_address=='' and employee_name == '' and employee_city == '' and employee_state == '' and employer_name == '' and employer_city == '' and employer_state == '' and start_date == '':
                     file_path = ''
                     self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
                     self.scan_result['status'] = "INCORRECT_DOCUMENT"
+                    #print(self.scan_result)
                     return self.scan_result, file_path
                 else:
-                    j=0
-                    for i in range(len(response['fields'])):
-                        if 'regular' in response['fields'][i]['name']:
-                            if j < len(earnings):
+                    add = {'gross_pay': gross_pay,'mi':'', 'net_pay': net_pay, 'pay_frequency': pay_frequency,'employee_address':employee_full_address,'employer_address':employer_full_address,
+                           'employer_name': employer_name,'position':'','employee_number':'','pay_period_start_date':start_date,
+                           'pay_date':'','pay_period_end_date':pay_end_date,'employer_city': employer_city, 'employer_state': employer_state,
+                           'employee_name': employee_name,'employee_federal_tax_withholding':'',
+                            'employee_city': employee_city, 'employee_state': employee_state,
+                           "employment_start_date": '', 'employer/company_code': '','date_val':string_date_value,'regular_wages':'','salary_wages':'','overtime_wages':'',
+                           'commission_wages':'','gratuity_wages':'','total_gross_wages_for_pay_period':'','federal_income_tax':'','ssi_withholding':'','state_income_tax':'','state_unemployment':'',
+                           'disability_insurance_(di)_withholding':'',}
+                    actual_value = list(add.keys())
+                    actual_value = sorted(actual_value)
+                    add_value = list(add.values())
+                    detected_null_value_count = add_value.count('')
+                    partial_not_detected, partial_detected = [], []
 
-                                response['fields'][i]['alias'] = earnings[j]
-                                response['fields'][i]['field_value_original'] = current_earnings[j]
-                                response['fields'][i]['optional_value'] = ytd_earnings[j]
-                                j = j + 1
-                                pass
-                            else:
-                                response['fields'][i]['alias'] = ''
-                                response['fields'][i]['field_value_original'] = ''
-                                response['fields'][i]['optional_value'] = ''
-                        elif 'tax' in response['fields'][i]['name']:
-                            if j < len(deduction):
-                                print(i)
-                                response['fields'][i]['alias'] = deduction[j]
-                                response['fields'][i]['field_value_original'] = current_deduction[j]
-                                response['fields'][i]['optional_value'] = ytd_deduction[j]
-                                j = j + 1
-                                pass
-                            else:
-                                response['fields'][i]['alias'] = ''
-                                response['fields'][i]['field_value_original'] = ''
-                                response['fields'][i]['optional_value'] = ''
-                        elif 'other' in response['fields'][i]['name']:
-                            if j < len(other):
-                                print(i)
-                                response['fields'][i]['alias'] = other[j]
-                                response['fields'][i]['field_value_original'] = current_other[j]
-                                response['fields'][i]['optional_value'] = ytd_other[j]
-                                j = j + 1
-                                pass
-                            else:
-                                response['fields'][i]['alias'] = ''
-                                response['fields'][i]['field_value_original'] = ''
-                                response['fields'][i]['optional_value'] = ''
-                        elif 'gross_pay' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = current_gross_net
-                            response['fields'][i]['optional_value'] = ytd_gross_pay
-                        elif 'net_pay' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = current_net
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employee_name' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employee_name
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employee_number' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer_address' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employer_full_address
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer/company_code' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'pay_period_end_date' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = pay_end_date
-                            response['fields'][i]['optional_value'] =""
-                        elif 'pay_date' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = end_date
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'state_unemployment' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'position' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'mi' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer_name' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employer_name
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer_city' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employer_city
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employee_city' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employee_city
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer_state' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employer_state
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employee_state' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employee_state
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employment_start_date' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = start_date
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employee_address' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employee_full_address
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'pay_frequency' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = pay_frequency
-                            response['fields'][i]['optional_value'] = ""
-                    # actual_value = list(add.keys())
-                    # actual_value = sorted(actual_value)
-                    # add_value = list(add.values())
-                    # detected_null_value_count = add_value.count('')
-                    # partial_not_detected, partial_detected = [], []
-                    #
-                    # for i in range(len(response['fields'])):
-                    #     for j in range(len(actual_value)):
-                    #         if response['fields'][i]['name'] == actual_value[j]:
-                    #             response['fields'][i]['field_value_original'] = add[actual_value[j]]
-                    # #             pass
-                    # thread = threading.Thread(target=self.get_location, args=(
-                    # response, "../images/documents_upload/" + filename, application_id, self.config['base_url'],
-                    # json_val[doc_id],))
-                    # thread.start()
-                    # (emp_name,employee_name,employer_address,employee_address, dict_location, file_path) = self.location.get()
-                    # thread = threading.Thread(target=self.confidence_score, args=("../images/documents_upload/" + filename, json_val[doc_id], add,))
-                    # thread.start()
-                    # (paystub_score) = self.confidence.get()
-                    #
                     for i in range(len(response['fields'])):
+                        for j in range(len(actual_value)):
+                            if response['fields'][i]['name'] == actual_value[j]:
+                                response['fields'][i]['field_value_original'] = add[actual_value[j]]
+                                pass
+                    thread = threading.Thread(target=self.get_location, args=(
+                    add, "../images/documents_upload/" + filename, application_id, self.config['base_url'],
+                    json_val[doc_id],))
+                    thread.start()
+                    (emp_name,employee_name,employer_address,employee_address, dict_location, file_path) = self.location.get()
+                    thread = threading.Thread(target=self.confidence_score, args=("../images/documents_upload/" + filename, json_val[doc_id], add,))
+                    thread.start()
+                    (paystub_score) = self.confidence.get()
 
+                    for i in range(len(response['fields'])):
+                        for j in range(len(actual_value)):
                             if response['fields'][i]['name'] == "employer_name":
-                                    response['fields'][i]['confidence'] = '72'
+                                self.location_val.clear()
+                                for key, value in emp_name.items():
+                                    self.location_val.append(value)
+                                    if key in response['fields'][i]['field_value_original'] :
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        response['fields'][i]['confidence'] = paystub_score
 
                             elif response['fields'][i]['name'] == "employee_name":
-                                    response['fields'][i]['confidence'] = '67'
+                                self.location_val.clear()
+                                for key, value in employee_name.items():
+                                    self.location_val.append(value)
+                                    if key in response['fields'][i]['field_value_original'] :
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        response['fields'][i]['confidence'] = paystub_score
 
                             elif response['fields'][i]['name'] == "employer_address":
-                                        response['fields'][i]['confidence'] = "75"
+                                self.location_val.clear()
+                                for key, value in employer_address.items():
+                                    self.location_val.append(value)
+                                    if key in response['fields'][i]['field_value_original'] :
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        response['fields'][i]['confidence'] = paystub_score
 
                             elif response['fields'][i]['name'] == "employee_address":
-                                    response['fields'][i]['confidence'] = "73"
+                                self.location_val.clear()
+                                for key, value in employee_address.items():
+                                    self.location_val.append(value)
+                                    if key in response['fields'][i]['field_value_original'] :
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        response['fields'][i]['confidence'] = paystub_score
 
                             else:
-                                    response['fields'][i]['confidence'] = "78"
+                                self.location_val.clear()
+                                for key, value in dict_location.items():
+                                    self.location_val.clear()
+                                    self.location_val.append(value)
+                                    key = key.replace(',', '')
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str(self.location_val)
+                                        response['fields'][i]['confidence'] = paystub_score
                     self.scan_result = response
-                    # if detected_null_value_count >= int(len(actual_value) / 2):
-                    #     for key, value in add.items():
-                    #         if value == 'null':
-                    #             partial_not_detected.append(key)
-                    #         else:
-                    #             partial_detected.append(key)
-                    #     self.scan_result['error_msg'] = "Partially Detected:" + ", ".join(
-                    #         map(str, partial_detected)) + "\nUnable to Detectect" + ", ".join(
-                    #         map(str, partial_not_detected))
-                    #
-                    #     self.scan_result['status'] = "PARTIAL_DETECTION"
-                    #
-                    # else:
+                    if detected_null_value_count >= int(len(actual_value) / 2):
+                        for key, value in add.items():
+                            if value == 'null':
+                                partial_not_detected.append(key)
+                            else:
+                                partial_detected.append(key)
+                        self.scan_result['error_msg'] = "Partially Detected:" + ", ".join(
+                            map(str, partial_detected)) + "\nUnable to Detectect" + ", ".join(
+                            map(str, partial_not_detected))
 
-                    self.scan_result['error_msg'] = "Successfully Scanned"
-                    self.scan_result["status"] = "SUCCESSFUL"
-                    file_path = "../images/documents_upload/" + filename
+                        self.scan_result['status'] = "PARTIAL_DETECTION"
 
+                    else:
+                        self.scan_result['error_msg'] = "Successfully Scanned"
+                        self.scan_result["status"] = "SUCCESSFUL"
             #print(self.text)
             self.scan_result['raw_data'] = self.text
             print("all response", self.scan_result)

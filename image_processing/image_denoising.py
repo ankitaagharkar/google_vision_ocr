@@ -117,7 +117,7 @@ class Denoising:
                     contrast = ImageEnhance.Contrast(sharpImg)
                     pImg = contrast.enhance(1.47)
                 image = np.array(pImg)
-                pImg = cv2.GaussianBlur(image,(5,5),0)
+                pImg = cv2.GaussianBlur(image,(1,1),0.5)
                 # else:
                 #     img = cv2.imread(path)
                 #     if mean==84.5215623913:
@@ -135,21 +135,28 @@ class Denoising:
                 #     else:
                 #         pas
             elif 'SSN' in doc_type:
-                img = cv2.imread(path)
-                head, tail = os.path.split(path)
-                pImg = self.process_image(img, 30)
-            elif 'PayStub' in doc_type:
-                img = cv2.imread(path)
-                head, tail = os.path.split(path)
-                mean = self.mean_using_mb(img)
-                print(mean)
-                pImg = self.process_image(img, 10)
-                for i in list(range(5)):  # to Iterate again
-                    mean = self.mean_using_mb(pImg)
-                    if (mean > 65.0):
-                        pImg = self.process_image(pImg, 20)
-                    else:
-                        break
+                print("im method", path)
+                pImg = I.open(path)
+                print(pImg)
+                imStat = ImageStat.Stat(pImg)
+                medi = list(map((lambda x: x / 25), imStat.mean))
+                print(max(medi))
+                if max(medi) < 5:
+                    brightness = ImageEnhance.Brightness(pImg)
+                    pImg = brightness.enhance(5 - max(medi))
+                pImg = pImg.convert('L')
+                # brightImg.save(imgPath[:-4] + '_Bright'+ str(max(medi)) + '.jpg')
+                sharpness = ImageEnhance.Sharpness(pImg)
+                cvImg = np.array(pImg)
+                blur = self.variance_of_laplacian(cvImg)
+                if blur < 500:
+                    print("blur", blur)
+
+                    sharpImg = sharpness.enhance(2.5)
+                    cvImg = np.array(sharpImg)
+                    contrast = ImageEnhance.Contrast(sharpImg)
+                    pImg = contrast.enhance(1.5)
+                pImg = np.array(pImg)
             cv2.imwrite("../images/static/" + tail, pImg)
             return "../images/static/" + tail
         except Exception as e:
