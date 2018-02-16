@@ -5,7 +5,8 @@ import sys
 import re
 sys.path.insert(0, '../image_processing')
 import Common
-#sys.path.insert(0, '../all_documents')
+from dateparser import parse
+sys.path.insert(0, '../all_documents')
 import get_licence_details
 import avoid
 import paystub_block_values
@@ -282,6 +283,7 @@ class Paystub_details:
         try:
             #print(text)
             # text = text_value.replace(' ', '')
+            advice_pay_date=""
             start_date,end_date,ending_date = "","",""
             val = re.findall(
                 r'(\w*[A-Za-z]\d{1}\d{2}[./-](19|20|21|22|23|24)\d\d)|(\w*[A-Za-z]\d{1}[./-]\d{2}[./-](19|20|21|22|23|24)\d\d)'
@@ -319,13 +321,14 @@ class Paystub_details:
                 else:
                     self.actual_date.append(datetime.datetime.strptime(value, '%m/%d/%Y').strftime('%Y/%m/%d'))
             print("all date format", self.actual_date)
-            actual_pay_date=self.actual_date[2]
             data = " ".join(map(str, self.actual_date))
             print(data)
 
             starting_date =self.actual_date[0]
             advice_pay = self.actual_date[2]
             ending_date =self.actual_date[1]
+            ap=parse(advice_pay)
+            advice_pay_date=ap.strftime('%m/%d/%Y')
             if advice_pay != "" and starting_date != "":
             #     for date in self.actual_date:
             #         if date > start_date and date < advice_pay:
@@ -373,8 +376,8 @@ class Paystub_details:
             #     self.pay_frequency=''
             # start_date=dt.strptime(start_date, "%m/%d/%Y")
             # #print("staring date",start_date)
-            print("in paystub date",str(start_date),end_date,actual_pay_date)
-            return str(start_date), self.pay_frequency, string_date_value,end_date,actual_pay_date
+            print("in paystub date",str(start_date),end_date,advice_pay_date)
+            return str(start_date), self.pay_frequency, string_date_value,end_date,advice_pay_date
         except Exception as E:
             print(E)
             start_date, self.pay_frequency, string_date_value,end_date,pay_end_date= "", "", "","",""

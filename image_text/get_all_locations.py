@@ -132,13 +132,13 @@ class get_all_location:
                                         self.deduction10.update({str(value[0]): value[1]})
                     else:
                         if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
-                            if value[0] in value_json['pay_period_end_date']:
-                                vrx = np.array(value[1], np.int32)
-                                vrx = vrx.reshape((-1, 1, 2))
-                                img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                # #print(key,value)
-                                self.pay_end_date.update({str(value[0]): value[1]})
-                            elif value[0] in value_json['pay_period_start_date']:
+                            # if value[0] in value_json['pay_period_end_date']:
+                            #     vrx = np.array(value[1], np.int32)
+                            #     vrx = vrx.reshape((-1, 1, 2))
+                            #     img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                            #     # #print(key,value)
+                            #     self.pay_end_date.update({str(value[0]): value[1]})
+                            if value[0] in value_json['pay_period_start_date']:
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)

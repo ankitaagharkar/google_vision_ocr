@@ -559,12 +559,12 @@ class Scan_OCR:
                     #         if response['fields'][i]['name'] == actual_value[j]:
                     #             response['fields'][i]['field_value_original'] = add[actual_value[j]]
                     # #             pass
-                    thread = threading.Thread(target=self.get_location, args=(
-                    response, "../images/documents_upload/" + filename, application_id, self.config['base_url'],
-                    json_val[doc_id],))
-                    thread.start()
-                    (emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4,regular5, regular6, regular7, regular8, regular9, regular10,tax1, tax2, tax3, tax4, tax5, tax6, tax7, tax8,tax9, tax10, deduction1, deduction2, deduction3, deduction4,deduction5, deduction6, deduction7, deduction8, deduction9,deduction10, pay_start_date, pay_end_date, pay_date, dict_location,file_path,value_json) = self.location.get()
-                    print("in details val",value_json)
+                    # thread = threading.Thread(target=self.get_location, args=(
+                    # response, "../images/documents_upload/" + filename, application_id, self.config['base_url'],
+                    # json_val[doc_id],))
+                    # thread.start()
+                    # (emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4,regular5, regular6, regular7, regular8, regular9, regular10,tax1, tax2, tax3, tax4, tax5, tax6, tax7, tax8,tax9, tax10, deduction1, deduction2, deduction3, deduction4,deduction5, deduction6, deduction7, deduction8, deduction9,deduction10, pay_start_date, pay_end_date, pay_date, dict_location,file_path,value_json) = self.location.get()
+                    # print("in details val",value_json)
                     # thread = threading.Thread(target=self.confidence_score, args=("../images/documents_upload/" + filename, json_val[doc_id], value_json,))
                     # thread.start()
                     # (regular1_scrore,regular2_scrore,regular3_scrore,regular4_scrore,regular5_scrore,regular6_scrore,regular7_scrore,\

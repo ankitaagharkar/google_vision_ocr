@@ -61,6 +61,7 @@ class get_all_location:
         s = s.replace(',', '')
         # s = s.replace('$','')
         s = s.replace('-', '')
+        s = s.replace('–', '')
         # s = s.replace('*','')
         s = s.replace(' ', '.')
         s = s.replace('.', '', s.count('.') - 1)
@@ -87,6 +88,7 @@ class get_all_location:
         # s = s.replace('$','')
         # s = s.replace('s','')
         s = s.replace('-', '')
+        s = s.replace('–', '')
         # s = s.replace('*','')
         s = s.replace(' ', '.')
         s = s.replace('.', '', s.count('.') - 1)
@@ -131,6 +133,7 @@ class get_all_location:
             1B: If NO, add the word to current line
         """
         for key, values in enumerate(res):
+            print(key, values)
             if values[1][0][1] < prev_y_mid and abs(prev_y_start - values[1][0][1]) <= mod_ht:
                 line_list[-1].append([values[0], values[1]])
             else:
@@ -175,7 +178,7 @@ class get_all_location:
                     d = word_val + word[0]
                     d1 = word_val + ' ' + word[0]
                     if self.is_float_or_int(word_val):
-                        if not self.is_float_or_int(word[0]) and word[0] not in (',', '.', '/', '-', '%'):
+                        if not self.is_float_or_int(word[0]) and word[0] not in (',', '.', '/', '-', '–', '%'):
                             line_list[k][w_index] = word
                             space_width = abs(word[1][0][1] - word[1][2][1]) * 1.5
                             word_end = word[1][2][0]

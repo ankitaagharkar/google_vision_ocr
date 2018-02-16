@@ -3,6 +3,7 @@ import re
 
 def replace(actual_name1):
     actual_name1 = actual_name1.replace('DONAR', "")
+    actual_name1 = actual_name1.replace('KAROLA', "")
     actual_name1 = actual_name1.replace('B-', "")
     actual_name1 = actual_name1.replace(' IMWHS ', "")
     actual_name1 = actual_name1.replace('MEmp', "")
@@ -101,7 +102,7 @@ def replace(actual_name1):
     actual_name1 = actual_name1.replace(' OL ', "")
     actual_name1 = actual_name1.replace('GIN', "")
     actual_name1 = actual_name1.replace('CASS', "")
-    actual_name1 = actual_name1.replace(' ADP ', "")
+    actual_name1 = actual_name1.replace('ADP ', "")
     actual_name1 = actual_name1.replace(' SU ', "")
     actual_name1 = actual_name1.replace('MWAberty', "")
     actual_name1 = actual_name1.replace('FILE', "")
@@ -114,10 +115,12 @@ def replace(actual_name1):
     actual_name1 = actual_name1.replace('owances', "")
     actual_name1 = actual_name1.replace(' DRI', "DR")
     actual_name1 = actual_name1.replace('Maso', "")
+    actual_name1 = actual_name1.replace(' EER ', "")
     actual_name1 = actual_name1.replace('Federa', "")
-    actual_name1 = actual_name1.replace(' NY ', "")
+    actual_name1 = actual_name1.replace('NY ', "")
+    actual_name1 = actual_name1.replace(' UN ', "")
     actual_name1 = re.sub(
-        r"(=?EXP|HGT|Earnings|Donor| S |AP |=|,|@|#|%|^| E|CGA|CONG|EENHANCED|am|Mal| OL |GIN|CASS C | D |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF |LN | EN |ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
+        r"(=?EXP|HGT|Earnings|Donor| S |AP |=|,|@|#|%|^|CGA|CONG|EENHANCED|am|Mal| OL |GIN|CASS C | D |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF |LN | EN | ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
         "", actual_name1)
     actual_name = re.sub(
         r"\s(=?EXP|HGT|Earnings|Donor|AP |=|,|@|#|%|^|CGA|CONG|EENHANCED|am|Mal| OL |GIN|CASS|C |D | AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE|USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP|IS | TO |THE |ORDER|No |Payro| OC | OF |LN |EN |ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class|DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
