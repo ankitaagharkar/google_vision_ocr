@@ -80,11 +80,14 @@ class Paystub_details:
                     else:
                         city=actual_city
                     full_address = self.c.find_between_r(value, street, city)
+                    if full_address!="":
                     #print("full",full_address)
-                    full_address = street + full_address
-                    full_address=' '.join(s[:1].upper() + s[1:] for s in full_address.split())
-                    city=city.replace(",","")
-                    city = city.replace(".", "")
+                        full_address = street + full_address
+                        full_address=' '.join(s[:1].upper() + s[1:] for s in full_address.split())
+                        city=city.replace(",","")
+                        city = city.replace(".", "")
+                    else:
+                        full_address=address
                     return full_address, street, state, zipcode, city
             else:
                 data = re.findall(
@@ -259,15 +262,17 @@ class Paystub_details:
             return full_name
     def employee_name(self, value, street):
         try:
-
-
-            name = ' '.join(map(str, value.split(street, 1)[0].split()[-6:]))
+            name = ' '.join(map(str, value.split(street, 1)[0].split()[-3:]))
             #print("name", name)
             name_regex = re.findall(r'([A-Za-z]+[,.&\s]*[A-Za-z]+)+', name)
             actual_name = " ".join(map(str, name_regex))
             actual_name = actual_name.replace("NY New York Cit","")
+            actual_name.replace(" NJ ", "")
+            actual_name.replace(" Table ", "")
+            actual_name.replace(" A ", "")
             actual_name = avoid.replace(actual_name)
-            actual_name.replace("NJ: 0 Table A","")
+
+            print(actual_name)
             #print("full_name", actual_name)
             return actual_name
         except Exception as e:
@@ -277,10 +282,14 @@ class Paystub_details:
         try:
             #print(text)
             # text = text_value.replace(' ', '')
-            start_date = ""
+            start_date,end_date,ending_date = "","",""
             val = re.findall(
-                r'(([0-9]|0[0-9]|1[0-9])[./-]([0-9][0-9]|[0-9])[./-]\d\d)|(([0-9]'
-                r'|0[0-9]|1[0-9])[./-]([0-9][0-9]|[0-9])[./-](19|20|21|22|23|24)\d\d)\b', text)
+                r'(\w*[A-Za-z]\d{1}\d{2}[./-](19|20|21|22|23|24)\d\d)|(\w*[A-Za-z]\d{1}[./-]\d{2}[./-](19|20|21|22|23|24)\d\d)'
+                r'|(\d{2}\s?[./-]\d{2}[./-](19|20|21|22|23|24)\d\d)|(\d{2}\s\d{2}\s(19|20|21|22|23|24)\d\d)'
+                r'|(\d{2}[./-]\d{2}\s?(19|20|21|22|23|24)\d\d)|(\d{2}[./-]\d{2}\s?\d\s?\d)|(\d{1,2}\s?[./-]\d{2}[./-]\s?\d{2}\s?\d{2})'
+                r'|(\d{2}\d{2}[./-](19|20|21|22|23|24)\d\d)|(\d{2}[./-]\d{2}\s[./-](19|20|21|22|23|24)\d\d)|(([0-9]|0[0-9]'
+                r'|1[0-9])[./-]([0-9][0-9]|[0-9])[./-]\d\d)|(([0-9]|0[0-9]'
+                r'|1[0-9])[./-]([0-9][0-9]|[0-9])[./-](19|20|21|22|23|24)\d\d|(\d{2}\d{2}[./-]\d\d))\b', text)
             for item in val:
                 self.date_val1.append("".join(item))
             string_date = " ".join(map(str, self.date_val1))
@@ -303,130 +312,124 @@ class Paystub_details:
                     dob = dob.replace(".", "")
                 dob = dob[0:2] + '/' + dob[2:4] + '/' + dob[4:8]
                 self.date.append(dob)
+            print("all date",self.date)
             for value in self.date[:3]:
                 if re.match(r'\b\d{2}[./-]\d{2}[./-]\d{2}\b', value):
                     self.actual_date.append(datetime.datetime.strptime(value, '%m/%d/%y').strftime('%y/%m/%d'))
                 else:
                     self.actual_date.append(datetime.datetime.strptime(value, '%m/%d/%Y').strftime('%Y/%m/%d'))
-            pay_end_date=self.actual_date[3]
+            print("all date format", self.actual_date)
+            actual_pay_date=self.actual_date[2]
             data = " ".join(map(str, self.actual_date))
-            if re.match(r'\b\d{2}[./-]\d{2}[./-]\d{2}\b', data):
-                ending_date = max(self.actual_date)
-                starting_date = min(self.actual_date)
-                if ending_date != "" and starting_date != "":
+            print(data)
+
+            starting_date =self.actual_date[0]
+            advice_pay = self.actual_date[2]
+            ending_date =self.actual_date[1]
+            if advice_pay != "" and starting_date != "":
+            #     for date in self.actual_date:
+            #         if date > start_date and date < advice_pay:
+                if re.match(r'\d{2}[./-]\d{2}[./-]\d{2}', data):
                     ending_date = datetime.datetime.strptime(ending_date, '%y/%m/%d').strftime('%m/%d/%y')
                     starting_date = datetime.datetime.strptime(starting_date, '%y/%m/%d').strftime('%m/%d/%y')
                     self.employment_Start_date = dt.strptime(ending_date, "%m/%d/%y")
                     self.pay_date = dt.strptime(starting_date, "%m/%d/%y")
-                    start_date = self.pay_date.date().strftime('%m/%d/%Y')
-            else:
-                ending_date = max(self.actual_date)
-                starting_date = min(self.actual_date)
-                if ending_date != None and starting_date != None:
+                    print("date in paystub", self.pay_date)
+                    start_date = self.pay_date.date().strftime('%m/%d/%y')
+                    end_date = self.employment_Start_date.date().strftime('%m/%d/%y')
+                    print("end_date",end_date)
+                else:
                     ending_date = datetime.datetime.strptime(ending_date, '%Y/%m/%d').strftime('%m/%d/%Y')
                     starting_date = datetime.datetime.strptime(starting_date, '%Y/%m/%d').strftime('%m/%d/%Y')
+                    print(start_date)
                     self.employment_Start_date = dt.strptime(ending_date, "%m/%d/%Y")
                     self.pay_date = dt.strptime(starting_date, "%m/%d/%Y")
+                    print("date in paystub",self.pay_date)
                     start_date = self.pay_date.date().strftime('%m/%d/%Y')
                     end_date=self.employment_Start_date.date().strftime('%m/%d/%Y')
+                    print("end_date",end_date)
+
             frequency = abs((self.pay_date - self.employment_Start_date).days)
+            print("in paystub days", self.pay_date.date().day)
             if self.pay_date.date().day>=15:
                 self.pay_frequency = 'Bi-Monthly'
-            elif 7>=self.pay_date.date().day<=14:
-                self.pay_frequency = 'Bi-Weekly'
-            elif self.pay_date.date().day<=7:
-                self.pay_frequency = 'Weekly'
-            # if frequency == 14 or frequency == 13:
-            #     self.pay_frequency = 'Bi-Weekly'
-            # elif frequency == 7 or frequency == 6:
-            #     self.pay_frequency = 'Weekly'
-            elif frequency == 30 or frequency == 31:
-                self.pay_frequency = 'Monthly'
             else:
-                self.pay_frequency=''
+                if frequency==14 or frequency==13:
+                    self.pay_frequency = 'Bi-Weekly'
+                elif frequency==7 or frequency==6:
+                    self.pay_frequency = 'Weekly'
+                elif frequency == 30 or frequency == 31:
+                    self.pay_frequency = 'Monthly'
+                else:
+                    self.pay_frequency=""
+    #     self.pay_frequency = 'Monthly'
+            # elif 8<=self.pay_date.date().day<=14:
+            #     self.pay_frequency = 'Bi-Weekly'
+            # elif self.pay_date.date().day<=7:
+            #     self.pay_frequency = 'Weekly'
+            # elif frequency == 30 or frequency == 31:
+            #     self.pay_frequency = 'Monthly'
+            # else:
+            #     self.pay_frequency=''
             # start_date=dt.strptime(start_date, "%m/%d/%Y")
             # #print("staring date",start_date)
-            # #print("pay_frequency",self.pay_frequency)
-            return str(start_date), self.pay_frequency, string_date_value,end_date,pay_end_date
+            print("in paystub date",str(start_date),end_date,actual_pay_date)
+            return str(start_date), self.pay_frequency, string_date_value,end_date,actual_pay_date
         except Exception as E:
             print(E)
-            start_date, self.pay_frequency, string_date_value = "", "", ""
-            return start_date, self.pay_frequency, string_date_value,self.employment_Start_date
+            start_date, self.pay_frequency, string_date_value,end_date,pay_end_date= "", "", "","",""
+            return start_date, self.pay_frequency, string_date_value,end_date,pay_end_date
     def get_gross_net_pay(self,path,description,result):
         try:
             # self.paystub_block.get_text(path)
             # lines = self.paystub_block.rectify_data()
             # for line in lines:
             #     #print(line)
+
             blocks1 = self.paystub_block.all_location_details(path,description,result)
-            print(blocks1)
+            print("in paystub",blocks1)
             # blocks=self.paystub_block.all_location()
             gross_net_values=list(blocks1.values())
             pays_keys=list(blocks1.keys())
             for i in range(len(gross_net_values)):
-                    if 'Gross Pay' in gross_net_values[i]:
-                        self.current_gross_pay=gross_net_values[i][1]
-                        self.current_gross_pay=self.current_gross_pay.replace('S',"")
-                        self.current_gross_pay = self.current_gross_pay.replace('s', "")
-                        self.ytd_gross_pay = gross_net_values[i][2]
-                        self.ytd_gross_pay = self.ytd_gross_pay.replace('S', "")
-                        self.ytd_gross_pay = self.ytd_gross_pay.replace('s', "")
+                for item in gross_net_values[i]:
+                    if 'Gross Pay' in pays_keys[i]:
+                        self.current_gross_pay=item[1]
+                        self.ytd_gross_pay = item[2]
+                    elif 'Net Pay'in pays_keys[i]:
+                        self.current_net_pay=item[1]
+                        self.ytd_net_pay = item[2]
 
-                    elif 'Net Pay'in gross_net_values[i]:
-                        self.current_net_pay=gross_net_values[i][1]
-                        self.current_net_pay = self.current_net_pay.replace('S', "")
-                        self.current_net_pay = self.current_net_pay.replace('s', "")
-                        self.ytd_net_pay = gross_net_values[i][1]
-                        self.ytd_net_pay = self.ytd_net_pay.replace('S', "")
-                        self.ytd_net_pay = self.ytd_net_pay.replace('s', "")
+                    elif 'Earnings' in pays_keys[i]:
+                        self.earnings.append(item[0])
+                        self.current_earnings.append(item[1])
+                        self.ytd_earnings.append(item[2])
 
-                    if 'Earnings' in gross_net_values[i]:
-                        self.earnings.append(pays_keys[i])
-                        self.current_earnings.append(gross_net_values[i][1])
-                        self.ytd_earnings.append(gross_net_values[i][2])
+                    elif 'Taxes' in pays_keys[i]:
+                        self.deduction.append(item[0])
+                        self.current_deduction.append(item[1])
+                        self.ytd_deduction.append(item[2])
 
-                    elif 'Tax' in gross_net_values[i]:
-                        self.deduction.append(pays_keys[i])
-                        self.current_deduction.append(gross_net_values[i][1])
-                        self.ytd_deduction.append(gross_net_values[i][2])
-
-                    elif 'Other' in gross_net_values[i]:
-                        self.other.append(pays_keys[i])
-                        self.current_other.append(gross_net_values[i][1])
-                        self.ytd_other.append(gross_net_values[i][2])
-
-            if re.search('\d+\s\d+', self.current_gross_pay):
-                gn = self.current_gross_pay.split(" ")
-                self.current_gross_net = gn[1] + "." + gn[2]
-            elif re.search('\d+\s\s\d+', self.current_gross_pay):
-                gn = self.current_gross_pay.split(" ")
-                self.current_gross_net = gn[1] + "." + gn[3]
-            else:
-                self.current_gross_net=self.current_gross_pay
-            if re.search('\d+\s\d+', self.current_net_pay):
-                nv = self.current_net_pay.split(" ")
-                self.current_net = nv[1] + "." + nv[2]
-            elif re.search('\d+\s\s\d+', self.current_net_pay):
-                nv = self.current_net_pay.split(" ")
-                self.current_net = nv[1] + "." + nv[3]
-            else:
-                self.current_net=self.current_net_pay
+                    elif 'Deductions' in pays_keys[i]:
+                        self.other.append(item[0])
+                        self.current_other.append(item[1])
+                        self.ytd_other.append(item[2])
             return self.earnings,self.current_earnings,self.ytd_earnings,self.deduction,self.current_deduction,self.ytd_deduction\
-                ,self.other,self.current_other,self.ytd_other,self.current_gross_net,self.current_net,self.ytd_gross_pay,self.ytd_net_pay
+                ,self.other,self.current_other,self.ytd_other,self.current_gross_pay,self.current_net_pay,self.ytd_gross_pay,self.ytd_net_pay
         except Exception as e:
             print(e)
     def get_details(self,text,path,description,result):
         try:
             #print(text)
-            self.earnings, self.current_earnings, self.ytd_earnings, self.deduction, self.current_deduction, self.ytd_deduction \
-                , self.other, self.current_other, self.ytd_other, self.current_gross_net, self.current_net, self.ytd_gross_pay, self.ytd_net_pay= self.get_gross_net_pay(path,description,result)
+            earnings, current_earnings, ytd_earnings, deduction, current_deduction, ytd_deduction \
+                , other, current_other,ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay= self.get_gross_net_pay(path,description,result)
             employer_full_address, employer_street, employer_state, employer_zipcode, employer_city=self.employer_address(text)
             employee_full_address, employee_street, employee_state, employee_zipcode, employee_city=self.employee_address(text)
-            start_date,pay_frequency, string_date_value,employment_Start_date,end_date = self.get_paystub_date(text)
+            start_date,pay_frequency, string_date_value,employment_Start_date,pay_date = self.get_paystub_date(text)
             employer_name=self.employer_name(text,employer_street)
             employee_name=self.employee_name(text,employee_street)
-            return employer_full_address, employer_street, employer_state, employer_zipcode, employer_city,employee_full_address, employee_street, employee_state, employee_zipcode, employee_city,start_date,pay_frequency, string_date_value,employer_name,employee_name,self.earnings, self.current_earnings,self.ytd_earnings, self.deduction, self.current_deduction, self.ytd_deduction \
-                , self.other, self.current_other, self.ytd_other, self.current_gross_net, self.current_net, self.ytd_gross_pay, self.ytd_net_pay,employment_Start_date,end_date
+            return employer_full_address, employer_street, employer_state, employer_zipcode, employer_city,employee_full_address, employee_street, employee_state, employee_zipcode, employee_city,start_date,pay_frequency, string_date_value,employer_name,employee_name,earnings, current_earnings, ytd_earnings, deduction, current_deduction, ytd_deduction \
+                , other, current_other,ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay,employment_Start_date,pay_date
         except Exception as e:
             print(e)
 

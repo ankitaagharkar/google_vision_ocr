@@ -1,8 +1,9 @@
-import io
+import io,sys
 import re,json
 from google.cloud import vision
 from google.cloud import vision_v1p1beta1 as vision
-
+sys.path.insert(0, '../image_text')
+import pay_other_confidence
 class text_score:
     def __init__(self):
         self.keys,self.values=[],[]
@@ -19,9 +20,17 @@ class text_score:
         self.license_id_dict={}
         self.paystub_confidence_score = 0.0
         self.other_confidence=0.0
+
+        self.emp_name, self.employee_name = {}, {}
+        self.emp_address, self.employee_address = {}, {}
+        self.regular1, self.regular2, self.regular3, self.regular4, self.regular5, self.regular6, self.regular7, self.regular8, self.regular9, self.regular10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8, self.tax9, self.tax10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        self.deduction1, self.deduction2, self.deduction3, self.deduction4, self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9, self.deduction10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        self.pay_start_date, self.pay_end_date, self.pay_date = {}, {}, {}
         self.word,self.license_text,self.regex_value= '','',""
         with open('../config/filtering.json', 'r') as data:
             self.state_value = json.load(data)
+        self.pay_val=pay_other_confidence.Confidence_Calculation()
         self.client = vision.ImageAnnotatorClient()
     def get_confidence_score(self,path):
         with io.open(path, 'rb') as image_file:
@@ -65,7 +74,7 @@ class text_score:
                             elif any(char in data['middle_name'] for char in value[0]):
                                 self.others.update({value[0]: value[1]})
 
-                            elif value[0] in data['address']:
+                            elif any(char in data['address'] for char in value[0]):
                                 self.address_val.update({value[0]: value[1]})
 
                             elif any(char in data['license_id'] for char in value[0]):
@@ -73,14 +82,11 @@ class text_score:
 
                             else:
                                 self.others.update({value[0]:value[1]})
-
-            print("other",self.others)
             for key5, value5 in self.license_id_dict.items():
                 self.license_confidence_score = self.license_confidence_score + value5
                 self.val.append(value5)
             print(self.val)
             len_confidence_score=len(self.license_id_dict)
-            print(text)
             text = text.replace(' AJ ', ' NJ ')
             state_regex = re.findall(
                 r"\b((?=AL|AK|AS|AZ|AŽ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE"
@@ -133,18 +139,151 @@ class text_score:
             return self.ssn_score
         except Exception as E:
             return self.ssn_score
-    def paystub_confidence(self,data):
+    def paystub_confidence(self,data_val):
+        data={}
         try:
+            a = 0
+            b = 0
+            c = 0
+
+            for key, value in data_val.items():
+                if "field_value_original" in data_val[key]:
+                    if value['field_value_original'] != "":
+                        data.update({key:value})
+                else:
+                    if value!= "":
+                        data.update({key: value})
+            print("in None Data",data)
             for key, value in enumerate(self.result):
+                a = a + 1
+                b = b + 1
+                c = c + 1
                 for key1, value1 in data.items():
                     if value[0] != '' and value1 != '':
-                        if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
-                            self.paystub.update({value[0]: value[1]})
-            for key4, value4 in self.paystub.items():
-                self.paystub_confidence_score = self.paystub_confidence_score + value4
-            paystub_length = len(self.paystub)
-            self.paystub_score = int((self.paystub_confidence_score/paystub_length) * 100)
-            return self.paystub_score
+                        if "field_value_original" in data[key1]:
+                            if value[0] in value1['field_value_original']:
+                                if "regular" in value1['alias']:
+                                   
+                                    var_name = "regular" + str(a)
+                                    if "1" in var_name:
+                                        self.regular1.update({str(value[0]): value[1]})
+                                    if "2" in var_name:
+                                        self.regular2.update({str(value[0]): value[1]})
+                                    if "3" in var_name:
+                                        self.regular3.update({str(value[0]): value[1]})
+                                    if "4" in var_name:
+                                        self.regular4.update({str(value[0]): value[1]})
+                                    if "5" in var_name:
+                                        self.regular5.update({str(value[0]): value[1]})
+                                    if "6" in var_name:
+                                        self.regular6.update({str(value[0]): value[1]})
+                                    if "7" in var_name:
+                                        self.regular7.update({str(value[0]): value[1]})
+                                    if "8" in var_name:
+                                        self.regular8.update({str(value[0]): value[1]})
+                                    if "9" in var_name:
+                                        self.regular9.update({str(value[0]): value[1]})
+                                    if "10" in var_name:
+                                        self.regular10.update({str(value[0]): value[1]})
+
+                                elif "tax" in value1['alias']:
+
+                                    var_name = "tax" + str(b)
+                                    if "1" in var_name:
+                                        self.tax1.update({str(value[0]): value[1]})
+                                    if "2" in var_name:
+                                        self.tax2.update({str(value[0]): value[1]})
+                                    if "3" in var_name:
+                                        self.tax3.update({str(value[0]): value[1]})
+                                    if "4" in var_name:
+                                        self.tax4.update({str(value[0]): value[1]})
+                                    if "5" in var_name:
+                                        self.tax5.update({str(value[0]): value[1]})
+                                    if "6" in var_name:
+                                        self.tax6.update({str(value[0]): value[1]})
+                                    if "7" in var_name:
+                                        self.tax7.update({str(value[0]): value[1]})
+                                    if "8" in var_name:
+                                        self.tax8.update({str(value[0]): value[1]})
+                                    if "9" in var_name:
+                                        self.tax9.update({str(value[0]): value[1]})
+                                    if "10" in value:
+                                        self.tax10.update({str(value[0]): value[1]})
+
+                                elif "deduction" in value1['alias']:
+                                    var_name = "deduction" + str(c)
+                                    if "1" in var_name:
+                                        self.deduction1.update({str(value[0]): value[1]})
+                                    if "2" in var_name:
+                                        self.deduction2.update({str(value[0]): value[1]})
+                                    if "3" in var_name:
+                                        self.deduction3.update({str(value[0]): value[1]})
+                                    if "4" in var_name:
+                                        self.deduction4.update({str(value[0]): value[1]})
+                                    if "5" in var_name:
+                                        self.deduction5.update({str(value[0]): value[1]})
+                                    if "6" in var_name:
+                                        self.deduction6.update({str(value[0]): value[1]})
+                                    if "7" in var_name:
+                                        self.deduction7.update({str(value[0]): value[1]})
+                                    if "8" in var_name:
+                                        self.deduction8.update({str(value[0]): value[1]})
+                                    if "9" in var_name:
+                                        self.deduction9.update({str(value[0]): value[1]})
+                                    if "10" in var_name:
+                                        self.deduction10.update({str(value[0]): value[1]})
+                        else:
+                            if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
+                                if value[0] in data['pay_period_end_date']:
+
+                                    self.pay_end_date.update({str(value[0]): value[1]})
+                                elif value[0] in data['pay_period_start_date']:
+
+                                    self.pay_start_date.update({str(value[0]): value[1]})
+                                elif value[0] in data['pay_date']:
+
+                                    self.pay_date.update({str(value[0]): value[1]})
+                                elif value[0] in data['employee_address']:
+
+                                    self.employee_address.update({str(value[0]): value[1]})
+                                elif value[0] in data['employer_address']:
+
+                                    self.emp_address.update({str(value[0]): value[1]})
+                                elif value[0] in data['employee_name']:
+
+                                    self.employee_name.update({str(value[0]): value[1]})
+                                elif value[0] in data['employer_name']:
+
+                                    self.emp_name.update({str(value[0]): value[1]})
+                                else:
+
+                                    self.dict.update({str(value[0]): value[1]})
+            print("in paystub confidence",self.regular1,
+            self.regular2, self.regular3, self.regular4, self.regular5, self.regular6, self.regular7, self.regular8, self.regular9,
+            self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8, self.tax9,
+            self.tax10,self.deduction1, self.deduction2, self.deduction3,self.deduction4, self.deduction5, self.deduction6,
+            self.deduction7, self.deduction8, self.deduction9, self.deduction10,self.pay_start_date, self.pay_end_date,
+            self.pay_date,self.employee_address,self.emp_address,self.employee_name,self.emp_name,self.dict)
+
+            regular1_scrore,regular2_scrore,regular3_scrore,regular4_scrore,regular5_scrore,regular6_scrore,regular7_scrore,\
+            regular8_scrore,regular9_scrore,regular10_scrore,tax1_scrore,tax2_scrore,tax3_scrore,tax4_scrore,tax5_scrore,\
+            tax6_scrore,tax7_scrore,tax8_scrore,tax9_scrore,tax10_scrore,deduction1_scrore,deduction2_scrore,deduction3_scrore,\
+            deduction4_scrore,deduction5_scrore,deduction6_scrore,deduction7_scrore,deduction8_scrore,deduction9_scrore,deduction10,\
+            pay_end_date_scrore,pay_start_date_scrore,pay_date_scrore,employee_address_scrore,employee_name_scrore,\
+            employer_address_scrore,employer_name_scrore,other_scrore = self.pay_val.all_confidence_scrore(self.regular1,
+            self.regular2, self.regular3, self.regular4, self.regular5, self.regular6, self.regular7, self.regular8, self.regular9,
+            self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8, self.tax9,
+            self.tax10,self.deduction1, self.deduction2, self.deduction3,self.deduction4, self.deduction5, self.deduction6,
+            self.deduction7, self.deduction8, self.deduction9, self.deduction10,self.pay_start_date, self.pay_end_date,
+            self.pay_date,self.employee_address,self.emp_address,self.employee_name,self.emp_name,self.dict)
+
+            return regular1_scrore,regular2_scrore,regular3_scrore,regular4_scrore,regular5_scrore,regular6_scrore,regular7_scrore,\
+            regular8_scrore,regular9_scrore,regular10_scrore,tax1_scrore,tax2_scrore,tax3_scrore,tax4_scrore,tax5_scrore,\
+            tax6_scrore,tax7_scrore,tax8_scrore,tax9_scrore,tax10_scrore,deduction1_scrore,deduction2_scrore,deduction3_scrore,\
+            deduction4_scrore,deduction5_scrore,deduction6_scrore,deduction7_scrore,deduction8_scrore,deduction9_scrore,deduction10,\
+            pay_end_date_scrore,pay_start_date_scrore,pay_date_scrore,employee_address_scrore,employee_name_scrore,\
+            employer_address_scrore,employer_name_scrore,other_scrore
+
         except Exception as E:
-            return self.paystub_score
+            pass
 

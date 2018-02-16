@@ -109,15 +109,14 @@ class Denoising:
                 blur = self.variance_of_laplacian(cvImg)
                 if blur < 700:
                     print("blur",blur)
-
                     sharpImg = sharpness.enhance(2)
                     cvImg = np.array(sharpImg)
-                    blurA = self.variance_of_laplacian(cvImg)
-                    blurImg=cv2.GaussianBlur(cvImg,(5,5),0)
                     contrast = ImageEnhance.Contrast(sharpImg)
                     pImg = contrast.enhance(1.47)
                 image = np.array(pImg)
-                pImg = cv2.GaussianBlur(image,(1,1),0.5)
+                pimg = cv2.GaussianBlur(image,(1,5),0.5)
+                kernel = np.ones((2, 2), np.int32)
+                pImg = cv2.erode(pimg, kernel, iterations=1)
                 # else:
                 #     img = cv2.imread(path)
                 #     if mean==84.5215623913:
