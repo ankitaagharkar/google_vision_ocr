@@ -78,7 +78,6 @@ class get_all_location:
                         'total net':'Net Pay',
                         'gross':'Gross Pay',
                         'total gross':'Gross Pay'
-
                     }
 
     def get_data_in_box(self,bounding):
@@ -153,13 +152,12 @@ class get_all_location:
     def getKey(self,item):
         return item[1]
 
-    def rectify_data(self,description,result):
+    def rectify_data(self):
         line_list = []
         line_heights = []
-
-        desc = description.description
+        desc = self.description.description
         #sort all words as per y-axis of its first element
-        res = sorted(result, key=lambda x: x[1][0][1])
+        res = sorted(self.result, key=lambda x: x[1][0][1])
         #initialise all values for reading first word of document
         prev_y_start = -100
         prev_y_end = -100
@@ -174,7 +172,7 @@ class get_all_location:
             1B: If NO, add the word to current line
         """
         for key, values in enumerate(res):
-            ##print(values)
+            print(values)
             if values[1][0][1] < prev_y_mid and abs(prev_y_start-values[1][0][1]) <= mod_ht:
                 line_list[-1].append([values[0],values[1]])
             else:
@@ -254,7 +252,7 @@ class get_all_location:
                 else:
                     """
                     if re.search('\b{!?S|s\d+}',word[0]):
-                        ##print('heree')
+                        print('heree')
                         word[0] = word[0].replace('S','')
                         word[0] = word[0].replace('s','')
                     """
@@ -274,13 +272,7 @@ class get_all_location:
             word = word.lower().replace('taxes','')
             word = word.replace('tax','')
             word = word.replace('pay','')
-            word = word.replace('.', '')
-            try:
-                if word[-1] == ' ':
-                    word = word[:-1]
-            except:
-                pass
-            x = difflib.get_close_matches(word,self.pay_names,cutoff=0.80)
+            x = difflib.get_close_matches(word,self.pay_names,cutoff=0.85)
             if x:
                 p_type = self.pay_types[x[0]]
             else:
@@ -354,7 +346,7 @@ class get_all_location:
                             except:
                                 ytd_end = 0
                             ytd.append([ytd_mean,ytd_end,ytd_start])
-                    ##print(x,current,ytd)
+                    print(x,current,ytd)
                 elif current:
                     if self.is_float_or_int(word[0]):
                         word_end = word[1][1][0]
@@ -381,7 +373,7 @@ class get_all_location:
                     else:
                         prev_word = word[0]
             current_flag = False
-        return blocks
+        print(blocks)
 
     def get_text(self,path):
         client = vision.ImageAnnotatorClient()
@@ -406,13 +398,174 @@ class get_all_location:
         self.result=zip(self.keys, self.values)
         data = " ".join(map(str, self.text_val))
         return data
-    def all_location_details(self,path,description,result):
-        self.get_text(path)
-        lines=self.rectify_data(description,result)
-        blocks=self.get_payslip_amounts(lines)
-        return blocks
 
+    def get_location(self,value_json,image,application_id,base_url):
+        img=cv2.imread(image)
+        _,filename= os.path.split(image)
+        self.location_json = json.dumps(self.result)
+        load_location_json = json.loads(self.location_json)
+        for key, value in load_location_json.items():
+            print(key, value)
+            for key1, value1 in value_json.items():
+                if key!='' and value1!='':
+                    key=key.replace(',','')
+                    key=key.replace(' ','')
+                    key=key.replace('No:','')
+                    key=key.replace('Issued:','')
+                    key=key.replace('Expiros::','')
+                    key=key.replace('Expires','')
+                    if key1=='issue_date' or key1=='expiration_date' or key=='dob':
+                        value1=value1[0:2] + ' ' + value1[2:4] + ' ' + value1[4:8]
+                    if key1=='date_val':
+                        if len(value1)==32:
+                            value1=value1[0:2]+" "+value1[2:3]+" "+value1[3:5]+" "+value1[5:6]+" "+value1[6:10]+" "+value1[11:13]+" "+value1[13:14]+" "+value1[14:16]+" "+value1[16:17]+" "+value1[17:21]+" "+value1[22:24]+" "+value1[24:25]+" "+value1[25:27]+" "+value1[27:28]+" "+value1[28:32]
+                        elif len(value1)==21:
+                            value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:10] + " " + value1[11:13] + " " + value1[13:14] + " " + value1[14:16] + " " + value1[16:17] + " " + value1[17:21]
+                        elif len(value1)==10:
+                            value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:10]
+                        elif len(value1)==26:
+                            value1=value1[0:2]+" "+value1[2:3]+" "+value1[3:5]+" "+value1[5:6]+" "+value1[6:8]+" "+value1[9:11]+" "+value1[11:12]+" "+value1[12:14]+" "+value1[14:15]+" "+value1[15:17]+" "+value1[18:20]+" "+value1[20:21]+" "+value1[21:23]+" "+value1[23:24]+" "+value1[24:26]
+                        elif len(value1)==17:
+                            value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:8] + " " + value1[9:11] + " " + value1[11:12] + " " + value1[12:14] + " " + value1[14:15]+" "+value1[15:17]
+                        elif len(value1)==8:
+                            value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:8]
+                        else:
+                            pass
+                    if re.search(r'\b(=?'+re.escape(key)+r')\b',value1):
+                        if key in value_json['date_val']:
+                            print("in locations",value_json['date_val'])
+                            vrx = np.array(value, np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                            # print(key,value)
+                            print(key,value)
+                            self.dict.update({key: value})
+                        elif key in value_json['address']:
+                            vrx = np.array(value, np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (255, 255, 0), 1)
+                            self.address_val.update({key: value})
+                        elif key in value_json['license_id']:
+                            vrx = np.array(value, np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (0, 0, 255), 1)
+                            self.licence_id.update({key: value})
+                        else:
+                            vrx = np.array(value, np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
+                            self.dict.update({key: value})
+        dt = datetime.datetime.now()
+        date_val=dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
+        cv2.imwrite("../images/processed/"+date_val+".jpg", img)
+        return self.address_val,self.licence_id,self.dict,"../images/processed/"+date_val+".jpg"
+            # dt = datetime.datetime.now()
+            # date_val=dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
+            # cv2.imwrite(base_url+"/uploads"+application_id+"/processed/"+date_val+filename,img)
+            # return date_val+filename
+        # for key, value in load_location_json.items():
+        #     for key1, value1 in value_json.items():
+        #         if key!='' and value1!='':
+        #             key_value=key.replace(',','')
+        #             key_value=key.replace(' ','')
+        #
+        #             if re.search(r'\b(=?'+re.escape(key_value)+r')\b',value1):
+        #                 #print(value)
+        #                 if key in value_json['date_val']:
+        #                     print(key,value)
+        #                     self.dict.update({key: value})
+        #                 elif key in value_json['address']:
+        #                     self.address_val.update({key: value})
+        #                 elif key in value_json['license_id']:
+        #                     self.licence_id.update({key: value})
+        #                 else:
+        #                     self.dict.update({key: value})
+        # #print(self.address_val, self.licence_id, self.dict)
+        # return self.address_val, self.licence_id, self.dict
+    def ssn_get_location(self,value_json,image,application_id,base_url):
+        img = cv2.imread(image)
+        _, filename = os.path.split(image)
+        self.location_json = json.dumps(self.result)
+        load_location_json = json.loads(self.location_json)
+        for key, value in load_location_json.items():
+            print(key, value)
+            for key1, value1 in value_json.items():
+                if key != '' and value1 != '':
+                    key = key.replace(',', '')
+                    key = key.replace(' ', '')
+                    key = key.replace('No:', '')
+                    if re.search(r'\b(=?' + re.escape(key) + r')\b', value1):
+                        if key in value_json['ssn_number']:
+                            vrx = np.array(value, np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (255, 0, 0), 3)
+                            self.ssn.update({key: value})
 
+        dt = datetime.datetime.now()
+        date_val = dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
+        cv2.imwrite("../images/processed/" + date_val + ".jpg", img)
+        return self.ssn,"../images/processed/" + date_val + ".jpg"
+    def paystub_get_location(self,value_json,image,application_id,base_url):
+        img = cv2.imread(image)
+        _, filename = os.path.split(image)
+        self.location_json = json.dumps(self.result)
+        load_location_json = json.loads(self.location_json)
+        for key, value in load_location_json.items():
+            print(key, value)
+            for key1, value1 in value_json.items():
+                # if key1 == 'issue_date' or key1 == 'expiration_date' or key == 'dob':
+                #     value1 = value1[0:2] + ' ' + value1[2:4] + ' ' + value1[4:8]
+                # if key1 == 'date_val':
+                #     if len(value1) == 32:
+                #         value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:10] + " " + value1[11:13] + " " + value1[13:14] + " " + value1[14:16] + " " + value1[16:17] + " " + value1[17:21] + " " + value1[22:24] + " " + value1[24:25] + " " + value1[25:27] + " " + value1[27:28] + " " + value1[28:32]
+                #     elif len(value1) == 21:
+                #         value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:10] + " " + value1[11:13] + " " + value1[13:14] + " " + value1[14:16] + " " + value1[16:17] + " " + value1[17:21]
+                #     elif len(value1) == 10:
+                #         value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:10]
+                #     elif len(value1) == 26:
+                #         value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:8] + " " + value1[9:11] + " " + value1[11:12] + " " + value1[12:14] + " " + value1[14:15] + " " + value1[15:17] + " " + value1[18:20] + " " + value1[20:21] + " " + value1[21:23] + " " + value1[23:24] + " " + value1[24:26]
+                #     elif len(value1) == 17:
+                #         value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:8] + " " + value1[9:11] + " " + value1[11:12] + " " + value1[12:14] + " " + value1[14:15] + " " + value1[15:17]
+                #     elif len(value1) == 8:
+                #         value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:8]
+                #     else:
+                #         pass
+                if key != '' and value1 != '':
+                    key = key.replace(',', '')
+                    # key = key.replace(' ', '')
+                    key = key.replace('No:', '')
+                    key = key.replace('Issued:', '')
+                    key = key.replace('Expiros::', '')
+                    key = key.replace('Expires', '')
+                    key = key.replace('-48','')
+                    if re.search(r'\b(=?' +re.escape(key)+ r')\b', value1):
+                        if key in value_json['date_val']:
+                            print("in locations", value_json['date_val'])
+                            vrx = np.array(value, np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                            # print(key,value)
+                            print(key, value)
+                            self.dict.update({key: value})
+                        elif key in value_json['employer_name']:
+                            print("in locations", value_json['employer_name'])
+                            vrx = np.array(value, np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 2)
+                            # print(key,value)
+                            print(key, value)
+                            self.emp_name.update({key: value})
+
+                        else:
+                            vrx = np.array(value, np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img, [vrx], True, (0, 255, 0), 2)
+                            self.dict.update({key: value})
+        print('emp_name',self.emp_name,self.dict)
+        dt = datetime.datetime.now()
+        date_val = dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
+        cv2.imwrite("../images/processed/" + date_val + ".jpg", img)
+        return self.emp_name, self.dict, "../images/processed/" + date_val + ".jpg"
 """
 # initialize the list of reference points and boolean indicating
 # whether cropping is being performed or not
@@ -465,7 +618,7 @@ if len(refPt) == 2:
     x.get_text(sys.argv[1])
     res = x.get_data_in_box(refPt)
     if not res:
-        ##print('No Text in this region')
+        print('No Text in this region')
     else:
         for val in res:
             cv2.rectangle(image,val[0],val[1],(0,255,255),2)
@@ -474,12 +627,12 @@ if len(refPt) == 2:
 """
 
 
-# x = get_all_location()
-# x.get_text(sys.argv[1])
-#
-# lines = x.rectify_data()
-# for line in lines:
-#     ##print(line)
-# blocks = x.get_payslip_amounts(lines)
+x = get_all_location()
+x.get_text(sys.argv[1])
+
+lines = x.rectify_data()
+for line in lines:
+    print(line)
+blocks = x.get_payslip_amounts(lines)
 #lines = sorted(lines, key=getKey)
 

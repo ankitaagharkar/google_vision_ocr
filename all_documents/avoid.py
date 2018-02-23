@@ -40,8 +40,8 @@ def replace(actual_name1):
     actual_name1 = actual_name1.replace('No', "")
     actual_name1 = actual_name1.replace('Payro', "")
     actual_name1 = actual_name1.replace(' OC ', "")
-    actual_name1 = actual_name1.replace('OF', "")
-    actual_name1 = actual_name1.replace('LN', "")
+    actual_name1 = actual_name1.replace(' OF', "")
+    actual_name1 = actual_name1.replace(' LN', "")
     actual_name1 = actual_name1.replace(' EN ', "")
     actual_name1 = actual_name1.replace(' AP ', "")
     actual_name1 = actual_name1.replace('Expires', "")
@@ -50,16 +50,19 @@ def replace(actual_name1):
     actual_name1 = actual_name1.replace('NONE', "")
     actual_name1 = actual_name1.replace('Address', "")
     actual_name1 = actual_name1.replace('CLASS D', "")
+    actual_name1 = actual_name1.replace('CLASS', "")
     actual_name1 = actual_name1.replace('CLASSE', "")
     actual_name1 = actual_name1.replace('CLASEXP', "")
     actual_name1 = actual_name1.replace('EXP', "")
-    actual_name1 = actual_name1.replace('CLASS', "")
     actual_name1 = actual_name1.replace('ISS', "")
     actual_name1 = actual_name1.replace('SExr', "")
     actual_name1 = actual_name1.replace('Payroll', "")
     actual_name1 = actual_name1.replace('Attn', "")
     actual_name1 = actual_name1.replace('GEXP', "")
+    actual_name1 = actual_name1.replace('Class D', "")
     actual_name1 = actual_name1.replace('Class', "")
+    actual_name1 = actual_name1.replace('class D', "")
+    actual_name1 = actual_name1.replace('class', "")
     actual_name1 = actual_name1.replace(' DM ', "")
     actual_name1 = actual_name1.replace('Height', "")
     actual_name1 = actual_name1.replace('Expires', "")
@@ -73,10 +76,11 @@ def replace(actual_name1):
     actual_name1 = actual_name1.replace('NONE', "")
     actual_name1 = actual_name1.replace('Address', "")
     actual_name1 = actual_name1.replace('CLASS D', "")
+    actual_name1 = actual_name1.replace('CLASS', "")
     actual_name1 = actual_name1.replace('CLASSE', "")
     actual_name1 = actual_name1.replace('CLASEXP', "")
     actual_name1 = actual_name1.replace('EXP', "")
-    actual_name1 = actual_name1.replace('CLASS', "")
+    actual_name1 = actual_name1.replace('Cass D', "")
     actual_name1 = actual_name1.replace('Cass', "")
     actual_name1 = actual_name1.replace(' ISS ', "")
     actual_name1 = actual_name1.replace('SExr', "")
@@ -92,6 +96,7 @@ def replace(actual_name1):
     actual_name1 = actual_name1.replace('@', " ")
     actual_name1 = actual_name1.replace('#', " ")
     actual_name1 = actual_name1.replace('%', " ")
+    actual_name1 = actual_name1.replace('class', "")
     actual_name1 = actual_name1.replace('^', " ")
     actual_name1 = actual_name1.replace('CGA', "")
     actual_name1 = actual_name1.replace('CONG', "")
@@ -113,17 +118,23 @@ def replace(actual_name1):
     actual_name1 = actual_name1.replace('Single', "")
     actual_name1 = actual_name1.replace('Exemptions', "")
     actual_name1 = actual_name1.replace('owances', "")
+    actual_name1 = actual_name1.replace('EL VIO', "ELVIO")
     actual_name1 = actual_name1.replace(' DRI', "DR")
+    actual_name1 = actual_name1.replace('Issued', "")
     actual_name1 = actual_name1.replace('Maso', "")
     actual_name1 = actual_name1.replace(' EER ', "")
     actual_name1 = actual_name1.replace('Federa', "")
     actual_name1 = actual_name1.replace('NY ', "")
     actual_name1 = actual_name1.replace(' UN ', "")
-    actual_name1 = re.sub(
-        r"(=?EXP|HGT|Earnings|Donor| S |AP |=|,|@|#|%|^|CGA|CONG|EENHANCED|am|Mal| OL |GIN|CASS C | D |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF |LN | EN | ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
-        "", actual_name1)
-    actual_name = re.sub(
-        r"\s(=?EXP|HGT|Earnings|Donor|AP |=|,|@|#|%|^|CGA|CONG|EENHANCED|am|Mal| OL |GIN|CASS|C |D | AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE|USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP|IS | TO |THE |ORDER|No |Payro| OC | OF |LN |EN |ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class|DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
-        "", actual_name1)
+    # actual_name1 = actual_name1.replace('Is ', "")
+    actual_name1 = actual_name1.replace('un ', "")
+
+    actual_name1 = re.sub(r"\b(!?es |iss |er |or |EN |EXP|HGT|Is |Earnings|Donor |AP |=|,|@|#|%|^|CGA| ER |CONG|EENHANCED|am|Mal| OL |GIN|CASS C |D |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF |LN | ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|ISS|SExr|Payroll|Attn|GEXP|class|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
+        "",actual_name1)
+    # actual_name1 = re.sub(
+    #     r"\s(=?EXP|HGT|Earnings|Donor|AP |=|,|@|#|%|^|ER |CGA|CONG|EENHANCED|am|Mal| OL |GIN|CASS|C |D | AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE|USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP|IS | TO |THE |ORDER|No |Payro| OC | OF |LN |EN |ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class|DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)\b",
+    #     "", actual_name1)
     return actual_name1
+
+
 

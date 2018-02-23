@@ -284,7 +284,7 @@ class Paystub_details:
             #print(text)
             # text = text_value.replace(' ', '')
             advice_pay_date=""
-            start_date,end_date,ending_date = "","",""
+            start_date,end_date,ending_date,advice_pay = "","","",""
             val = re.findall(
                 r'(\w*[A-Za-z]\d{1}\d{2}[./-](19|20|21|22|23|24)\d\d)|(\w*[A-Za-z]\d{1}[./-]\d{2}[./-](19|20|21|22|23|24)\d\d)'
                 r'|(\d{2}\s?[./-]\d{2}[./-](19|20|21|22|23|24)\d\d)|(\d{2}\s\d{2}\s(19|20|21|22|23|24)\d\d)'
@@ -323,60 +323,62 @@ class Paystub_details:
             print("all date format", self.actual_date)
             data = " ".join(map(str, self.actual_date))
             print(data)
+            if len(self.actual_date)==3:
+                starting_date =self.actual_date[0]
+                advice_pay = self.actual_date[2]
+                ending_date =self.actual_date[1]
+                if advice_pay != "" and starting_date != "":
+                    #     for date in self.actual_date:
+                    #         if date > start_date and date < advice_pay:
+                    if re.match(r'\d{2}[./-]\d{2}[./-]\d{2}', data):
+                        ending_date = datetime.datetime.strptime(ending_date, '%y/%m/%d').strftime('%m/%d/%y')
+                        starting_date = datetime.datetime.strptime(starting_date, '%y/%m/%d').strftime('%m/%d/%y')
+                        self.employment_Start_date = dt.strptime(ending_date, "%m/%d/%y")
+                        self.pay_date = dt.strptime(starting_date, "%m/%d/%y")
+                        print("date in paystub", self.pay_date)
+                        start_date = self.pay_date.date().strftime('%m/%d/%y')
+                        end_date = self.employment_Start_date.date().strftime('%m/%d/%y')
+                        print("end_date", end_date)
+                    else:
+                        ending_date = datetime.datetime.strptime(ending_date, '%Y/%m/%d').strftime('%m/%d/%Y')
+                        starting_date = datetime.datetime.strptime(starting_date, '%Y/%m/%d').strftime('%m/%d/%Y')
+                        print(start_date)
+                        self.employment_Start_date = dt.strptime(ending_date, "%m/%d/%Y")
+                        self.pay_date = dt.strptime(starting_date, "%m/%d/%Y")
+                        print("date in paystub", self.pay_date)
+                        start_date = self.pay_date.date().strftime('%m/%d/%Y')
+                        end_date = self.employment_Start_date.date().strftime('%m/%d/%Y')
+                        print("end_date", end_date)
 
-            starting_date =self.actual_date[0]
-            advice_pay = self.actual_date[2]
-            ending_date =self.actual_date[1]
-            ap=parse(advice_pay)
-            advice_pay_date=ap.strftime('%m/%d/%Y')
-            if advice_pay != "" and starting_date != "":
-            #     for date in self.actual_date:
-            #         if date > start_date and date < advice_pay:
+                frequency = abs((self.pay_date - self.employment_Start_date).days)
+                print("in paystub days", self.pay_date.date().day)
+                if self.pay_date.date().day >= 15:
+                    self.pay_frequency = 'Bi-Monthly'
+                else:
+                    if frequency == 14 or frequency == 13:
+                        self.pay_frequency = 'Bi-Weekly'
+                    elif frequency == 7 or frequency == 6:
+                        self.pay_frequency = 'Weekly'
+                    elif frequency == 30 or frequency == 31:
+                        self.pay_frequency = 'Monthly'
+                    else:
+                        self.pay_frequency = ""
+                print("in paystub date", str(start_date), end_date, advice_pay_date)
+            elif len(self.actual_date)==2:
+                advice_pay = self.actual_date[0]
+                ending_date = self.actual_date[1]
+                start_date=""
                 if re.match(r'\d{2}[./-]\d{2}[./-]\d{2}', data):
                     ending_date = datetime.datetime.strptime(ending_date, '%y/%m/%d').strftime('%m/%d/%y')
-                    starting_date = datetime.datetime.strptime(starting_date, '%y/%m/%d').strftime('%m/%d/%y')
                     self.employment_Start_date = dt.strptime(ending_date, "%m/%d/%y")
-                    self.pay_date = dt.strptime(starting_date, "%m/%d/%y")
-                    print("date in paystub", self.pay_date)
-                    start_date = self.pay_date.date().strftime('%m/%d/%y')
                     end_date = self.employment_Start_date.date().strftime('%m/%d/%y')
-                    print("end_date",end_date)
                 else:
                     ending_date = datetime.datetime.strptime(ending_date, '%Y/%m/%d').strftime('%m/%d/%Y')
-                    starting_date = datetime.datetime.strptime(starting_date, '%Y/%m/%d').strftime('%m/%d/%Y')
-                    print(start_date)
                     self.employment_Start_date = dt.strptime(ending_date, "%m/%d/%Y")
-                    self.pay_date = dt.strptime(starting_date, "%m/%d/%Y")
-                    print("date in paystub",self.pay_date)
-                    start_date = self.pay_date.date().strftime('%m/%d/%Y')
-                    end_date=self.employment_Start_date.date().strftime('%m/%d/%Y')
-                    print("end_date",end_date)
+                    end_date = self.employment_Start_date.date().strftime('%m/%d/%Y')
+            ap=parse(advice_pay)
+            advice_pay_date=ap.strftime('%m/%d/%Y')
 
-            frequency = abs((self.pay_date - self.employment_Start_date).days)
-            print("in paystub days", self.pay_date.date().day)
-            if self.pay_date.date().day>=15:
-                self.pay_frequency = 'Bi-Monthly'
-            else:
-                if frequency==14 or frequency==13:
-                    self.pay_frequency = 'Bi-Weekly'
-                elif frequency==7 or frequency==6:
-                    self.pay_frequency = 'Weekly'
-                elif frequency == 30 or frequency == 31:
-                    self.pay_frequency = 'Monthly'
-                else:
-                    self.pay_frequency=""
-    #     self.pay_frequency = 'Monthly'
-            # elif 8<=self.pay_date.date().day<=14:
-            #     self.pay_frequency = 'Bi-Weekly'
-            # elif self.pay_date.date().day<=7:
-            #     self.pay_frequency = 'Weekly'
-            # elif frequency == 30 or frequency == 31:
-            #     self.pay_frequency = 'Monthly'
-            # else:
-            #     self.pay_frequency=''
-            # start_date=dt.strptime(start_date, "%m/%d/%Y")
-            # #print("staring date",start_date)
-            print("in paystub date",str(start_date),end_date,advice_pay_date)
             return str(start_date), self.pay_frequency, string_date_value,end_date,advice_pay_date
         except Exception as E:
             print(E)

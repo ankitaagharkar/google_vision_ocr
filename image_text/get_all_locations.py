@@ -30,158 +30,194 @@ class get_all_location:
         self.location_json=''
         self.regular1,self.regular2,self.regular3,self.regular4,self.regular5,self.regular6,self.regular7,self.regular8,self.regular9,self.regular10={},{},{},{},{},{},{},{},{},{}
         self.tax1,self.tax2,self.tax3,self.tax4,self.tax5,self.tax6,self.tax7,self.tax8,self.tax9,self.tax10={},{},{},{},{},{},{},{},{},{}
-        self.deduction1,self.deduction2,self.deduction3,self.deduction4,self.deduction5,self.deduction6,self.deduction7,self.deduction8,self.deduction9,self.deduction10={},{},{},{},{},{},{},{},{},{}
+        self.deduction1,self.deduction2,self.deduction3,self.deduction4,self.deduction5,self.deduction6,self.deduction7,self.deduction8,self.deduction9,self.deduction10,self.deduction11,self.deduction12,self.deduction13,self.deduction14,self.deduction15={},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
         self.pay_start_date,self.pay_end_date,self.pay_date={},{},{}
 
-    def paystub_value(self, value_json, img):
+    def paystub_value(self, value_data, path):
+        img = cv2.imread(path)
+        value_json={}
+        _, filename = os.path.split(path)
+
         a = 0
         b = 0
         c = 0
+        print("value_json",value_data)
+        for key, value in value_data.items():
+            if "field_value_original" in value_data[key]:
+                if value['field_value_original'] != "":
+                    value_json.update({key: value})
+            else:
+                    value_json.update({key: value})
+        value_json_keys=list(value_json.keys())
+        print("value_json",value_json)
+        # key_compare=['pay_period_start_date','pay_period_end_date','pay_date','employee_address','employer_address','employee_name','employer_name']
         for key, value in enumerate(self.result):
             a = a + 1
             b = b + 1
             c = c + 1
             for key1, value1 in value_json.items():
-                if value[0] != '' and value1 != '':
-                    value = list(value)
-                    values = value[0].replace(',', '')
-                    values = values.replace('No:', '')
-                    values = values.replace('Issued:', '')
-                    values = values.replace('Expiros::', '')
-                    values = values.replace('Expires', '')
-                    values = values.replace('-48', '')
-                    value[0] = values
-                    if "field_value_original" in value_json[key1]:
-                            if value[0] in value1['field_value_original']:
-                                if "regular" in value1['alias']:
+                if  key1!='' and value1 != '':
+                    if value[0] != '':
+                        value = list(value)
+                        values = value[0].replace(',', '')
+                        values = values.replace('No:', '')
+                        values = values.replace('Issued:', '')
+                        values = values.replace('Expiros::', '')
+                        values = values.replace('Expires', '')
+                        values = values.replace('-48', '')
+                        value[0] = values
+                        if "field_value_original" in value_json[key1]:
+                                if value[0] in value1['field_value_original']:
+                                    if "regular" in value1['alias']:
+                                        vrx = np.array(value[1], np.int32)
+                                        vrx = vrx.reshape((-1, 1, 2))
+                                        img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                                        var_name = "regular" + str(a)
+                                        if "1" in var_name:
+                                            self.regular1.update({str(value[0]): value[1]})
+                                        if "2" in var_name:
+                                            self.regular2.update({str(value[0]): value[1]})
+                                        if "3" in var_name:
+                                            self.regular3.update({str(value[0]): value[1]})
+                                        if "4" in var_name:
+                                            self.regular4.update({str(value[0]): value[1]})
+                                        if "5" in var_name:
+                                            self.regular5.update({str(value[0]): value[1]})
+                                        if "6" in var_name:
+                                            self.regular6.update({str(value[0]): value[1]})
+                                        if "7" in var_name:
+                                            self.regular7.update({str(value[0]): value[1]})
+                                        if "8" in var_name:
+                                            self.regular8.update({str(value[0]): value[1]})
+                                        if "9" in var_name:
+                                            self.regular9.update({str(value[0]): value[1]})
+                                        if "10" in var_name:
+                                            self.regular10.update({str(value[0]): value[1]})
+
+                                    elif "tax" in value1['alias']:
+                                        vrx = np.array(value[1], np.int32)
+                                        vrx = vrx.reshape((-1, 1, 2))
+                                        img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                                        var_name = "tax" + str(b)
+                                        if "1" in var_name:
+                                            self.tax1.update({str(value[0]): value[1]})
+                                        if "2" in var_name:
+                                            self.tax2.update({str(value[0]): value[1]})
+                                        if "3" in var_name:
+                                            self.tax3.update({str(value[0]): value[1]})
+                                        if "4" in var_name:
+                                            self.tax4.update({str(value[0]): value[1]})
+                                        if "5" in var_name:
+                                            self.tax5.update({str(value[0]): value[1]})
+                                        if "6" in var_name:
+                                            self.tax6.update({str(value[0]): value[1]})
+                                        if "7" in var_name:
+                                            self.tax7.update({str(value[0]): value[1]})
+                                        if "8" in var_name:
+                                            self.tax8.update({str(value[0]): value[1]})
+                                        if "9" in var_name:
+                                            self.tax9.update({str(value[0]): value[1]})
+                                        if "10" in value:
+                                            self.tax10.update({str(value[0]): value[1]})
+
+                                    elif "deduction" in value1['alias']:
+                                        vrx = np.array(value[1], np.int32)
+                                        vrx = vrx.reshape((-1, 1, 2))
+                                        img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                                        var_name = "deduction" + str(c)
+                                        if "1" in var_name:
+                                            self.deduction1.update({str(value[0]): value[1]})
+                                        if "2" in var_name:
+                                            self.deduction2.update({str(value[0]): value[1]})
+                                        if "3" in var_name:
+                                            self.deduction3.update({str(value[0]): value[1]})
+                                        if "4" in var_name:
+                                            self.deduction4.update({str(value[0]): value[1]})
+                                        if "5" in var_name:
+                                            self.deduction5.update({str(value[0]): value[1]})
+                                        if "6" in var_name:
+                                            self.deduction6.update({str(value[0]): value[1]})
+                                        if "7" in var_name:
+                                            self.deduction7.update({str(value[0]): value[1]})
+                                        if "8" in var_name:
+                                            self.deduction8.update({str(value[0]): value[1]})
+                                        if "9" in var_name:
+                                            self.deduction9.update({str(value[0]): value[1]})
+                                        if "10" in var_name:
+                                            self.deduction10.update({str(value[0]): value[1]})
+                                        if "11" in var_name:
+                                            self.deduction11.update({str(value[0]): value[1]})
+                                        if "12" in var_name:
+                                            self.deduction12.update({str(value[0]): value[1]})
+                                        if "13" in var_name:
+                                            self.deduction13.update({str(value[0]): value[1]})
+                                        if "14" in var_name:
+                                            self.deduction14.update({str(value[0]): value[1]})
+                                        if "15" in var_name:
+                                            self.deduction15.update({str(value[0]): value[1]})
+                        else:
+                            if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
+
+                                if value[0] in value_json['pay_period_start_date'] :
                                     vrx = np.array(value[1], np.int32)
                                     vrx = vrx.reshape((-1, 1, 2))
                                     img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                    var_name = "regular" + str(a)
-                                    if "1" in var_name:
-                                        self.regular1.update({str(value[0]): value[1]})
-                                    if "2" in var_name:
-                                        self.regular2.update({str(value[0]): value[1]})
-                                    if "3" in var_name:
-                                        self.regular3.update({str(value[0]): value[1]})
-                                    if "4" in var_name:
-                                        self.regular4.update({str(value[0]): value[1]})
-                                    if "5" in var_name:
-                                        self.regular5.update({str(value[0]): value[1]})
-                                    if "6" in var_name:
-                                        self.regular6.update({str(value[0]): value[1]})
-                                    if "7" in var_name:
-                                        self.regular7.update({str(value[0]): value[1]})
-                                    if "8" in var_name:
-                                        self.regular8.update({str(value[0]): value[1]})
-                                    if "9" in var_name:
-                                        self.regular9.update({str(value[0]): value[1]})
-                                    if "10" in var_name:
-                                        self.regular10.update({str(value[0]): value[1]})
 
-                                elif "tax" in value1['alias']:
+                                    self.pay_start_date.update({str(value[0]): value[1]})
+
+                                elif value[0] in value_json['pay_period_end_date']  :
                                     vrx = np.array(value[1], np.int32)
                                     vrx = vrx.reshape((-1, 1, 2))
                                     img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                    var_name = "tax" + str(b)
-                                    if "1" in var_name:
-                                        self.tax1.update({str(value[0]): value[1]})
-                                    if "2" in var_name:
-                                        self.tax2.update({str(value[0]): value[1]})
-                                    if "3" in var_name:
-                                        self.tax3.update({str(value[0]): value[1]})
-                                    if "4" in var_name:
-                                        self.tax4.update({str(value[0]): value[1]})
-                                    if "5" in var_name:
-                                        self.tax5.update({str(value[0]): value[1]})
-                                    if "6" in var_name:
-                                        self.tax6.update({str(value[0]): value[1]})
-                                    if "7" in var_name:
-                                        self.tax7.update({str(value[0]): value[1]})
-                                    if "8" in var_name:
-                                        self.tax8.update({str(value[0]): value[1]})
-                                    if "9" in var_name:
-                                        self.tax9.update({str(value[0]): value[1]})
-                                    if "10" in value:
-                                        self.tax10.update({str(value[0]): value[1]})
 
-                                elif "deduction" in value1['alias']:
+                                    self.pay_end_date.update({str(value[0]): value[1]})
+
+
+                                elif value[0] in value_json['pay_date'] :
                                     vrx = np.array(value[1], np.int32)
                                     vrx = vrx.reshape((-1, 1, 2))
                                     img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                    var_name = "deduction" + str(c)
-                                    if "1" in var_name:
-                                        self.deduction1.update({str(value[0]): value[1]})
-                                    if "2" in var_name:
-                                        self.deduction2.update({str(value[0]): value[1]})
-                                    if "3" in var_name:
-                                        self.deduction3.update({str(value[0]): value[1]})
-                                    if "4" in var_name:
-                                        self.deduction4.update({str(value[0]): value[1]})
-                                    if "5" in var_name:
-                                        self.deduction5.update({str(value[0]): value[1]})
-                                    if "6" in var_name:
-                                        self.deduction6.update({str(value[0]): value[1]})
-                                    if "7" in var_name:
-                                        self.deduction7.update({str(value[0]): value[1]})
-                                    if "8" in var_name:
-                                        self.deduction8.update({str(value[0]): value[1]})
-                                    if "9" in var_name:
-                                        self.deduction9.update({str(value[0]): value[1]})
-                                    if "10" in var_name:
-                                        self.deduction10.update({str(value[0]): value[1]})
-                    else:
-                        if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
-                            # if value[0] in value_json['pay_period_end_date']:
-                            #     vrx = np.array(value[1], np.int32)
-                            #     vrx = vrx.reshape((-1, 1, 2))
-                            #     img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                            #     # #print(key,value)
-                            #     self.pay_end_date.update({str(value[0]): value[1]})
-                            if value[0] in value_json['pay_period_start_date']:
-                                vrx = np.array(value[1], np.int32)
-                                vrx = vrx.reshape((-1, 1, 2))
-                                img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                # #print(key,value)
-                                self.pay_start_date.update({str(value[0]): value[1]})
-                            elif value[0] in value_json['pay_date']:
-                                vrx = np.array(value[1], np.int32)
-                                vrx = vrx.reshape((-1, 1, 2))
-                                img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                # #print(key,value)
-                                self.pay_date.update({str(value[0]): value[1]})
+                                    # #print(key,value)
+                                    self.pay_date.update({str(value[0]): value[1]})
 
-                            elif value[0] in value_json['employee_address']:
-                                vrx = np.array(value[1], np.int32)
-                                vrx = vrx.reshape((-1, 1, 2))
-                                img = cv2.polylines(img.copy(), [vrx], True, (255, 255, 0), 1)
-                                self.employee_address.update({str(value[0]): value[1]})
 
-                            elif value[0] in value_json['employer_address']:
-                                vrx = np.array(value[1], np.int32)
-                                vrx = vrx.reshape((-1, 1, 2))
-                                img = cv2.polylines(img.copy(), [vrx], True, (255, 255, 0), 1)
-                                self.emp_address.update({str(value[0]): value[1]})
+                                elif value[0] in value_json['employee_address']:
+                                    vrx = np.array(value[1], np.int32)
+                                    vrx = vrx.reshape((-1, 1, 2))
+                                    img = cv2.polylines(img.copy(), [vrx], True, (255, 255, 0), 1)
+                                    self.employee_address.update({str(value[0]): value[1]})
 
-                            elif value[0] in value_json['employee_name']:
+
+                                elif value[0] in value_json['employer_address'] :
+                                    vrx = np.array(value[1], np.int32)
+                                    vrx = vrx.reshape((-1, 1, 2))
+                                    img = cv2.polylines(img.copy(), [vrx], True, (255, 255, 0), 1)
+                                    self.emp_address.update({str(value[0]): value[1]})
+
+
+                                elif value[0] in value_json['employee_name']:
                                 # print("in else",value[1])
-                                vrx = np.array(value[1], np.int32)
-                                vrx = vrx.reshape((-1, 1, 2))
-                                img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                self.employee_name.update({str(value[0]): value[1]})
+                                    vrx = np.array(value[1], np.int32)
+                                    vrx = vrx.reshape((-1, 1, 2))
+                                    img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                                    self.employee_name.update({str(value[0]): value[1]})
 
-                            elif value[0] in value_json['employer_name']:
-                                vrx = np.array(value[1], np.int32)
-                                vrx = vrx.reshape((-1, 1, 2))
-                                img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
-                                self.emp_name.update({str(value[0]): value[1]})
-                            else:
-                                vrx = np.array(value[1], np.int32)
-                                vrx = vrx.reshape((-1, 1, 2))
-                                img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
-                                self.dict.update({str(value[0]): value[1]})
-        self.pay_Val.put((self.emp_name, self.employee_name, self.emp_address, self.employee_address, self.regular1, self.regular2, self.regular3, self.regular4,self.regular5, self.regular6, self.regular7, self.regular8, self.regular9, self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8,self.tax9, self.tax10, self.deduction1, self.deduction2, self.deduction3, self.deduction4,self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9,self.deduction10, self.pay_start_date, self.pay_end_date, self.pay_date, self.dict))
-        print("location paystub alls",self.emp_name, self.employee_name, self.emp_address, self.employee_address, self.regular1, self.regular2, self.regular3, self.regular4,self.regular5, self.regular6, self.regular7, self.regular8, self.regular9, self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8,self.tax9, self.tax10, self.deduction1, self.deduction2, self.deduction3, self.deduction4,self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9,self.deduction10, self.pay_start_date, self.pay_end_date, self.pay_date, self.dict)
+
+                                elif value[0] in value_json['employer_name']:
+                                        vrx = np.array(value[1], np.int32)
+                                        vrx = vrx.reshape((-1, 1, 2))
+                                        img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                                        self.emp_name.update({str(value[0]): value[1]})
+                                else:
+                                    vrx = np.array(value[1], np.int32)
+                                    vrx = vrx.reshape((-1, 1, 2))
+                                    img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
+                                    self.dict.update({str(value[0]): value[1]})
+        dt = datetime.datetime.now()
+        date_val = dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
+        cv2.imwrite("../images/processed/" + date_val + ".jpg", img)
+        self.pay_Val.put((self.emp_name, self.employee_name, self.emp_address, self.employee_address, self.regular1, self.regular2, self.regular3, self.regular4,self.regular5, self.regular6, self.regular7, self.regular8, self.regular9, self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8,self.tax9, self.tax10, self.deduction1, self.deduction2, self.deduction3, self.deduction4,self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9,self.deduction10,self.deduction11,self.deduction12,self.deduction13,self.deduction14,self.deduction15, self.pay_start_date, self.pay_end_date, self.pay_date, self.dict,"../images/processed/" + date_val + ".jpg",value_json))
+
     def get_text(self,path,doc_type):
         try:
             client = vision.ImageAnnotatorClient()
@@ -224,6 +260,7 @@ class get_all_location:
 
         except Exception as E:
             print(E)
+
     def get_location(self,value_json,image,application_id,base_url):
         try:
             # value_json = {key: value for key, value in value_data.items() if value != ""}
@@ -313,6 +350,7 @@ class get_all_location:
             return self.address_val,self.licence_id,self.dict,"../images/processed/"+date_val+".jpg"
         except Exception as e:
             print(e)
+
     def ssn_get_location(self,value_json,image,application_id,base_url):
         img = cv2.imread(image)
         _, filename = os.path.split(image)
@@ -336,10 +374,9 @@ class get_all_location:
         date_val = dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
         cv2.imwrite("../images/processed/" + date_val + ".jpg", img)
         return self.ssn,"../images/processed/" + date_val + ".jpg"
+
     def paystub_get_location(self,data,image,application_id,base_url):
-        img = cv2.imread(image)
-        value_data={}
-        _, filename = os.path.split(image)
+        value_data,value_json={},{}
         for i in range(len(data['fields'])):
             if 'regular' in data['fields'][i]['name']:
                 value_data[data['fields'][i]['alias']] = {"field_value_original": data['fields'][i]['field_value_original'], "alias": "regular"}
@@ -393,23 +430,22 @@ class get_all_location:
             elif 'employee_address' in data['fields'][i]['name']:
                 value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
             # elif 'pay_frequency' in data['fields'][i]['name']:
-        print("in location",value_data)
-        value_json = {key: value for key, value in value_data.items() if value != ""}
-        thread=threading.Thread(target=self.paystub_value,args=(value_json,img,))
+        # for key, value in value_data.items():
+        #     if "field_value_original" in value_data[key]:
+        #         if value['field_value_original'] != "":
+        #             value_json.update({key: value})
+        #     else:
+        #         value_json.update({key:value})
+        # value_json = {key: value for key, value in value_data.items() if value != ""}
+        thread=threading.Thread(target=self.paystub_value,args=(value_data,image,))
         thread.start()
         (self.emp_name, self.employee_name, self.emp_address, self.employee_address, self.regular1, self.regular2,
          self.regular3, self.regular4, self.regular5, self.regular6, self.regular7, self.regular8, self.regular9,
          self.regular10, self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8,
          self.tax9, self.tax10, self.deduction1, self.deduction2, self.deduction3, self.deduction4, self.deduction5,
-         self.deduction6, self.deduction7, self.deduction8, self.deduction9, self.deduction10, self.pay_start_date,
-         self.pay_end_date, self.pay_date, self.dict)=self.pay_Val.get()
-
-        #print('emp_name',self.emp_name,self.dict)
-        print("in location",self.regular1)
-        dt = datetime.datetime.now()
-        date_val = dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
-        cv2.imwrite("../images/processed/" + date_val + ".jpg", img)
-        return self.emp_name, self.employee_name, self.emp_address, self.employee_address, self.regular1, self.regular2, self.regular3, self.regular4,self.regular5, self.regular6, self.regular7, self.regular8, self.regular9, self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8,self.tax9, self.tax10, self.deduction1, self.deduction2, self.deduction3, self.deduction4,self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9,self.deduction10, self.pay_start_date, self.pay_end_date, self.pay_date, self.dict, "../images/processed/" + date_val + ".jpg",value_json
+         self.deduction6, self.deduction7, self.deduction8, self.deduction9, self.deduction10,self.deduction11,self.deduction12,self.deduction13,self.deduction14,self.deduction15, self.pay_start_date,
+         self.pay_end_date, self.pay_date, self.dict,path,value_json)=self.pay_Val.get()
+        return self.emp_name, self.employee_name, self.emp_address, self.employee_address, self.regular1, self.regular2, self.regular3, self.regular4,self.regular5, self.regular6, self.regular7, self.regular8, self.regular9, self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8,self.tax9, self.tax10, self.deduction1, self.deduction2, self.deduction3, self.deduction4,self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9,self.deduction10,self.deduction11,self.deduction12,self.deduction13,self.deduction14,self.deduction15, self.pay_start_date, self.pay_end_date, self.pay_date, self.dict,path,value_json
    
 
 

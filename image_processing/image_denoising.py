@@ -1,6 +1,7 @@
 import cv2,os
+from pylab import array, plot, show, axis, arange, figure, uint8
 import numpy as np
-from PIL import ImageStat, ImageEnhance
+from PIL import ImageStat, ImageEnhance, ExifTags, Image
 from PIL import Image as I
 
 
@@ -93,17 +94,54 @@ class Denoising:
             pImg=''
             head, tail = os.path.split(path)
             if 'License' in doc_type:
+                image = cv2.imread(path)  # load as 1-channel 8bit grayscale
+                cv2.imshow('image', image)
+                maxIntensity = 255.0  # depends on dtype of image data
+                x = arange(maxIntensity)
+                # Parameters for manipulating image data
+                phi = 1
+                theta = 1
+                # Increase intensity such that
+                # dark pixels become much brighter,
+                # bright pixels become slightly bright
+                newImage0 = (maxIntensity / phi) * (image / (maxIntensity / theta)) ** 0.5
+                newImage0 = array(newImage0, dtype=uint8)
+                y = (maxIntensity / phi) * (x / (maxIntensity / theta)) ** 0.5
+                # Decrease intensity such that
+                # dark pixels become much darker,
+                # bright pixels become slightly dark
+                pImg = (maxIntensity / phi) * (image / (maxIntensity / theta)) ** 1.7
+
+                z = (maxIntensity / phi) * (x / (maxIntensity / theta)) ** 1.7
                 # print("im method",path)
-                image = cv2.imread(path,0)
-                # pImg=I.open(path)
-                # print(pImg)
+                # image = cv2.imread(path,0)
+                # pImg=I.open(path).convert('L')
+                # try:
+                #     if hasattr(pImg, '_getexif'):  # only present in JPEGs
+                #         for orientation in ExifTags.TAGS.keys():
+                #             if ExifTags.TAGS[orientation] == 'Orientation':
+                #                 break
+                #         e = pImg._getexif()  # returns None if no EXIF data
+                #         if e is not None:
+                #             exif = dict(e.items())
+                #             orientation = exif[orientation]
+                #
+                #             if orientation == 3:
+                #                 pImg = pImg.transpose(Image.ROTATE_180)
+                #             elif orientation == 6:
+                #                 pImg = pImg.transpose(Image.ROTATE_270)
+                #             elif orientation == 8:
+                #                 pImg = pImg.transpose(Image.ROTATE_90)
+                # except:
+                #     print('we are here')
+                #     pass
                 # imStat = ImageStat.Stat(pImg)
                 # medi = list(map((lambda x: x / 25), imStat.mean))
                 # print(max(medi))
                 # if max(medi) < 3:
                 #     brightness = ImageEnhance.Brightness(pImg)
                 #     pImg = brightness.enhance(3 - max(medi))
-                # pImg=pImg.convert('L')
+                # # pImg=pImg.convert('L')
                 # # brightImg.save(imgPath[:-4] + '_Bright'+ str(max(medi)) + '.jpg')
                 # sharpness = ImageEnhance.Sharpness(pImg)
                 # cvImg = np.array(pImg)
@@ -113,11 +151,11 @@ class Denoising:
                 #     sharpImg = sharpness.enhance(2)
                 #     cvImg = np.array(sharpImg)
                 #     contrast = ImageEnhance.Contrast(sharpImg)
-                #     pImg = contrast.enhance(1.47)
-                # image = np.array(pImg)
-                pimg = cv2.GaussianBlur(image,(1,5),0)
-                kernel = np.ones((2, 2), np.int32)
-                pImg = cv2.erode(pimg, kernel, iterations=1)
+                #     pImg = contrast.enhance(1.50)
+                # pImg=cv2.fastNlMeansDenoising(image, None, 7, 5, 5)
+                # pimg = cv2.GaussianBlur(image,(1,1),0.5)
+                # kernel = np.ones((2, 2), np.int32)
+                # pImg = cv2.erode(pimg, kernel, iterations=1)
                 # else:
                 #     img = cv2.imread(path)
                 #     if mean==84.5215623913:

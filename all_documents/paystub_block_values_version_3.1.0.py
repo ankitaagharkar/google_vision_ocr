@@ -1,60 +1,22 @@
 import io
-import json
-import re
-import os
-import datetime
-import cv2
-import numpy as np
-import requests
+
 from google.cloud import vision
 from google.cloud.vision import types
-import sys
+
 import difflib
-from PIL import Image, ExifTags
 
-"""
-Changelog
 
-## [3.2] - 2018-02-21
-### Added
-- Changelog to note down version-wise changes and to make my life easy
-- Logic to rotate image when camera orientation is incorrect
-- Function to identify payment component
-- Added a special character in float value identification method, new character added is '–', which is used
-    as a subtraction symbol in few paystubs
-- Added 'associate taxes' in tax headers
-- New global variable 'other_headers' to store all other headers
-- Added 'rate this period' in current col flags
-- Added 'year to' in YTD col flags
-- Added 'amount earned' in other col flags
-- Added 'chck1' in other columns in create blocks method
-- Added 'gross earnings' in gross columns in create blocks method
-
-### Changed
-- Column-block mapping algortihm is changed, it works on following idea:
-    For upto 3 lines above this column look for:
-    1. Closest block on left of this column where block start-x is less than column start-x
-    2. If not found, find closest block on right of this column where block start-x is greater than or equal 
-        to column start-x
-- Delete column-block mapping logic is changed (for multiple columns of same type to same block),
-    it works on following idea:
-    1. For a block having multiple columns to its bottom-right, keep the one closest on its right side.
-    2. If no such column found, for columns on its same line or above it, keep the one farthest to it on right side.
-- Logic to joint float values, now two integers with a space between them will be considered as a float. 
-(Missing decimal issue resolved)
-- Logic for payment component identification, now it uses a new method which is added in this version.
-(Solves issue of incorrect pay component detection)
-
-### Removed
-- Extra init parameters that were carried along from the start of this project
-- Draw bounding box and get data in box code, as it was not relevant to this project.
-
-"""
 
 class get_all_location:
     def __init__(self):
         self.result = {}
+        self.address_val = {}
+        self.licence_id = {}
+        self.ssn = {}
+        self.dict = {}
+        self.emp_name = {}
         self.text_val = []
+        self.location_json = ''
         self.keys = []
         self.values = []
         self.description = []
@@ -65,15 +27,27 @@ class get_all_location:
                                   'pre-tax deductions', 'before-tax deductions',
                                   'after tax', 'after tax deductions', 'after-tax deductions', 'post tax deductions',
                                   'post-tax deductions']
-        self.tax_headers = ['taxes', 'withholdings', 'tax deductions', 'associate taxes']
-        self.other_headers = ['information', 'others',
-                              'memo information', 'accruals/others',
-                              'summary',
-                              'colleague', 'employer',
-                              'net pay distribution', 'direct deposit distribution', 'direct deposit information',
-                              'direct deposit',
-                              'organizations contribution', 'employer paid benefits'
-                              ]
+        self.tax_headers = ['taxes', 'withholdings', 'tax deductions']
+
+    def get_data_in_box(self, bounding):
+        bounding_x1, bounding_y1 = bounding[0]
+        bounding_x2, bounding_y2 = bounding[1]
+        min_overlap = 20
+        output_values = []
+        for key, values in self.result.items():
+            # Get bounding box by taking minimum of x and y, maximum of x and y.
+            # this will solve problem of rotated texts as well.
+            min_x = min(values, key=lambda x: x[0])[0]
+            min_y = min(values, key=lambda x: x[1])[1]
+            max_x = max(values, key=lambda x: x[0])[0]
+            max_y = max(values, key=lambda x: x[1])[1]
+            text_area = (max_x - min_x) * (max_y - min_y)
+            x_overlap = max(0, min(bounding_x2, max_x) - max(bounding_x1, min_x))
+            y_overlap = max(0, min(bounding_y2, max_y) - max(bounding_y1, min_y))
+            overlapArea = x_overlap * y_overlap
+            if overlapArea > 0 and (overlapArea / text_area) * 100 >= min_overlap:
+                output_values.append([(min_x, min_y), (max_x, max_y)])
+        return output_values
 
     def is_float(self, s):
         try:
@@ -128,42 +102,20 @@ class get_all_location:
             except ValueError:
                 return False
 
-    def is_pay_component(self, s):
-        try:
-            if s[-3] == ',':
-                k = s.rfind(",")
-                s = s[:k] + "." + s[k + 1:]
-        except:
-            pass
-        s = s.replace('B', '8')
-        s = s.replace('S', '5')
-        s = s.replace(',', '')
-        s = s.replace('/', '')
-        # s = s.replace('$','')
-        # s = s.replace('s','')
-        s = s.replace('-', '')
-        s = s.replace('–', '')
-        # s = s.replace('*','')
-        s = s.replace(' ', '.')
-        s = s.replace('.', '', s.count('.') - 1)
-        try:
-            int(s)
-            return False
-        except:
-            try:
-                float(s)
-                return False
-            except ValueError:
-                if len(s) < 3:
-                    return False
-                else:
-                    return True
-
     def rectify_data(self,description,result):
         line_list = []
         line_heights = []
         desc = self.description.description
-        # print(self.result)
+
+        """
+        #check co-ordinates traversal type, min sum of x+y should be our first co-ordinate
+        res = list(self.result)
+        print(res[0])
+        min_pt = min(enumerate(res[0][1]), key=lambda x: x[1][0]+x[1][1])
+        print(min_pt)
+
+        #to be done later
+        """
 
         # sort all words as per y-axis of its first element
         res = sorted(self.result, key=lambda x: x[1][0][1])
@@ -181,7 +133,7 @@ class get_all_location:
             1B: If NO, add the word to current line
         """
         for key, values in enumerate(res):
-            print(values)
+            print(key, values)
             if values[1][0][1] < prev_y_mid and abs(prev_y_start - values[1][0][1]) <= mod_ht:
                 line_list[-1].append([values[0], values[1]])
             else:
@@ -210,21 +162,13 @@ class get_all_location:
             Remove the element from line. 
             (These words are either merged with some other words or are specific words to be discarded)
         """
-        space_lists = []
-        decimal_value = False
         for k, line in enumerate(line_list):
             line_list[k] = sorted(line, key=lambda x: x[1][0][0])
             line = line_list[k]
             pop_elements = []
             word_end = 0
             space_width = 0
-            if len(space_lists) > 9:
-                general_space_width = int(sum(space_lists[-5:]) / 5)
-            else:
-                general_space_width = 100
-
             for w_index, word in enumerate(line):
-                print(word, general_space_width)
                 if word[0] in ('$', '|', 'USD', '(', ')', '*'):
                     pop_elements.append(w_index)
                     continue
@@ -236,10 +180,7 @@ class get_all_location:
                     if self.is_float_or_int(word_val):
                         if not self.is_float_or_int(word[0]) and word[0] not in (',', '.', '/', '-', '–', '%'):
                             line_list[k][w_index] = word
-                            if general_space_width < (abs(word[1][0][1] - word[1][2][1]) * 1.5):
-                                space_width = general_space_width
-                            else:
-                                space_width = abs(word[1][0][1] - word[1][2][1]) * 1.5
+                            space_width = abs(word[1][0][1] - word[1][2][1]) * 1.5
                             word_end = word[1][2][0]
                             word_val = word[0]
                             prev_index = w_index
@@ -247,12 +188,7 @@ class get_all_location:
                             continue
                         if word_val[-1] == '.' and len(word[0]) == 2:
                             space_width = 0
-                        # if there is a flost value without any decimal point in between
-                        if '.' not in word_val and word[0] not in (',', '.', '/', '-', '–', '%') and len(word[0]) == 2:
-                            d = word_val + '.' + word[0]
-                            decimal_value = True
-                    if d in desc or decimal_value:
-                        decimal_value = False
+                    if d in desc:
                         line_list[k][prev_index][0] = d
                         line_list[k][prev_index][1] = [check_word[1][0], word[1][1], word[1][2], check_word[1][3]]
                         # remove current word from line list
@@ -264,27 +200,26 @@ class get_all_location:
                         line_list[k][prev_index][0] = d1
                         line_list[k][prev_index][1] = [check_word[1][0], word[1][1], word[1][2], check_word[1][3]]
                         # remove current word from line list
-                        space_width = abs(word_end - word[1][0][0]) * 2.25
-                        space_lists.append(space_width)
+                        space_width = abs(word_end - word[1][0][0]) * 2
                         pop_elements.append(w_index)
                         word_val = d1
                         word_end = word[1][2][0]
                         continue
                     line_list[k][w_index] = word
-                    if general_space_width < (abs(word[1][0][1] - word[1][2][1]) * 1.5):
-                        space_width = general_space_width
-                    else:
-                        space_width = abs(word[1][0][1] - word[1][2][1]) * 1.5
+                    space_width = abs(word[1][0][1] - word[1][2][1]) * 1.5
                     word_end = word[1][2][0]
                     word_val = word[0]
                     prev_index = w_index
                     check_word = word
                 else:
+                    """
+                    if re.search('\b{!?S|s\d+}',word[0]):
+                        print('heree')
+                        word[0] = word[0].replace('S','')
+                        word[0] = word[0].replace('s','')
+                    """
                     line_list[k][w_index] = word
-                    if general_space_width < (abs(word[1][0][1] - word[1][2][1]) * 1.5):
-                        space_width = general_space_width
-                    else:
-                        space_width = abs(word[1][0][1] - word[1][2][1]) * 1.5
+                    space_width = abs(word[1][0][1] - word[1][2][1]) * 1.5
                     word_end = word[1][2][0]
                     word_val = word[0]
                     prev_index = w_index
@@ -294,7 +229,18 @@ class get_all_location:
         return line_list
 
     def get_payslip_amounts(self, lines):
-        block_header_flags = self.earning_headers + self.deduction_headers + self.tax_headers + self.other_headers
+        block_header_flags = self.earning_headers + self.deduction_headers + self.tax_headers + ['information',
+                                                                                                 'others',
+                                                                                                 'memo information',
+                                                                                                 'summary',
+                                                                                                 'colleague',
+                                                                                                 'employer',
+                                                                                                 'net pay distribution',
+                                                                                                 'direct deposit distribution',
+                                                                                                 'direct deposit information',
+                                                                                                 'direct deposit',
+                                                                                                 'organizations contribution'
+                                                                                                 ]
         # define paytype headers
         general_paytype_headers = ['type', 'description', 'pay type']
         specific_paytype_headers = ['tax', 'earnings', 'pay type']
@@ -303,10 +249,9 @@ class get_all_location:
         extra_paytype_headers = ['rate', 'hours', 'hours/units', 'pay rate', 'hours/days']
 
         # define column headers
-        current_col_flags = ['current', 'this period', 'rate this period', 'current month', 'current period',
-                             'ratecurrent', 'deductions']
-        ytd_col_flags = ['year to date', 'year to', 'ytd', 'total to date', 'y-t-d', 'year-to-date', 'ytd amount']
-        other_col_flags = ['amount', 'earnings', 'amount earned']
+        current_col_flags = ['current', 'this period', 'current month', 'current period', 'ratecurrent', 'deductions']
+        ytd_col_flags = ['year to date', 'ytd', 'total to date', 'y-t-d', 'year-to-date', 'ytd amount']
+        other_col_flags = ['amount', 'earnings']
         column_header_flags = current_col_flags + ytd_col_flags + other_col_flags
 
         blocks = []
@@ -337,10 +282,7 @@ class get_all_location:
             6A: Determine if it belongs to current or YTD based on current flag
             (When current flag is false, column belongs to Current else YTD)
             6B: if column is blocking some other column, de-activate that column
-            6C: check if this column belongs to any block by following steps:
-                (a): Get all blocks upto 3 lines above this column
-                (b): First, find nearest block on left of this column, if found assign column to this block
-                (c): If not found, find nearest block on right side.
+            6C: check if this column belongs to any block, if yes:
                 6C(a): Delete all previous columns belonging to that block and having type(current/ytd) same as new column
                 6C(b): Assign column to this block.
         7. If any column is created already, do following steps:
@@ -356,11 +298,9 @@ class get_all_location:
                 # check if word belongs to block headers
                 b = difflib.get_close_matches(word[0].lower(), block_header_flags, cutoff=0.95)
                 if b:
-                    print('\nI am in B', word[0])
                     mean_x = (word[1][0][0] + word[1][1][0]) / 2
                     blocks.append(
                         [word[0], word[1][0][0], word[1][0][1], mean_x, abs(word[1][0][1] - word[1][3][1]), True])
-                    print(blocks[-1])
                     block_flag = True
                     # check if there is any column upto 3 lines above which this block can be a part of
                     # that column should have its mean-x after block's mean-x
@@ -375,13 +315,11 @@ class get_all_location:
                         pass
 
                     if block_flag:
-                        print('It might block someone')
                         # check if block is blocking some other block by using its mean and start x co-ordinates
                         try:
                             mean_diff = min(enumerate([x for x in blocks[0:-1] if x[5] == True]),
                                             key=lambda x: abs(x[1][3] - mean_x))
                             mean_width = mean_diff[1][4] * 1.5
-                            print(mean_diff)
                             if abs(mean_diff[1][3] - mean_x) < mean_width or abs(
                                             mean_diff[1][1] - word[1][0][0]) < mean_width:
                                 b_index = blocks.index(mean_diff[1])
@@ -390,14 +328,12 @@ class get_all_location:
                                         columns[i][4] = len(blocks) - 1
                                         columns[i][5] = None
                                 blocks[b_index][5] = False
-                                print(blocks, columns)
                         except:
                             pass
 
                 # check if word belongs to paytypes header
                 z = difflib.get_close_matches(word[0].lower(), paytype_header_flags, cutoff=0.80)
                 if z:
-                    print('\nI am in Paytype', word[0])
                     paytypes.append([word[0], word[1][0][0], word[1][1][0]])
                     if z[0] in general_paytype_headers:
                         g_pt_header = True
@@ -406,7 +342,6 @@ class get_all_location:
                 c = difflib.get_close_matches(word[0].lower(), column_header_flags, cutoff=0.85)
                 if c:
                     mw_factor = 1
-                    print('\nI am in C', word[0])
                     mean_x = (word[1][0][0] + word[1][1][0]) / 2
                     try:
                         end_x = line[w_index + 1][1][0][0]
@@ -441,53 +376,40 @@ class get_all_location:
                                         mean_diff[1][0] - word[1][0][0]) < mean_width:
                             # columns[mean_diff[0]][6] = False
                             columns.pop(mean_diff[0])
-                            print('we are blocking some column', columns)
                     except:
                         pass
 
                     # check the block where this column belongs to,
+                    # first check minimum mean_x difference with any block and check its y-distance
                     # look for upto 3 lines of document above this column as per column height
                     try:
                         y_diff = enumerate(
                             [x for x in blocks if x[5] == True and abs(x[2] - word[1][0][1]) < (3 * x[4])])
-                        try:
-                            mean_diff = min(y_diff, key=lambda x: word[1][0][0] - x[1][1] if word[1][0][0] - x[1][
-                                1] > 0 else float('inf'))
-                        except:
-                            mean_diff = min(y_diff, key=lambda x: x[1][1] - word[1][0][0] if x[1][1] - word[1][0][
-                                0] >= 0 else float('inf'))
-                        print('here', mean_diff)
+                        mean_diff = min(y_diff,
+                                        key=lambda x: mean_x - x[1][3] if mean_x - x[1][3] >= 0 else float('inf'))
                         b_index = blocks.index(mean_diff[1])
-                        columns[-1][4] = b_index
-                        print(blocks, columns)
+                        # check its y-difference
 
-                        # DELETE COLUMNS IF THERE ARE MORE THAN ONE FOR SAME BLOCK SAME TYPE
+                        columns[-1][4] = b_index
                         del_columns = []
-                        c_block = enumerate([x for x in columns if x[4] == b_index and x[6] == columns[-1][6]])
-                        try:
-                            mean_diff = min(c_block,
-                                            key=lambda x: x[1][0] - blocks[b_index][1] if x[1][1] > blocks[b_index][
-                                                2] else float('inf'))
-                            if not mean_diff[1][1] > blocks[b_index][2]:
-                                print('we are here')
-                                raise Exception('I know Python!')
-                        except:
-                            print('we are in except')
-                            c_block = enumerate([x for x in columns if x[4] == b_index and x[6] == columns[-1][6]])
-                            mean_diff = max(c_block,
-                                            key=lambda x: x[1][0] - blocks[b_index][1] if x[1][1] <= blocks[b_index][
-                                                2] else float(0))
-                        print(mean_diff, mean_diff[1][0], mean_diff[1][1], b_index, columns[-1][6])
-                        for x in columns:
-                            if x[4] == mean_diff[1][4] and x[6] == mean_diff[1][6] and (
-                                    x[0] != mean_diff[1][0] or x[1] != mean_diff[1][1]):
-                                print('deleting', x)
-                                columns.remove(x)
-                        print(blocks, columns)
-                    except Exception as e:
-                        print(e)
+                        for i, x in enumerate(columns):
+                            if x[4] == b_index and x[6] == columns[-1][6]:
+                                try:
+                                    if prev_x_diff > (x[0] - blocks[b_index][3]):
+                                        del_columns.append(i)
+                                    else:
+                                        del_columns.append(prev_index)
+                                        prev_x_diff = x[0] - blocks[b_index][3]
+                                        prev_index = i
+                                except:
+                                    prev_x_diff = x[0] - blocks[b_index][3]
+                                    prev_index = i
+                        del prev_x_diff
+                        for i in reversed(del_columns):
+                            columns.pop(i)
+                    except:
                         # No blocks have been created yet.
-                        # pass
+                        pass
                         # check the paytype where this column belongs to
 
                 # if columns are created, start looking for float values
@@ -514,26 +436,24 @@ class get_all_location:
                                         data_blocks.append([prev_word, val, columns[i][6], 'Undefined'])
                                 break
                     else:
-                        if self.is_pay_component(word[0]):
+                        if not self.is_float_or_int(word[0]):
                             prev_word = word[0]
-        print(blocks)
-        print(columns)
-        print(paytypes)
+
         return data_blocks
 
     def create_blocks(self, data_blocks):
-        net_columns = ['net pay', 'total net']
-        gross_columns = ['gross pay', 'total gross', 'gross earnings', 'gross']
-        other_columns = ['checking ', 'net check', 'savings', 'direct deposit', 'checkng', 'total', 'Chck1']
+        net_blocks = ['net pay', 'total net']
+        gross_blocks = ['gross pay', 'total gross']
+        other_blocks = ['checking ', 'net check', 'savings', 'direct deposit', 'checkng', 'total']
         final_data = {'Net Pay': [], 'Gross Pay': [], 'Earnings': [], 'Deductions': [], 'Taxes': [], 'Others': []}
         prev_word = ''
         prev_block = ''
         for i, db in enumerate(data_blocks):
-            x = difflib.get_close_matches(db[0].lower(), net_columns + gross_columns + other_columns, cutoff=0.80)
+            x = difflib.get_close_matches(db[0].lower(), net_blocks + gross_blocks + other_blocks, cutoff=0.80)
             if x:
-                if x[0] in net_columns:
+                if x[0] in net_blocks:
                     block_name = 'Net Pay'
-                elif x[0] in gross_columns:
+                elif x[0] in gross_blocks:
                     block_name = 'Gross Pay'
                 else:
                     block_name = 'Others'
@@ -561,37 +481,9 @@ class get_all_location:
 
     def get_text(self, path):
         client = vision.ImageAnnotatorClient()
-        ext = path.split('.')[-1]
-        img = Image.open(path)
-        try:
-            if hasattr(img, '_getexif'):  # only present in JPEGs
-                for orientation in ExifTags.TAGS.keys():
-                    if ExifTags.TAGS[orientation] == 'Orientation':
-                        break
-                e = img._getexif()  # returns None if no EXIF data
-                if e is not None:
-                    exif = dict(e.items())
-                    orientation = exif[orientation]
-
-                    if orientation == 3:
-                        img = img.transpose(Image.ROTATE_180)
-                    elif orientation == 6:
-                        img = img.transpose(Image.ROTATE_270)
-                    elif orientation == 8:
-                        img = img.transpose(Image.ROTATE_90)
-        except:
-            print('we are here')
-            pass
-        b = io.BytesIO()
-        if ext.lower() in ('png'):
-            save_ext = 'PNG'
-        elif ext.lower() in ('jpg', 'jpeg'):
-            save_ext = 'JPEG'
-        img.save(b, save_ext)
-        content = b.getvalue()
-
+        with io.open(path, 'rb') as image_file:
+            content = image_file.read()
         image = types.Image(content=content)
-
         # if 'Pay Stub' in doc_type:
         # response = client.text_detection(image=image)
         # else:
@@ -609,6 +501,7 @@ class get_all_location:
         self.result = zip(self.keys, self.values)
         data = " ".join(map(str, self.text_val))
         return data
+
     def all_location_details(self,path,description,result):
         self.get_text(path)
         lines=self.rectify_data(description,result)

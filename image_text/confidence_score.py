@@ -25,7 +25,7 @@ class text_score:
         self.emp_address, self.employee_address = {}, {}
         self.regular1, self.regular2, self.regular3, self.regular4, self.regular5, self.regular6, self.regular7, self.regular8, self.regular9, self.regular10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
         self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8, self.tax9, self.tax10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-        self.deduction1, self.deduction2, self.deduction3, self.deduction4, self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9, self.deduction10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        self.deduction1, self.deduction2, self.deduction3, self.deduction4, self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9, self.deduction10,self.deduction11,self.deduction12,self.deduction13,self.deduction14,self.deduction15={},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
         self.pay_start_date, self.pay_end_date, self.pay_date = {}, {}, {}
         self.word,self.license_text,self.regex_value= '','',""
         with open('../config/filtering.json', 'r') as data:
@@ -90,7 +90,7 @@ class text_score:
             text = text.replace(' AJ ', ' NJ ')
             state_regex = re.findall(
                 r"\b((?=AL|AK|AS|AZ|AŽ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE"
-                r"|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)[A-Z]{2}[, ])([A-Za-z]+)?\d+",
+                r"|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|and|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)[A-Z]{2}[, ])([A-Za-z]+)?\d+",
                 text)
             print(len(self.state_value['data']))
             if state_regex != []:
@@ -151,136 +151,141 @@ class text_score:
                     if value['field_value_original'] != "":
                         data.update({key:value})
                 else:
-                    if value!= "":
                         data.update({key: value})
-            print("in None Data",data)
+
+            # print("in None Data",data)
             for key, value in enumerate(self.result):
                 a = a + 1
                 b = b + 1
                 c = c + 1
                 for key1, value1 in data.items():
-                    if value[0] != '' and value1 != '':
-                        if "field_value_original" in data[key1]:
-                            if value[0] in value1['field_value_original']:
-                                if "regular" in value1['alias']:
-                                   
-                                    var_name = "regular" + str(a)
-                                    if "1" in var_name:
-                                        self.regular1.update({str(value[0]): value[1]})
-                                    if "2" in var_name:
-                                        self.regular2.update({str(value[0]): value[1]})
-                                    if "3" in var_name:
-                                        self.regular3.update({str(value[0]): value[1]})
-                                    if "4" in var_name:
-                                        self.regular4.update({str(value[0]): value[1]})
-                                    if "5" in var_name:
-                                        self.regular5.update({str(value[0]): value[1]})
-                                    if "6" in var_name:
-                                        self.regular6.update({str(value[0]): value[1]})
-                                    if "7" in var_name:
-                                        self.regular7.update({str(value[0]): value[1]})
-                                    if "8" in var_name:
-                                        self.regular8.update({str(value[0]): value[1]})
-                                    if "9" in var_name:
-                                        self.regular9.update({str(value[0]): value[1]})
-                                    if "10" in var_name:
-                                        self.regular10.update({str(value[0]): value[1]})
+                    if key1 != '' and value1 != '':
+                        if value[0] != '':
+                            if "field_value_original" in data[key1]:
+                                if value[0] in value1['field_value_original']:
+                                    if "regular" in value1['alias']:
 
-                                elif "tax" in value1['alias']:
+                                        var_name = "regular" + str(a)
+                                        if "1" in var_name:
+                                            self.regular1.update({str(value[0]): value[1]})
+                                        if "2" in var_name:
+                                            self.regular2.update({str(value[0]): value[1]})
+                                        if "3" in var_name:
+                                            self.regular3.update({str(value[0]): value[1]})
+                                        if "4" in var_name:
+                                            self.regular4.update({str(value[0]): value[1]})
+                                        if "5" in var_name:
+                                            self.regular5.update({str(value[0]): value[1]})
+                                        if "6" in var_name:
+                                            self.regular6.update({str(value[0]): value[1]})
+                                        if "7" in var_name:
+                                            self.regular7.update({str(value[0]): value[1]})
+                                        if "8" in var_name:
+                                            self.regular8.update({str(value[0]): value[1]})
+                                        if "9" in var_name:
+                                            self.regular9.update({str(value[0]): value[1]})
+                                        if "10" in var_name:
+                                            self.regular10.update({str(value[0]): value[1]})
 
-                                    var_name = "tax" + str(b)
-                                    if "1" in var_name:
-                                        self.tax1.update({str(value[0]): value[1]})
-                                    if "2" in var_name:
-                                        self.tax2.update({str(value[0]): value[1]})
-                                    if "3" in var_name:
-                                        self.tax3.update({str(value[0]): value[1]})
-                                    if "4" in var_name:
-                                        self.tax4.update({str(value[0]): value[1]})
-                                    if "5" in var_name:
-                                        self.tax5.update({str(value[0]): value[1]})
-                                    if "6" in var_name:
-                                        self.tax6.update({str(value[0]): value[1]})
-                                    if "7" in var_name:
-                                        self.tax7.update({str(value[0]): value[1]})
-                                    if "8" in var_name:
-                                        self.tax8.update({str(value[0]): value[1]})
-                                    if "9" in var_name:
-                                        self.tax9.update({str(value[0]): value[1]})
-                                    if "10" in value:
-                                        self.tax10.update({str(value[0]): value[1]})
+                                    elif "tax" in value1['alias']:
 
-                                elif "deduction" in value1['alias']:
-                                    var_name = "deduction" + str(c)
-                                    if "1" in var_name:
-                                        self.deduction1.update({str(value[0]): value[1]})
-                                    if "2" in var_name:
-                                        self.deduction2.update({str(value[0]): value[1]})
-                                    if "3" in var_name:
-                                        self.deduction3.update({str(value[0]): value[1]})
-                                    if "4" in var_name:
-                                        self.deduction4.update({str(value[0]): value[1]})
-                                    if "5" in var_name:
-                                        self.deduction5.update({str(value[0]): value[1]})
-                                    if "6" in var_name:
-                                        self.deduction6.update({str(value[0]): value[1]})
-                                    if "7" in var_name:
-                                        self.deduction7.update({str(value[0]): value[1]})
-                                    if "8" in var_name:
-                                        self.deduction8.update({str(value[0]): value[1]})
-                                    if "9" in var_name:
-                                        self.deduction9.update({str(value[0]): value[1]})
-                                    if "10" in var_name:
-                                        self.deduction10.update({str(value[0]): value[1]})
-                        else:
-                            if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
-                                if value[0] in data['pay_period_end_date']:
+                                        var_name = "tax" + str(b)
+                                        if "1" in var_name:
+                                            self.tax1.update({str(value[0]): value[1]})
+                                        if "2" in var_name:
+                                            self.tax2.update({str(value[0]): value[1]})
+                                        if "3" in var_name:
+                                            self.tax3.update({str(value[0]): value[1]})
+                                        if "4" in var_name:
+                                            self.tax4.update({str(value[0]): value[1]})
+                                        if "5" in var_name:
+                                            self.tax5.update({str(value[0]): value[1]})
+                                        if "6" in var_name:
+                                            self.tax6.update({str(value[0]): value[1]})
+                                        if "7" in var_name:
+                                            self.tax7.update({str(value[0]): value[1]})
+                                        if "8" in var_name:
+                                            self.tax8.update({str(value[0]): value[1]})
+                                        if "9" in var_name:
+                                            self.tax9.update({str(value[0]): value[1]})
+                                        if "10" in value:
+                                            self.tax10.update({str(value[0]): value[1]})
 
-                                    self.pay_end_date.update({str(value[0]): value[1]})
-                                elif value[0] in data['pay_period_start_date']:
+                                    elif "deduction" in value1['alias']:
+                                        var_name = "deduction" + str(c)
+                                        if "1" in var_name:
+                                            self.deduction1.update({str(value[0]): value[1]})
+                                        if "2" in var_name:
+                                            self.deduction2.update({str(value[0]): value[1]})
+                                        if "3" in var_name:
+                                            self.deduction3.update({str(value[0]): value[1]})
+                                        if "4" in var_name:
+                                            self.deduction4.update({str(value[0]): value[1]})
+                                        if "5" in var_name:
+                                            self.deduction5.update({str(value[0]): value[1]})
+                                        if "6" in var_name:
+                                            self.deduction6.update({str(value[0]): value[1]})
+                                        if "7" in var_name:
+                                            self.deduction7.update({str(value[0]): value[1]})
+                                        if "8" in var_name:
+                                            self.deduction8.update({str(value[0]): value[1]})
+                                        if "9" in var_name:
+                                            self.deduction9.update({str(value[0]): value[1]})
+                                        if "10" in var_name:
+                                            self.deduction10.update({str(value[0]): value[1]})
+                                        if "11" in var_name:
+                                            self.deduction11.update({str(value[0]): value[1]})
+                                        if "12" in var_name:
+                                            self.deduction12.update({str(value[0]): value[1]})
+                                        if "13" in var_name:
+                                            self.deduction13.update({str(value[0]): value[1]})
+                                        if "14" in var_name:
+                                            self.deduction14.update({str(value[0]): value[1]})
+                                        if "15" in var_name:
+                                            self.deduction15.update({str(value[0]): value[1]})
+                            else:
+                                if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
+                                    if value[0] in data['pay_period_end_date']:
+                                        self.pay_end_date.update({str(value[0]): value[1]})
 
-                                    self.pay_start_date.update({str(value[0]): value[1]})
-                                elif value[0] in data['pay_date']:
+                                    elif value[0] in data['pay_period_start_date']:
+                                        self.pay_start_date.update({str(value[0]): value[1]})
 
-                                    self.pay_date.update({str(value[0]): value[1]})
-                                elif value[0] in data['employee_address']:
+                                    elif value[0] in data['pay_date']:
+                                        self.pay_date.update({str(value[0]): value[1]})
 
-                                    self.employee_address.update({str(value[0]): value[1]})
-                                elif value[0] in data['employer_address']:
+                                    elif value[0] in data['employee_address'] :
+                                        self.employee_address.update({str(value[0]): value[1]})
 
-                                    self.emp_address.update({str(value[0]): value[1]})
-                                elif value[0] in data['employee_name']:
+                                    elif value[0] in data['employer_address']:
+                                        self.emp_address.update({str(value[0]): value[1]})
 
-                                    self.employee_name.update({str(value[0]): value[1]})
-                                elif value[0] in data['employer_name']:
+                                    elif value[0] in data['employee_name'] :
+                                        self.employee_name.update({str(value[0]): value[1]})
 
-                                    self.emp_name.update({str(value[0]): value[1]})
-                                else:
+                                    elif value[0] in data['employer_name']:
 
-                                    self.dict.update({str(value[0]): value[1]})
-            print("in paystub confidence",self.regular1,
-            self.regular2, self.regular3, self.regular4, self.regular5, self.regular6, self.regular7, self.regular8, self.regular9,
-            self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8, self.tax9,
-            self.tax10,self.deduction1, self.deduction2, self.deduction3,self.deduction4, self.deduction5, self.deduction6,
-            self.deduction7, self.deduction8, self.deduction9, self.deduction10,self.pay_start_date, self.pay_end_date,
-            self.pay_date,self.employee_address,self.emp_address,self.employee_name,self.emp_name,self.dict)
+                                        self.emp_name.update({str(value[0]): value[1]})
+                                    else:
+
+                                        self.dict.update({str(value[0]): value[1]})
 
             regular1_scrore,regular2_scrore,regular3_scrore,regular4_scrore,regular5_scrore,regular6_scrore,regular7_scrore,\
             regular8_scrore,regular9_scrore,regular10_scrore,tax1_scrore,tax2_scrore,tax3_scrore,tax4_scrore,tax5_scrore,\
             tax6_scrore,tax7_scrore,tax8_scrore,tax9_scrore,tax10_scrore,deduction1_scrore,deduction2_scrore,deduction3_scrore,\
-            deduction4_scrore,deduction5_scrore,deduction6_scrore,deduction7_scrore,deduction8_scrore,deduction9_scrore,deduction10,\
+            deduction4_scrore,deduction5_scrore,deduction6_scrore,deduction7_scrore,deduction8_scrore,deduction9_scrore,deduction10,deduction11_scrore,deduction12_scrore,deduction13_scrore,deduction14_scrore,deduction15_scrore,\
             pay_end_date_scrore,pay_start_date_scrore,pay_date_scrore,employee_address_scrore,employee_name_scrore,\
             employer_address_scrore,employer_name_scrore,other_scrore = self.pay_val.all_confidence_scrore(self.regular1,
             self.regular2, self.regular3, self.regular4, self.regular5, self.regular6, self.regular7, self.regular8, self.regular9,
             self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8, self.tax9,
             self.tax10,self.deduction1, self.deduction2, self.deduction3,self.deduction4, self.deduction5, self.deduction6,
-            self.deduction7, self.deduction8, self.deduction9, self.deduction10,self.pay_start_date, self.pay_end_date,
+            self.deduction7, self.deduction8, self.deduction9, self.deduction10,self.deduction11,self.deduction12,self.deduction13,self.deduction14,self.deduction15,self.pay_start_date, self.pay_end_date,
             self.pay_date,self.employee_address,self.emp_address,self.employee_name,self.emp_name,self.dict)
 
             return regular1_scrore,regular2_scrore,regular3_scrore,regular4_scrore,regular5_scrore,regular6_scrore,regular7_scrore,\
             regular8_scrore,regular9_scrore,regular10_scrore,tax1_scrore,tax2_scrore,tax3_scrore,tax4_scrore,tax5_scrore,\
             tax6_scrore,tax7_scrore,tax8_scrore,tax9_scrore,tax10_scrore,deduction1_scrore,deduction2_scrore,deduction3_scrore,\
-            deduction4_scrore,deduction5_scrore,deduction6_scrore,deduction7_scrore,deduction8_scrore,deduction9_scrore,deduction10,\
+            deduction4_scrore,deduction5_scrore,deduction6_scrore,deduction7_scrore,deduction8_scrore,deduction9_scrore,deduction10,deduction11_scrore,deduction12_scrore,deduction13_scrore,deduction14_scrore,deduction15_scrore,\
             pay_end_date_scrore,pay_start_date_scrore,pay_date_scrore,employee_address_scrore,employee_name_scrore,\
             employer_address_scrore,employer_name_scrore,other_scrore
 
