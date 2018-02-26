@@ -94,13 +94,13 @@ class Denoising:
             pImg=''
             head, tail = os.path.split(path)
             if 'License' in doc_type:
-                image = cv2.imread(path)  # load as 1-channel 8bit grayscale
-                cv2.imshow('image', image)
-                maxIntensity = 255.0  # depends on dtype of image data
+                img = cv2.imread(path)  # load as 1-channel 8bit grayscale
+                image=cv2.GaussianBlur(img,(3,3),0)
+                maxIntensity = 300.0  # depends on dtype of image data
                 x = arange(maxIntensity)
                 # Parameters for manipulating image data
-                phi = 1
-                theta = 1
+                phi = 1.5
+                theta = 1.5
                 # Increase intensity such that
                 # dark pixels become much brighter,
                 # bright pixels become slightly bright
@@ -110,68 +110,14 @@ class Denoising:
                 # Decrease intensity such that
                 # dark pixels become much darker,
                 # bright pixels become slightly dark
-                pImg = (maxIntensity / phi) * (image / (maxIntensity / theta)) ** 1.7
+                img1 = (maxIntensity / phi) * (image / (maxIntensity / theta)) ** 2
+                # cv2.imwrite("../images/static/" + tail+'_processed', img1)
+                z = (maxIntensity / phi) * (x / (maxIntensity / theta)) ** 1
 
-                z = (maxIntensity / phi) * (x / (maxIntensity / theta)) ** 1.7
-                # print("im method",path)
-                # image = cv2.imread(path,0)
-                # pImg=I.open(path).convert('L')
-                # try:
-                #     if hasattr(pImg, '_getexif'):  # only present in JPEGs
-                #         for orientation in ExifTags.TAGS.keys():
-                #             if ExifTags.TAGS[orientation] == 'Orientation':
-                #                 break
-                #         e = pImg._getexif()  # returns None if no EXIF data
-                #         if e is not None:
-                #             exif = dict(e.items())
-                #             orientation = exif[orientation]
-                #
-                #             if orientation == 3:
-                #                 pImg = pImg.transpose(Image.ROTATE_180)
-                #             elif orientation == 6:
-                #                 pImg = pImg.transpose(Image.ROTATE_270)
-                #             elif orientation == 8:
-                #                 pImg = pImg.transpose(Image.ROTATE_90)
-                # except:
-                #     print('we are here')
-                #     pass
-                # imStat = ImageStat.Stat(pImg)
-                # medi = list(map((lambda x: x / 25), imStat.mean))
-                # print(max(medi))
-                # if max(medi) < 3:
-                #     brightness = ImageEnhance.Brightness(pImg)
-                #     pImg = brightness.enhance(3 - max(medi))
-                # # pImg=pImg.convert('L')
-                # # brightImg.save(imgPath[:-4] + '_Bright'+ str(max(medi)) + '.jpg')
-                # sharpness = ImageEnhance.Sharpness(pImg)
-                # cvImg = np.array(pImg)
-                # blur = self.variance_of_laplacian(cvImg)
-                # if blur < 700:
-                #     print("blur",blur)
-                #     sharpImg = sharpness.enhance(2)
-                #     cvImg = np.array(sharpImg)
-                #     contrast = ImageEnhance.Contrast(sharpImg)
-                #     pImg = contrast.enhance(1.50)
-                # pImg=cv2.fastNlMeansDenoising(image, None, 7, 5, 5)
-                # pimg = cv2.GaussianBlur(image,(1,1),0.5)
-                # kernel = np.ones((2, 2), np.int32)
-                # pImg = cv2.erode(pimg, kernel, iterations=1)
-                # else:
-                #     img = cv2.imread(path)
-                #     if mean==84.5215623913:
-                #         pImg=img
-                #     if mean < 20:
-                #         pImg=self.process_image(img,10)
-                #     elif 20 < mean <= 46:
-                #         pImg = self.process_image(img, 12)
-                #     elif 47< mean <=64:
-                #         pImg = self.process_image(img, 10)
-                #     elif mean <=86.0:
-                #         pImg = self.process_image(img, 25)
-                #     elif mean >=87.0:
-                #         pImg = self.process_image(img, 5)
-                #     else:
-                #         pas
+                pImg = np.vstack((image, img1))
+                cv2.resize(pImg, (2050, 2050))
+                # img_merge.save( 'test.jpg' )
+                # pImg=cv2.erode(pimg,(3,2),0)
             elif 'SSN' in doc_type:
                 print("im method", path)
                 pImg = I.open(path)

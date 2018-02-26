@@ -46,8 +46,9 @@ import cv2
 from pylab import array, plot, show, axis, arange, figure, uint8
 
 # Image data
-path=r"C:\Users\ankitaa\Desktop\NJ\NJ DL 26.JPG"
+path=r"C:\Users\ankitaa\Desktop\NJ\NJ DL 3.JPG"
 image = cv2.imread(path) # load as 1-channel 8bit grayscale
+# image=cv2.fastNlMeansDenoising(img,5,5,5)
 # cv2.imshow('image',image)
 maxIntensity = 255.0 # depends on dtype of image data
 x = arange(maxIntensity)
@@ -70,7 +71,7 @@ y = (maxIntensity/phi)*(x/(maxIntensity/theta))**0.5
 # Decrease intensity such that
 # dark pixels become much darker,
 # bright pixels become slightly dark
-newImage1 = (maxIntensity/phi)*(image/(maxIntensity/theta))**1.7
+newImage1 = (maxIntensity/phi)*(image/(maxIntensity/theta))**2
 newImage1 = array(newImage1,dtype=uint8)
 
 # cv2.imshow('newImage1',newImage1)
@@ -98,13 +99,13 @@ import numpy as np
 from PIL import Image
 
 images_list2=r'C:\Users\ankitaa\PycharmProjects\iDocufy_OCR\Examples\newImage0.jpg'
-img1=cv2.imread(path,0)
-img2=cv2.imread(images_list2,0)
+img1=cv2.imread(path)
+img2=cv2.imread(images_list2)
 
 print([img1.shape])
 # img_merge = np.vstack(imgs)
-img_merge = np.hstack((img1,img2))
-
+img_merge = np.vstack((img1,img2))
+cv2.resize(img_merge,(1240,1240))
 # img_merge.save( 'test.jpg' )
 cv2.imshow('frame',img_merge)
 cv2.imwrite('test.jpg',img_merge)

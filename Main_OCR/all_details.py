@@ -431,9 +431,8 @@ class Scan_OCR:
                     path=self.img2pdf.get()
                     _,filename=os.path.split(path)
                     thread = threading.Thread(target=self.get_doc_text, args=(path, json_val[doc_id],))
-                    file_path = path
+
                 else:
-                    file_path = '"../images/documents_upload/" + filename'
                     thread = threading.Thread(target=self.get_doc_text, args=("../images/documents_upload/" + filename,json_val[doc_id],))
                 thread.start()
                 (self.text, employer_full_address, employer_street, employer_state, employer_zipcode,
@@ -561,10 +560,13 @@ class Scan_OCR:
                     print("in main paystub response",response)
 
                     thread = threading.Thread(target=self.get_location, args=(
-                    response, "../images/documents_upload/" + filename, application_id, self.config['base_url'],
-                    json_val[doc_id],))
+                    response, "../images/documents_upload/" + filename, application_id, self.config['base_url'],json_val[doc_id],))
                     thread.start()
-                    (emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4,regular5, regular6, regular7, regular8, regular9, regular10,tax1, tax2, tax3, tax4, tax5, tax6, tax7, tax8,tax9, tax10, deduction1, deduction2, deduction3, deduction4,deduction5, deduction6, deduction7, deduction8, deduction9,deduction10,deduction11,deduction12,deduction13,deduction14,deduction15, pay_start_date, pay_end_date, pay_date, dict_location,file_path,value_json) = self.location.get()
+                    (emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4,
+                     regular5, regular6, regular7, regular8, regular9, regular10,tax1, tax2, tax3, tax4, tax5, tax6,
+                     tax7, tax8,tax9, tax10, deduction1, deduction2, deduction3, deduction4,deduction5, deduction6,
+                     deduction7, deduction8, deduction9,deduction10,deduction11,deduction12,deduction13,deduction14,deduction15,
+                     pay_start_date, pay_end_date, pay_date, dict_location,file_path,value_json) = self.location.get()
                     thread = threading.Thread(target=self.confidence_score, args=("../images/documents_upload/" + filename, json_val[doc_id], value_json,))
                     thread.start()
                     (regular1_scrore,regular2_scrore,regular3_scrore,regular4_scrore,regular5_scrore,regular6_scrore,regular7_scrore,\
@@ -590,7 +592,7 @@ class Scan_OCR:
                                     self.location_val.append(value)
                                     if key in response['fields'][i]['field_value_original'] :
                                         response['fields'][i]['location'] = str(list(self.location_val))
-                                response['fields'][i]['confidence'] = pay_start_date_scrore
+                                response['fields'][i]['confidence'] = pay_start_date_scrore-4
 
                             elif response['fields'][i]['name'] == "pay_period_end_date":
                                 self.location_val.clear()
@@ -598,7 +600,7 @@ class Scan_OCR:
                                     self.location_val.append(value)
                                     if key in response['fields'][i]['field_value_original'] :
                                         response['fields'][i]['location'] = str(list(self.location_val))
-                                response['fields'][i]['confidence'] = pay_end_date_scrore
+                                response['fields'][i]['confidence'] = pay_end_date_scrore-2
 
                             elif response['fields'][i]['name'] == "pay_date":
                                 self.location_val.clear()
@@ -606,7 +608,7 @@ class Scan_OCR:
                                     self.location_val.append(value)
                                     if key in response['fields'][i]['field_value_original'] :
                                         response['fields'][i]['location'] = str(list(self.location_val))
-                                response['fields'][i]['confidence'] = pay_date_scrore
+                                response['fields'][i]['confidence'] = pay_date_scrore-3
 
                             elif response['fields'][i]['name'] == "employee_name":
                                 self.location_val.clear()
@@ -614,7 +616,7 @@ class Scan_OCR:
                                     self.location_val.append(value)
                                     if key in response['fields'][i]['field_value_original'] :
                                         response['fields'][i]['location'] = str(list(self.location_val))
-                                response['fields'][i]['confidence'] = employee_name_scrore-8
+                                response['fields'][i]['confidence'] = employee_name_scrore-6
 
                             elif response['fields'][i]['name'] == "employer_address":
                                 self.location_val.clear()
@@ -622,7 +624,7 @@ class Scan_OCR:
                                     self.location_val.append(value)
                                     if key in response['fields'][i]['field_value_original'] :
                                         response['fields'][i]['location'] = str(list(self.location_val))
-                                        response['fields'][i]['confidence'] = employer_address_scrore
+                                        response['fields'][i]['confidence'] = employer_address_scrore-3
 
                             elif response['fields'][i]['name'] == "employee_address":
                                 self.location_val.clear()
@@ -630,7 +632,7 @@ class Scan_OCR:
                                     self.location_val.append(value)
                                     if key in response['fields'][i]['field_value_original'] :
                                         response['fields'][i]['location'] = str(list(self.location_val))
-                                        response['fields'][i]['confidence'] = employee_address_scrore
+                                        response['fields'][i]['confidence'] = employee_address_scrore-2
 
                             elif "regular" in  response['fields'][i]['name']:
 
@@ -941,8 +943,6 @@ class Scan_OCR:
                     self.scan_result = response
                     self.scan_result['error_msg'] = "Successfully Scanned"
                     self.scan_result["status"] = "SUCCESSFUL"
-
-
             #print(self.text)
             self.scan_result['raw_data'] = self.text
             print("all response", self.scan_result)

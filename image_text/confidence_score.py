@@ -57,6 +57,7 @@ class text_score:
         self.result = zip(self.keys, self.values)
     def license_confidence(self,data,text):
         try:
+            print("license confidence",data)
             for key, value in enumerate(self.result):
                 for key1, value1 in data.items():
                     if value[0] != '' and value1 != '':

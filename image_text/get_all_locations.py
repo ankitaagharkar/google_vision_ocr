@@ -270,7 +270,7 @@ class get_all_location:
             #print(value_json)
             img=cv2.imread(image)
             _,filename= os.path.split(image)
-
+            print("in license locvation",value_json)
             for key, value in enumerate(self.result):
                 #print(value[0], value[1])
                 for key1, value1 in value_json.items():
