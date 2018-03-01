@@ -55,10 +55,12 @@ class text_score:
                     self.keys.append(word_text)
                     self.values.append(word.confidence)
         self.result = zip(self.keys, self.values)
+        return self.keys,self.values
     def license_confidence(self,data,text):
         try:
-            print("license confidence",data)
+
             for key, value in enumerate(self.result):
+                # print(value)
                 for key1, value1 in data.items():
                     if value[0] != '' and value1 != '':
                         # if value[0] in value1:
@@ -109,9 +111,12 @@ class text_score:
                 self.license_score=(min(self.val)*100)
 
             if len(self.address_val) > 1:
+                self.val.clear()
                 for key3, value3 in self.address_val.items():
                     self.address_confidence = self.address_confidence + value3
-                self.address_score = int((self.address_confidence / len(self.address_val)) * 100)
+                    self.val.append(value3)
+                self.address_score = (min(self.val)*100)
+                    # int((self.address_confidence / len(self.address_val)) * 100)
                 # if self.address_score > 100:
                 #     self.address_score = 97
             for key2, value2 in self.dict.items():

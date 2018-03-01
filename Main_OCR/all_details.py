@@ -70,7 +70,7 @@ class Scan_OCR:
     def image_to_pdf(self, image_path, doc_type):
         try:
 
-            if 'Pay Stub' in doc_type:
+            if 'Paystub' in doc_type:
                 _,filename = os.path.split(image_path)
 
                 src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"))
@@ -82,7 +82,7 @@ class Scan_OCR:
             else:
                 _, filename = os.path.split(image_path)
                 src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"),strict = False)
-                file = self.c.pdf_page_to_png(src_pdf, doc_type,pagenum=0, resolution=220)
+                file = self.c.pdf_page_to_png(src_pdf, doc_type,pagenum=0, resolution=300)
                 filename = filename.rsplit('.', 1)[0] + ".jpg"
                 file.save(filename=os.path.join("../images/documents_upload/", filename))
                 path=os.path.join("../images/documents_upload/", filename)
@@ -98,7 +98,7 @@ class Scan_OCR:
             elif 'SSN' in doc_type:
                 ssn_location,filename = self.Location.ssn_get_location(value_json, image, application_id, base_url)
                 self.location.put((ssn_location,filename))
-            elif 'Pay Stub' in doc_type:
+            elif 'Paystub' in doc_type:
                 emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4, regular5, regular6, regular7, regular8, regular9, regular10, tax1, tax2, tax3, tax4, tax5, tax6, tax7, tax8, tax9, tax10, deduction1, deduction2, deduction3, deduction4, deduction5, deduction6, deduction7, deduction8, deduction9, deduction10,deduction11,deduction12,deduction13,deduction14,deduction15, pay_start_date, pay_end_date, pay_date, dict_location,filename,value_data = self.Location.paystub_get_location(value_json, image, application_id, base_url)
                 self.location.put((emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4,regular5, regular6, regular7, regular8, regular9, regular10,tax1, tax2, tax3, tax4, tax5, tax6, tax7, tax8,tax9, tax10, deduction1, deduction2, deduction3, deduction4,deduction5, deduction6, deduction7, deduction8, deduction9,deduction10,deduction11,deduction12,deduction13,deduction14,deduction15, pay_start_date, pay_end_date, pay_date, dict_location,filename,value_data))
         except Exception as e:
@@ -106,9 +106,10 @@ class Scan_OCR:
     def get_doc(self,path, doc_type):
         try:
             self.text,self.description,self.result = self.Location.get_text(path, doc_type)
+            keys, values = self.score.get_confidence_score(path)
             if 'License' in doc_type:
 
-                licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val = self.licence.get_licence_details1(self.text)
+                licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val = self.licence.get_licence_details1(self.text,keys,values)
                 self.scan_text.put((self.text, licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val))
             elif 'SSN' in doc_type:
                 SSN_Number = self.ssn.get_all_snn_details(self.text)
@@ -118,14 +119,16 @@ class Scan_OCR:
             print(e)
     def confidence_score(self,path, doc_type,data):
         try:
-            text_val = self.score.get_confidence_score(path)
+
             if 'License' in doc_type:
                 date_dict,date_score,address_score,license_score,other_score=self.score.license_confidence(data,self.text)
                 self.confidence.put((date_dict,date_score,address_score,license_score,other_score))
             elif 'SSN' in doc_type:
+                keys,values = self.score.get_confidence_score(path)
                 ssn_score=self.score.ssn_confidence(data)
                 self.confidence.put((ssn_score))
-            elif 'Pay Stub' in doc_type:
+            elif 'Paystub' in doc_type:
+                keys, values = self.score.get_confidence_score(path)
                 regular1_scrore, regular2_scrore, regular3_scrore, regular4_scrore, regular5_scrore, regular6_scrore, regular7_scrore, \
                 regular8_scrore, regular9_scrore, regular10_scrore, tax1_scrore, tax2_scrore, tax3_scrore, tax4_scrore, tax5_scrore, \
                 tax6_scrore, tax7_scrore, tax8_scrore, tax9_scrore, tax10_scrore, deduction1_scrore, deduction2_scrore, deduction3_scrore, \
@@ -193,18 +196,24 @@ class Scan_OCR:
                         self.name_value.append("")
                         self.name_value.append("")
                     else:
+                        print(name)
                         self.name_value = name.split()
-                        #print(self.name_value)
+                        print(self.name_value)
+                        print("len of name",len(self.name_value))
                     if len(self.name_value) == 1:
                         add = {'first_name': "", 'dob': dob, 'issue_date': iss_date,
                                'expiration_date': exp_date,
                                'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
                                "middle_name": "", "state": state, "postal_code": zipcode, "city": city,
                                "date_val": date_val}
-                    elif len(self.name_value) > 2:
+                    elif len(self.name_value)==3:
                         add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
                                'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
                                "middle_name": self.name_value[2],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
+                    elif len(self.name_value)==4:
+                        add = {'first_name': self.name_value[2], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
+                               'last_name': self.name_value[1], 'address': address, 'license_id': licence_id,
+                               "middle_name": self.name_value[3],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
                     else:
                         add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date,
                                'expiration_date': exp_date, 'last_name': self.name_value[0], 'address': address,
@@ -423,7 +432,7 @@ class Scan_OCR:
                     self.scan_result['error_msg'] = "Successfully Scanned"
                     self.scan_result["status"] = "SUCCESSFUL"
                     #print('ssn_location',self.scan_result)
-            elif 'Pay Stub' in json_val[doc_id]:
+            elif 'Paystub' in json_val[doc_id]:
                 if filename.rsplit('.', 1)[1] == 'pdf':
                     thread = threading.Thread(target=self.image_to_pdf,
                                               args=("../images/documents_upload/" + filename, json_val[doc_id],))
