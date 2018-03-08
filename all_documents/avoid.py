@@ -3,6 +3,36 @@ import re
 
 def replace(actual_name):
     actual_name1 = actual_name.replace('DONAR', "")
+
+    actual_name1 = actual_name1.replace('JERSEY ', "")
+    actual_name1 = actual_name1.replace('com ', "")
+    actual_name1 = actual_name1.replace('iss', "")
+    actual_name1 = actual_name1.replace('Iss', "")
+    actual_name1 = actual_name1.replace(' CIPTA', "")
+    actual_name1 = actual_name1.replace('aai ', "")
+    actual_name1 = actual_name1.replace('COMMERCIAL', "")
+    actual_name1 = actual_name1.replace('E R B', "")
+    actual_name1 = actual_name1.replace('CLASE', "")
+    actual_name1 = actual_name1.replace('LUCENSEo', "")
+    actual_name1 = actual_name1.replace('FERRER', "")
+    actual_name1 = actual_name1.replace('CLASS A', "")
+    actual_name1 = actual_name1.replace('Cam ', "")
+    actual_name1 = actual_name1.replace('YORK', "")
+    actual_name1 = actual_name1.replace('STATE', "")
+    actual_name1 = actual_name1.replace('AC ', "")
+    actual_name1 = actual_name1.replace('CLASS A', "")
+    actual_name1 = actual_name1.replace('Can ', "")
+    actual_name1 = actual_name1.replace(' K ', " ")
+    actual_name1 = actual_name1.replace('class A', "")
+    actual_name1 = actual_name1.replace('CLASS B', "")
+    actual_name1 = actual_name1.replace('CLASS B', "")
+    actual_name1 = actual_name1.replace('class B', "")
+    actual_name1 = actual_name1.replace('CLASS E', "")
+    actual_name1 = actual_name1.replace('CLASS E', "")
+    actual_name1 = actual_name1.replace('class E', "")
+    actual_name1 = actual_name1.replace('CLASS F', "")
+    actual_name1 = actual_name1.replace('CLASS F', "")
+    actual_name1 = actual_name1.replace('class F', "")
     actual_name1 = actual_name1.replace('CLASSC', "")
     actual_name1 = actual_name1.replace('CEXP', "")
     actual_name1 = actual_name1.replace(' BE ', " ")
@@ -19,15 +49,21 @@ def replace(actual_name):
     actual_name1 = actual_name1.replace('bentu', "")
     actual_name1 = actual_name1.replace('ORGAN', "")
     actual_name1 = actual_name1.replace('nacrtaa', "")
+    actual_name1 = actual_name1.replace('ATION ', "")
+    actual_name1 = actual_name1.replace('SRSEY ', "")
     actual_name1 = actual_name1.replace('RUOSEPH', "JOSEPH")
     actual_name1 = actual_name1.replace('IUOSEPH', "JOSEPH")
-    actual_name1 = actual_name1.replace('OONOR', "")
-    actual_name1 = actual_name1.replace('ires', "")
+    actual_name1 = actual_name1.replace('OONOR ', "")
+    actual_name1 = actual_name1.replace('Taxes ', "")
+    actual_name1 = actual_name1.replace('Tax ', "")
+    actual_name1 = actual_name1.replace('TAX ', "")
+    actual_name1 = actual_name1.replace('TAXES ', "")
+    actual_name1 = actual_name1.replace('ires ', "")
     actual_name1 = actual_name1.replace('Dups', "")
     actual_name1 = actual_name1.replace('Neder', "")
     actual_name1 = actual_name1.replace('dass', "")
     actual_name1 = actual_name1.replace('AOhio', "")
-    actual_name1 = actual_name1.replace('OD.', "")
+    actual_name1 = actual_name1.replace('OD. ', "")
     actual_name1 = actual_name1.replace('DRIVER', "")
     actual_name1 = actual_name1.replace(' EXL', "GU")
     actual_name1 = actual_name1.replace(':', "")
@@ -37,14 +73,14 @@ def replace(actual_name):
     actual_name1 = actual_name1.replace('Null', "")
     actual_name1 = actual_name1.replace(' USA ', "")
     actual_name1 = actual_name1.replace('EYES', "")
-    actual_name1 = actual_name1.replace('PAYTOTHE', "")
+    actual_name1 = actual_name1.replace('PAYTOTHE ', "")
     actual_name1 = actual_name1.replace(' TO ', "")
-    actual_name1 = actual_name1.replace('THE', "")
+    actual_name1 = actual_name1.replace('THE ', "")
     actual_name1 = actual_name1.replace('ORDER', "")
-    actual_name1 = actual_name1.replace('No', "")
+    actual_name1 = actual_name1.replace(' No ', "")
     actual_name1 = actual_name1.replace('Payro', "")
     actual_name1 = actual_name1.replace(' OC ', "")
-    actual_name1 = actual_name1.replace(' OF', "")
+    actual_name1 = actual_name1.replace(' OF ', "")
     actual_name1 = actual_name1.replace(' LN', "")
     actual_name1 = actual_name1.replace(' EN ', "")
     actual_name1 = actual_name1.replace(' AP ', "")
@@ -171,7 +207,7 @@ def replace(actual_name):
     # actual_name1 = actual_name1.replace('Is ', "")
     actual_name1 = actual_name1.replace('un ', "")
 
-    actual_name1 = re.sub(r"\b(!?es |iss |er |or |EN |EXP|HGT|Is |Earnings|Donor |AP |=|,|@|#|%|^|CGA| ER |CONG|EENHANCED|am|Mal| OL |GIN|CASS C |D |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF |LN | ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|ISS|SExr|Payroll|Attn|GEXP|class|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
+    actual_name1 = re.sub(r"\b(!?es |iss |er |or |EN |EXP|HGT|Is |Earnings|Donor |AP |=|,|@|#|%|^|CGA| ER |CONG|EENHANCED|am|Mal| OL |GIN|CASS C |D |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE |DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF |LN | ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|ISS|SExr|Payroll|Attn|GEXP|class|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
         "",actual_name1)
     # actual_name1 = re.sub(
     #     r"\s(=?EXP|HGT|Earnings|Donor|AP |=|,|@|#|%|^|ER |CGA|CONG|EENHANCED|am|Mal| OL |GIN|CASS|C |D | AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE|USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP|IS | TO |THE |ORDER|No |Payro| OC | OF |LN |EN |ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class|DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)\b",
@@ -179,6 +215,7 @@ def replace(actual_name):
     return actual_name1
 
 def address_replace(value):
+
     if 'NU ' in value:
         value = value.replace('NU ', 'NJ ')
     elif re.search(
@@ -219,9 +256,22 @@ def address_replace(value):
 
 def name_replace(text_value,date,zip_code):
     text_value = text_value.replace(' EX ', " ")
+    text_value = text_value.replace(' Iss ', " ")
+    text_value = text_value.replace(' Doe ', " ")
+    text_value = text_value.replace(' SLAss ', " ")
     text_value = text_value.replace(' DOB ', " ")
+    text_value = text_value.replace('「', " ")
+
+    text_value = text_value.replace('4000EEF01', " ")
+    text_value = text_value.replace('|', " ")
+    text_value = text_value.replace('_', " ")
+    text_value = text_value.replace('(', " ")
+    text_value = text_value.replace('080', "")
+    text_value = text_value.replace(')', " ")
+    text_value = text_value.replace('*', " ")
     text_value = text_value.replace(' Dob ', " ")
     text_value = text_value.replace(' names ', " ")
+    text_value = text_value.replace(',', " ")
     text_value = text_value.replace(' Given ', " ")
     text_value = text_value.replace(' Family ', " ")
     text_value = text_value.replace(' name ', " ")
@@ -246,12 +296,12 @@ def name_replace(text_value,date,zip_code):
             text_value = text_value.replace(' '.join(map(str, text_value.split(
                 re.findall(r"(=?Expires:|EXP|Expires|Exp|Expiros|EXPIRES|EXPIROS|EER)", text_value)[0], 1)[1].split()[
                                                               0:2])), "")
-    if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', zip_code):
-        if re.search(r'\b\s?(!?8|2)\s?\w+', text_value):
-            text_value = text_value.replace('8', ' ', 1)
-            text_value = text_value.replace('2', ' ', 1)
+    if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', zip_code):
+        if re.search(r'\b\s?(!?8|2)\s?(\d+)?\b', text_value):
+            text_value = text_value.replace(' 8', ' ')
+            # text_value = text_value.split('2', 1)[1]
     value = text_value.replace(":", "")
-
+    print("in replace",value)
     return value
 
 

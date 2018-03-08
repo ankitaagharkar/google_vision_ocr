@@ -6,6 +6,9 @@ from urllib.request import urlopen
 import sys
 import os
 import PyPDF2
+
+from Examples.Paystub import pays_keys
+
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../image_processing')
@@ -40,7 +43,7 @@ class Scan_OCR:
         self.denoising=image_denoising.Denoising()
         self.Location = get_all_locations.get_all_location()
         self.score=confidence_score.text_score()
-        self.paystub_block=paystub_block_values.get_all_location()
+
 
         with open('../config/config.json') as data_file:
             self.config = json.load(data_file)
@@ -53,20 +56,11 @@ class Scan_OCR:
             print(e)
             pass
     def get_doc_text(self,path,doc_type):
-        self.text,description,result = self.Location.get_text(path,doc_type)
 
-        employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address,\
-        employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value,\
-        employer_name, employee_name,earnings, current_earnings,ytd_earnings, deduction, current_deduction,\
-        ytd_deduction,other, current_other, ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay, \
-        pay_end_date,pay_date = self.Paystub.get_details(
-            self.text,path,description,result)
-        self.doc_text.put((self.text, employer_full_address, employer_street, employer_state, employer_zipcode,
-                           employer_city, employee_full_address,employee_street, employee_state, employee_zipcode,
-                           employee_city, start_date, pay_frequency, string_date_value,employer_name, employee_name,
-                           earnings, current_earnings,ytd_earnings, deduction, current_deduction,ytd_deduction,other,
-                           current_other, ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay,
-                           pay_end_date,pay_date))
+        self.text,description,result = self.Location.get_text(path,doc_type)
+        employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date = self.Paystub.get_details(self.text, path, description, result)
+        self.doc_text.put((self.text,employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date,pay_date))
+        print(self.doc_text.qsize())
     def image_to_pdf(self, image_path, doc_type):
         try:
 
@@ -444,13 +438,8 @@ class Scan_OCR:
                 else:
                     thread = threading.Thread(target=self.get_doc_text, args=("../images/documents_upload/" + filename,json_val[doc_id],))
                 thread.start()
-                (self.text, employer_full_address, employer_street, employer_state, employer_zipcode,
-                           employer_city, employee_full_address,employee_street, employee_state, employee_zipcode,
-                           employee_city, start_date, pay_frequency, string_date_value,employer_name, employee_name,
-                           earnings, current_earnings,ytd_earnings, deduction, current_deduction,ytd_deduction,other,
-                           current_other, ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay,
-                           pay_end_date,pay_date)=self.doc_text.get()
-                if current_gross_net == '' and current_net == '' and pay_frequency == '' and employee_full_address=='' and employer_full_address=='' and employee_name == '' and employee_city == '' and employee_state == '' and employer_name == '' and employer_city == '' and employer_state == '' and start_date == '':
+                (self.text, employer_full_address,employer_street,employer_state,employer_zipcode,employer_city, employee_full_address,employee_street,employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value,employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes,current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings,rate_regular,hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction,hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction,hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes,hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular,current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular,rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre,ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post,current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post,rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes,rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular,rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre,total_post,current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date)=self.doc_text.get()
+                if current_gross_pay == '' and current_net_pay == '' and pay_frequency == '' and employee_full_address=='' and employer_full_address=='' and employee_name == '' and employee_city == '' and employee_state == '' and employer_name == '' and employer_city == '' and employer_state == '' and start_date == '':
                     file_path = ''
                     self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
                     self.scan_result['status'] = "INCORRECT_DOCUMENT"
@@ -459,6 +448,16 @@ class Scan_OCR:
                     j=0
                     k=0
                     l=0
+                    m=0
+                    n=0
+                    o=0
+                    p=0
+                    q=0
+                    r=0
+                    s=0
+                    t=0
+                    u=0
+                    v=0
                     for i in range(len(response['fields'])):
                         if 'regular' in response['fields'][i]['alias']:
                             if k < len(earnings):
@@ -466,116 +465,252 @@ class Scan_OCR:
                                 response['fields'][i]['alias'] = earnings[k]
                                 response['fields'][i]['field_value_original'] = current_earnings[k]
                                 response['fields'][i]['optional_value'] = ytd_earnings[k]
+                                response['fields'][i]['hrs'] = hrs_regular[k]
+                                response['fields'][i]['rates'] = rate_regular[k]
                                 k = k + 1
                             else:
                                 response['fields'][i]['alias'] = ''
                                 response['fields'][i]['field_value_original'] = ''
                                 response['fields'][i]['optional_value'] = ''
-                        elif 'tax' in response['fields'][i]['name']:
-                            if j < len(deduction):
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'tax' == response['fields'][i]['name']:
+                            if j < len(taxes):
 
-                                response['fields'][i]['alias'] = deduction[j]
-                                response['fields'][i]['field_value_original'] = current_deduction[j]
-                                response['fields'][i]['optional_value'] = ytd_deduction[j]
+                                response['fields'][i]['alias'] = taxes[j]
+                                response['fields'][i]['field_value_original'] = current_taxes[j]
+                                response['fields'][i]['optional_value'] = ytd_taxes[j]
+                                response['fields'][i]['hrs'] = hrs_taxes[j]
+                                response['fields'][i]['rates'] = rate_taxes[j]
                                 j = j + 1
                             else:
                                 response['fields'][i]['alias'] = ''
                                 response['fields'][i]['field_value_original'] = ''
                                 response['fields'][i]['optional_value'] = ''
-                        elif 'other' in response['fields'][i]['name']:
-                            if l < len(other):
-                                response['fields'][i]['alias'] = other[l]
-                                response['fields'][i]['field_value_original'] = current_other[l]
-                                response['fields'][i]['optional_value'] = ytd_other[l]
-                                l = l + 1
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'other' == response['fields'][i]['name']:
+                            if 'pre deduction' == response['fields'][i]['section_name']:
+                                if l < len(pre_deduction):
+                                    response['fields'][i]['alias'] = pre_deduction[l]
+                                    response['fields'][i]['field_value_original'] = current_pre_deduction[l]
+                                    response['fields'][i]['optional_value'] = ytd_pre_deduction[l]
+                                    response['fields'][i]['hrs'] = hrs_pre_deduction[l]
+                                    response['fields'][i]['rates'] = rate_pre_deduction[l]
+                                    l = l + 1
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] = ''
+                                    response['fields'][i]['rates'] = ''
+                            elif 'post deduction' == response['fields'][i]['section_name']:
+                                if m < len(post_deduction):
+                                    response['fields'][i]['alias'] = post_deduction[m]
+                                    response['fields'][i]['field_value_original'] = current_post_deduction[m]
+                                    response['fields'][i]['optional_value'] = ytd_post_deduction[m]
+                                    response['fields'][i]['hrs'] = hrs_post_deduction[m]
+                                    response['fields'][i]['rates'] =rate_post_deduction[m]
+                                    m = m + 1
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] = ''
+                                    response['fields'][i]['rates'] =''
+                        elif 'gross_pay' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = current_gross_pay
+                            response['fields'][i]['optional_value'] = ytd_gross_pay
+                        elif 'net_pay' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = current_net_pay
+                            response['fields'][i]['optional_value'] = ytd_net_pay
+                        elif 'employee_name' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employee_name
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employee_number' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = ""
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employer_address' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employer_full_address
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employer/company_code' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = ""
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'pay_period_end_date' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employment_Start_date
+                            response['fields'][i]['optional_value'] =""
+                        elif 'pay_period_start_date' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = start_date
+                            response['fields'][i]['optional_value'] =""
+                        elif 'pay_date' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = pay_date
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'state_unemployment' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = ""
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'position' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = ""
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employer_name' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employer_name
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employer_city' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employer_city
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employee_city' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employee_city
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employer_state' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employer_state
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employee_state' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employee_state
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employment_start_date' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = ""
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'pay_frequency' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = pay_frequency
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employee_address' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employee_full_address
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'tax_total_manual' == response['fields'][i]['name']:
+                            print("total taxes len",len(total_calculated_taxes))
+                            if n < len(total_calculated_taxes):
+                                print(total_calculated_taxes,current_total_calculated_taxes,ytd_total_calculated_taxes)
+                                response['fields'][i]['alias'] = total_calculated_taxes[n]
+                                response['fields'][i]['field_value_original'] = current_total_calculated_taxes[n]
+                                response['fields'][i]['optional_value'] = ytd_total_calculated_taxes[n]
+                                response['fields'][i]['hrs'] = hrs_total_calculated_taxes[n]
+                                response['fields'][i]['rates'] = rate_total_calculated_taxes[n]
+                                n = n + 1
                             else:
                                 response['fields'][i]['alias'] = ''
                                 response['fields'][i]['field_value_original'] = ''
                                 response['fields'][i]['optional_value'] = ''
-                        elif 'gross_pay' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = current_gross_net
-                            response['fields'][i]['optional_value'] = ytd_gross_pay
-                        elif 'net_pay' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = current_net
-                            response['fields'][i]['optional_value'] = ytd_net_pay
-                        elif 'employee_name' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employee_name
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employee_number' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer_address' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employer_full_address
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer/company_code' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'pay_period_end_date' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = pay_end_date
-                            response['fields'][i]['optional_value'] =""
-                        elif 'pay_period_start_date' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = start_date
-                            response['fields'][i]['optional_value'] =""
-                        elif 'pay_date' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = pay_date
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'state_unemployment' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'position' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer_name' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employer_name
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer_city' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employer_city
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employee_city' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employee_city
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employer_state' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employer_state
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employee_state' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employee_state
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employment_start_date' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = ""
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'pay_frequency' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = pay_frequency
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'employee_address' in response['fields'][i]['name']:
-                            response['fields'][i]['field_value_original'] = employee_full_address
-                            response['fields'][i]['optional_value'] = ""
-                        elif 'mi' in response['fields'][i]['name']:
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'regular_total_manual' == response['fields'][i]['name']:
+                            if o < len(total_calculated_regular):
+
+                                response['fields'][i]['alias'] = total_calculated_regular[o]
+                                response['fields'][i]['field_value_original'] =current_total_calculated_regular[o]
+                                response['fields'][i]['optional_value'] =ytd_total_calculated_regular[o]
+                                response['fields'][i]['hrs'] =hrs_total_calculated_regular[o]
+                                response['fields'][i]['rates'] = rate_total_calculated_regular[o]
+                                o = o + 1
+                            else:
+                                response['fields'][i]['alias'] = ''
+                                response['fields'][i]['field_value_original'] = ''
+                                response['fields'][i]['optional_value'] = ''
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'pre_deduction_total_manual' == response['fields'][i]['name']:
+                            if p < len(total_calculated_pre):
+
+                                response['fields'][i]['alias'] = total_calculated_pre[p]
+                                response['fields'][i]['field_value_original'] = current_total_calculated_pre[p]
+                                response['fields'][i]['optional_value'] =ytd_total_calculated_pre[p]
+                                response['fields'][i]['hrs'] = hrs_total_calculated_pre[p]
+                                response['fields'][i]['rates'] = rate_total_calculated_pre[p]
+                                p = p + 1
+                            else:
+                                response['fields'][i]['alias'] = ''
+                                response['fields'][i]['field_value_original'] = ''
+                                response['fields'][i]['optional_value'] = ''
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'post_deduction_total_manual' == response['fields'][i]['name']:
+                            if q < len(total_calculated_post):
+
+                                response['fields'][i]['alias'] = total_calculated_post[q]
+                                response['fields'][i]['field_value_original'] = current_total_calculated_post[q]
+                                response['fields'][i]['optional_value'] = ytd_total_calculated_post[q]
+                                response['fields'][i]['hrs'] = hrs_total_calculated_post[q]
+                                response['fields'][i]['rates'] = rate_total_calculated_post[q]
+                                q = q + 1
+                            else:
+                                response['fields'][i]['alias'] = ''
+                                response['fields'][i]['field_value_original'] = ''
+                                response['fields'][i]['optional_value'] = ''
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'tax_total_auto' == response['fields'][i]['name']:
+                            if r < len(total_taxes):
+
+                                response['fields'][i]['alias'] = total_taxes[r]
+                                response['fields'][i]['field_value_original'] = current_total_taxes[r]
+                                response['fields'][i]['optional_value'] = ytd_total_taxes[r]
+                                response['fields'][i]['hrs'] = hrs_total_taxes[r]
+                                response['fields'][i]['rates'] = rate_total_taxes[r]
+                                r = r + 1
+                            else:
+                                response['fields'][i]['alias'] = ''
+                                response['fields'][i]['field_value_original'] = ''
+                                response['fields'][i]['optional_value'] = ''
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'regular_total_auto' == response['fields'][i]['name']:
+                            if s < len(total_regular):
+
+                                response['fields'][i]['alias'] = total_regular[s]
+                                response['fields'][i]['field_value_original'] =current_total_regular[s]
+                                response['fields'][i]['optional_value'] =ytd_total_regular[s]
+                                response['fields'][i]['hrs'] =hrs_total_regular[s]
+                                response['fields'][i]['rates'] = rate_total_regular[s]
+                                s = s + 1
+                            else:
+                                response['fields'][i]['alias'] = ''
+                                response['fields'][i]['field_value_original'] = ''
+                                response['fields'][i]['optional_value'] = ''
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'pre_deduction_total_auto' == response['fields'][i]['name']:
+                            if t < len(total_pre):
+
+                                response['fields'][i]['alias'] = total_pre[t]
+                                response['fields'][i]['field_value_original'] = current_total_pre[t]
+                                response['fields'][i]['optional_value'] =ytd_total_pre[t]
+                                response['fields'][i]['hrs'] = hrs_total_pre[t]
+                                response['fields'][i]['rates'] = rate_total_pre[t]
+                                t = t + 1
+                            else:
+                                response['fields'][i]['alias'] = ''
+                                response['fields'][i]['field_value_original'] = ''
+                                response['fields'][i]['optional_value'] = ''
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'post_deduction_total_auto' == response['fields'][i]['name']:
+                            if u < len(total_post):
+
+                                response['fields'][i]['alias'] = total_post[u]
+                                response['fields'][i]['field_value_original'] = current_total_post[u]
+                                response['fields'][i]['optional_value'] = ytd_total_post[u]
+                                response['fields'][i]['hrs'] = hrs_total_post[u]
+                                response['fields'][i]['rates'] = rate_total_post[u]
+                                u = u + 1
+                            else:
+                                response['fields'][i]['alias'] = ''
+                                response['fields'][i]['field_value_original'] = ''
+                                response['fields'][i]['optional_value'] = ''
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'mi' == response['fields'][i]['name']:
                             response['fields'][i]['field_value_original'] = ""
                             response['fields'][i]['optional_value'] = ""
                         else:
                             pass
 
-                    # actual_value = list(add.keys())
-                    # actual_value = sorted(actual_value)
-                    # add_value = list(add.values())
-                    # detected_null_value_count = add_value.count('')
-                    # partial_not_detected, partial_detected = [], []
-                    #
-                    # for i in range(len(response['fields'])):
-                    #     for j in range(len(actual_value)):
-                    #         if response['fields'][i]['name'] == actual_value[j]:
-                    #             response['fields'][i]['field_value_original'] = add[actual_value[j]]
-                    # #             pass
                     print("in main paystub response",response)
-
-                    thread = threading.Thread(target=self.get_location, args=(
-                    response, "../images/documents_upload/" + filename, application_id, self.config['base_url'],json_val[doc_id],))
+                    thread=threading.Thread(target=self.get_location,args=(response, "../images/documents_upload/" + filename, application_id, self.config['base_url'],json_val[doc_id],))
                     thread.start()
                     (emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4,
-                     regular5, regular6, regular7, regular8, regular9, regular10,tax1, tax2, tax3, tax4, tax5, tax6,
-                     tax7, tax8,tax9, tax10, deduction1, deduction2, deduction3, deduction4,deduction5, deduction6,
-                     deduction7, deduction8, deduction9,deduction10,deduction11,deduction12,deduction13,deduction14,deduction15,
-                     pay_start_date, pay_end_date, pay_date, dict_location,file_path,value_json) = self.location.get()
+                     regular5, regular6, regular7, regular8, regular9, regular10, tax1, tax2, tax3, tax4, tax5, tax6,
+                     tax7, tax8, tax9, tax10, deduction1, deduction2, deduction3, deduction4, deduction5, deduction6,
+                     deduction7, deduction8, deduction9, deduction10, deduction11, deduction12, deduction13,
+                     deduction14, deduction15, pay_start_date, pay_end_date, pay_date, dict_location, path,
+                     value_json) = self.location.get()
                     thread = threading.Thread(target=self.confidence_score, args=("../images/documents_upload/" + filename, json_val[doc_id], value_json,))
                     thread.start()
                     (regular1_scrore,regular2_scrore,regular3_scrore,regular4_scrore,regular5_scrore,regular6_scrore,regular7_scrore,\
@@ -591,7 +726,7 @@ class Scan_OCR:
                                 self.location_val.clear()
                                 for key, value in emp_name.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original'] :
+                                    if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(list(self.location_val))
                                         response['fields'][i]['confidence'] = employer_name_scrore-7
 
@@ -599,7 +734,7 @@ class Scan_OCR:
                                 self.location_val.clear()
                                 for key, value in pay_start_date.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original'] :
+                                    if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(list(self.location_val))
                                 response['fields'][i]['confidence'] = pay_start_date_scrore-4
 
@@ -607,7 +742,7 @@ class Scan_OCR:
                                 self.location_val.clear()
                                 for key, value in pay_end_date.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original'] :
+                                    if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(list(self.location_val))
                                 response['fields'][i]['confidence'] = pay_end_date_scrore-2
 
@@ -615,7 +750,7 @@ class Scan_OCR:
                                 self.location_val.clear()
                                 for key, value in pay_date.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original'] :
+                                    if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(list(self.location_val))
                                 response['fields'][i]['confidence'] = pay_date_scrore-3
 
@@ -623,7 +758,7 @@ class Scan_OCR:
                                 self.location_val.clear()
                                 for key, value in employee_name.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original'] :
+                                    if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(list(self.location_val))
                                 response['fields'][i]['confidence'] = employee_name_scrore-6
 
@@ -631,7 +766,7 @@ class Scan_OCR:
                                 self.location_val.clear()
                                 for key, value in emp_address.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original'] :
+                                    if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(list(self.location_val))
                                         response['fields'][i]['confidence'] = employer_address_scrore-3
 
@@ -639,7 +774,7 @@ class Scan_OCR:
                                 self.location_val.clear()
                                 for key, value in employee_address.items():
                                     self.location_val.append(value)
-                                    if key in response['fields'][i]['field_value_original'] :
+                                    if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(list(self.location_val))
                                         response['fields'][i]['confidence'] = employee_address_scrore-2
 
@@ -949,16 +1084,18 @@ class Scan_OCR:
                                     if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str(self.location_val)
                                         response['fields'][i]['confidence'] = other_scrore
+
                     self.scan_result = response
                     self.scan_result['error_msg'] = "Successfully Scanned"
                     self.scan_result["status"] = "SUCCESSFUL"
+                    file_path=path
             #print(self.text)
             self.scan_result['raw_data'] = self.text
             print("all response", self.scan_result)
             # data=json.dumps(self.scan_result)
             return self.scan_result,file_path
         except Exception as e:
-            print("in main",e)
+            print(e)
                 
 
 

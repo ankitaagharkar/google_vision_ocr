@@ -270,7 +270,7 @@ class get_all_location:
             #print(value_json)
             img=cv2.imread(image)
             _,filename= os.path.split(image)
-            print("in license locvation",value_json)
+
             for key, value in enumerate(self.result):
                 #print(value[0], value[1])
                 for key1, value1 in value_json.items():
@@ -378,57 +378,58 @@ class get_all_location:
     def paystub_get_location(self,data,image,application_id,base_url):
         value_data,value_json={},{}
         for i in range(len(data['fields'])):
-            if 'regular' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['alias']] = {"field_value_original": data['fields'][i]['field_value_original'], "alias": "regular"}
-            elif 'tax' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['alias']] = {
-                    "field_value_original": data['fields'][i]['field_value_original'], "alias": "tax"}
+            if data['fields'][i]['field_value_original']!='':
+                if 'regular' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['alias']] = {"field_value_original": data['fields'][i]['field_value_original'], "alias": "regular"}
+                elif 'tax' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['alias']] = {
+                        "field_value_original": data['fields'][i]['field_value_original'], "alias": "tax"}
 
-                # value_data[data['fields'][i]['alias']] = data['fields'][i]['field_value_original']
-                # value_data[data['fields'][i]['alias'] + "_ytd"] = data['fields'][i]['optional_value']
-            elif 'other' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['alias']] = {
-                    "field_value_original": data['fields'][i]['field_value_original'], "alias": "deduction"}
-            elif 'gross_pay' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-                value_data[data['fields'][i]['name'] + "_ytd"] = data['fields'][i]['optional_value']
-            elif 'net_pay' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name'] ] = data['fields'][i]['field_value_original']
-                value_data[data['fields'][i]['name'] + "_ytd"] = data['fields'][i]['optional_value']
-            elif 'employee_name' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employee_number' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employer_address' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employer/company_code' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'pay_period_end_date' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'pay_period_start_date' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'pay_date' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'state_unemployment' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'position' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'mi' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employer_name' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employer_city' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employee_city' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employer_state' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employee_state' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employment_start_date' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
-            elif 'employee_address' in data['fields'][i]['name']:
-                value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                    # value_data[data['fields'][i]['alias']] = data['fields'][i]['field_value_original']
+                    # value_data[data['fields'][i]['alias'] + "_ytd"] = data['fields'][i]['optional_value']
+                elif 'other' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['alias']] = {
+                        "field_value_original": data['fields'][i]['field_value_original'], "alias": "deduction"}
+                elif 'gross_pay' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                    value_data[data['fields'][i]['name'] + "_ytd"] = data['fields'][i]['optional_value']
+                elif 'net_pay' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name'] ] = data['fields'][i]['field_value_original']
+                    value_data[data['fields'][i]['name'] + "_ytd"] = data['fields'][i]['optional_value']
+                elif 'employee_name' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employee_number' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employer_address' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employer/company_code' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'pay_period_end_date' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'pay_period_start_date' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'pay_date' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'state_unemployment' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'position' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'mi' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employer_name' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employer_city' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employee_city' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employer_state' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employee_state' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employment_start_date' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
+                elif 'employee_address' in data['fields'][i]['name']:
+                    value_data[data['fields'][i]['name']] = data['fields'][i]['field_value_original']
             # elif 'pay_frequency' in data['fields'][i]['name']:
         # for key, value in value_data.items():
         #     if "field_value_original" in value_data[key]:

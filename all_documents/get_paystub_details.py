@@ -9,27 +9,44 @@ from dateparser import parse
 sys.path.insert(0, '../all_documents')
 import get_licence_details
 import avoid
-import paystub_block_values
+
 
 class Paystub_details:
     def __init__(self):
         self.pay_frequency,self.current_gross_pay,self.current_net_pay = '','',''
         self.ytd_gross_pay,self.ytd_net_pay = '',''
         self.employment_Start_date=datetime
-        self.earnings, self.deduction, self.other, self.current_earnings, self.ytd_earnings, self.current_deduction,\
-        self.ytd_deduction, self.current_other, self.ytd_other = [], [], [], [], [], [], [], [], []
+
+        self.earnings, self.taxes, self.current_earnings, self.ytd_earnings, self.current_taxes,\
+        self.ytd_taxes, self.current_pre_deduction,self.current_post_deduction ,self.ytd_pre_deduction, self.ytd_post_deduction,self.rate_pre_deduction,self.rate_post_deduction, self.hrs_regular, self.rate_regular, self.hrs_post_deduction,self.hrs_pre_deduction,self.rate_taxes, self.hrs_taxes = [], [], [], [], [], [], [], [], [], [], [],[], [], [], [], [], [], []
+
         self.date_val = []
         self.date = []
+        self.pre_deduction=[]
+        self.post_deduction=[]
+
+        self.total_calculated_taxes, self.current_total_calculated_taxes, self.ytd_total_calculated_taxes, self.hrs_total_calculated_taxes, self.rate_total_calculated_taxes = [], [], [], [], []
+        self.total_calculated_regular, self.current_total_calculated_regular, self.ytd_total_calculated_regular, self.hrs_total_calculated_regular, self.rate_total_calculated_regular = [], [], [], [], []
+        self.total_calculated_pre, self.current_total_calculated_pre, self.ytd_total_calculated_pre, self.hrs_total_calculated_pre, self.rate_total_calculated_pre = [], [], [], [], []
+        self.total_calculated_post, self.current_total_calculated_post, self.ytd_total_calculated_post, self.hrs_total_calculated_post, self.rate_total_calculated_post = [], [], [], [], []
+
+        self.total_taxes, self.current_total_taxes, self.ytd_total_taxes, self.hrs_total_taxes, self.rate_total_taxes = [], [], [], [], []
+        self.total_regular, self.current_total_regular, self.ytd_total_regular, self.hrs_total_regular, self.rate_total_regular = [], [], [], [], []
+        self.total_pre, self.current_total_pre, self.ytd_total_pre, self.hrs_total_pre, self.rate_total_pre = [], [], [], [], []
+        self.total_post, self.current_total_post, self.ytd_total_post, self.hrs_total_post, self.rate_total_post = [], [], [], [], []
+
         self.current_gross_net, self.current_net='',''
         self.actual_date = []
         self.date_val1 = []
         self.zip_code=[]
         self.data, self.data1,self.value2 = [], [],[]
         self.c = Common.Common()
-        self.paystub_block = paystub_block_values.get_all_location()
+
         self.license_Address=get_licence_details.Licence_details()
+
         with open('../config/city.json', 'r') as data_file:
             self.cities = json.load(data_file)
+
     def employer_address(self,value):
         try:
             full_address, street, state, zipcode, city='','','','',''
@@ -50,11 +67,12 @@ class Paystub_details:
                 r"|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)[A-Z]{2}[, ])"
                 r"(\d{5}(?:\s?-\s?\d{4})?|\d{5}|\d{2,3}(?:\s\d{2,3}))", number_val)
             if data!=[]:
-
+                print("employer_code", data)
                 for item in data:
                     self.zip_code.append("".join(item))
                 if self.zip_code != []:
                     code=self.zip_code[0]
+                    print("employer_code",code)
                     reg_value = ' '.join(map(str, value.split(code, 1)[0].split()[-8:]))
                     reg_value = reg_value + " " + code
                     #print('in address',reg_value)
@@ -141,6 +159,7 @@ class Paystub_details:
             return full_address, street, state, zipcode, city
     def employee_address(self, value):
         try:
+            self.zip_code.clear()
             full_address, street, state, zipcode, city = '', '', '', '', ''
             actual_city = ''
             value = value.replace(',', '')
@@ -159,11 +178,13 @@ class Paystub_details:
                 r"|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)[A-Z]{2}[, ])"
                 r"(\d{5}(?:\s?-\s?\d{4})?|\d{5}|\d{2,3}(?:\s\d{2,3}))", number_val)
             if data != []:
-
+                print("employee_code",data)
                 for item in data:
                     self.zip_code.append("".join(item))
                 if self.zip_code != []:
                     code = self.zip_code[1]
+                    print("employee_code",code)
+
                     reg_value = ' '.join(map(str, value.split(code, 1)[0].split()[-8:]))
                     reg_value = reg_value + " " + code
                     #print('in address', reg_value)
@@ -261,10 +282,14 @@ class Paystub_details:
         except Exception as e:
             full_name = ''
             return full_name
-    def employee_name(self, value, street):
+    def employee_name(self, value, street,zipcode,emp_zipcode):
         try:
-            name = ' '.join(map(str, value.split(street, 1)[0].split()[-3:]))
-            #print("name", name)
+            if zipcode!=emp_zipcode:
+                name = ' '.join(map(str, value.split(street, 1)[0].split()[-4:]))
+                print("name", name)
+            else:
+                name = ' '.join(map(str, value.split(street)[0].split()[-4:]))
+            print("name in employee",name)
             name_regex = re.findall(r'([A-Za-z]+[,.&\s]*[A-Za-z]+)+', name)
             actual_name = " ".join(map(str, name_regex))
             actual_name = actual_name.replace("NY New York Cit","")
@@ -386,12 +411,9 @@ class Paystub_details:
             return start_date, self.pay_frequency, string_date_value,end_date,pay_end_date
     def get_gross_net_pay(self,path,description,result):
         try:
-            # self.paystub_block.get_text(path)
-            # lines = self.paystub_block.rectify_data()
-            # for line in lines:
-            #     #print(line)
-
-            blocks1 = self.paystub_block.all_location_details(path,description,result)
+            import paystub_block_values
+            paystub_block = paystub_block_values.get_all_location()
+            blocks1 = paystub_block.all_location_details(path,description,result)
             print("in paystub",blocks1)
             # blocks=self.paystub_block.all_location()
             gross_net_values=list(blocks1.values())
@@ -404,37 +426,97 @@ class Paystub_details:
                     elif 'Net Pay'in pays_keys[i]:
                         self.current_net_pay=item[1]
                         self.ytd_net_pay = item[2]
+                    elif 'Taxes' == pays_keys[i]:
+                        if 'Total_Calculated' in item:
+                            self.total_calculated_taxes.append(item[0])
+                            self.current_total_calculated_taxes.append(item[1])
+                            self.ytd_total_calculated_taxes.append(item[2])
+                            self.rate_total_calculated_taxes.append(item[3])
+                            self.hrs_total_calculated_taxes.append(item[4])
+                        elif 'Total' in item:
+                            self.total_taxes.append(item[0])
+                            self.current_total_taxes.append(item[1])
+                            self.ytd_total_taxes.append(item[2])
+                            self.rate_total_taxes.append(item[3])
+                            self.hrs_total_taxes.append(item[4])
+                        else:
+                            self.taxes.append(item[0])
+                            self.current_taxes.append(item[1])
+                            self.ytd_taxes.append(item[2])
+                            self.rate_taxes.append(item[3])
+                            self.hrs_taxes.append(item[4])
+                    elif 'Earnings' == pays_keys[i]:
+                        if 'Total_Calculated' in item:
+                            self.total_calculated_regular.append(item[0])
+                            self.current_total_calculated_regular.append(item[1])
+                            self.ytd_total_calculated_regular.append(item[2])
+                            self.rate_total_calculated_regular.append(item[3])
+                            self.hrs_total_calculated_regular.append(item[4])
+                        elif 'Total' in item:
+                            self.total_regular.append(item[0])
+                            self.current_total_regular.append(item[1])
+                            self.ytd_total_regular.append(item[2])
+                            self.rate_total_regular.append(item[3])
+                            self.hrs_total_regular.append(item[4])
+                        else:
+                            self.earnings.append(item[0])
+                            self.current_earnings.append(item[1])
+                            self.ytd_earnings.append(item[2])
+                            self.rate_regular.append(item[3])
+                            self.hrs_regular.append(item[4])
+                    elif 'Pre Tax Deductions' == pays_keys[i]:
+                        if 'Total_Calculated' in item:
+                            self.total_calculated_pre.append(item[0])
+                            self.current_total_calculated_pre.append(item[1])
+                            self.ytd_total_calculated_pre.append(item[2])
+                            self.rate_total_calculated_pre.append(item[3])
+                            self.hrs_total_calculated_pre.append(item[4])
+                        elif 'Total' in item:
+                            self.total_pre.append(item[0])
+                            self.current_total_pre.append(item[1])
+                            self.ytd_total_pre.append(item[2])
+                            self.rate_total_pre.append(item[3])
+                            self.hrs_total_pre.append(item[4])
+                        else:
+                            self.pre_deduction.append(item[0])
+                            self.current_pre_deduction.append(item[1])
+                            self.ytd_pre_deduction.append(item[2])
+                            self.rate_pre_deduction.append(item[3])
+                            self.hrs_pre_deduction.append(item[4])
+                    elif 'Post Tax Deductions' == pays_keys[i]:
+                        if 'Total_Calculated' in item:
+                            self.total_calculated_post.append(item[0])
+                            self.current_total_calculated_post.append(item[1])
+                            self.ytd_total_calculated_post.append(item[2])
+                            self.rate_total_calculated_post.append(item[3])
+                            self.hrs_total_calculated_post.append(item[4])
+                        elif 'Total' in item:
+                            self.total_post.append(item[0])
+                            self.current_total_post.append(item[1])
+                            self.ytd_total_post.append(item[2])
+                            self.rate_total_post.append(item[3])
+                            self.hrs_total_post.append(item[4])
+                        else:
+                            self.post_deduction.append(item[0])
+                            self.current_post_deduction.append(item[1])
+                            self.ytd_post_deduction.append(item[2])
+                            self.rate_post_deduction.append(item[3])
+                            self.hrs_post_deduction.append(item[4])
 
-                    elif 'Earnings' in pays_keys[i]:
-                        self.earnings.append(item[0])
-                        self.current_earnings.append(item[1])
-                        self.ytd_earnings.append(item[2])
+            return self.current_gross_pay,self.ytd_gross_pay, self.current_net_pay,self.ytd_net_pay,self.taxes,self.current_taxes,self.ytd_taxes,self.rate_taxes,self.hrs_taxes,self.earnings,self.current_earnings,self.ytd_earnings,self.rate_regular,self.hrs_regular,self.pre_deduction,self.current_pre_deduction,self.ytd_pre_deduction,self.rate_pre_deduction,self.hrs_pre_deduction,self.post_deduction,self.current_post_deduction,self.ytd_post_deduction,self.rate_post_deduction,self.hrs_post_deduction,self.total_calculated_taxes,self.current_total_calculated_taxes,self.ytd_total_calculated_taxes,self.hrs_total_calculated_taxes,self.rate_total_calculated_taxes,self.total_calculated_regular,self.current_total_calculated_regular,self.ytd_total_calculated_regular,self.hrs_total_calculated_regular,self.rate_total_calculated_regular,self.total_calculated_pre,self.current_total_calculated_pre,self.ytd_total_calculated_pre,self.hrs_total_calculated_pre,self.rate_total_calculated_pre,self.total_calculated_post,self.current_total_calculated_post,self.ytd_total_calculated_post,self.hrs_total_calculated_post,self.rate_total_calculated_post,self.total_taxes,self.current_total_taxes,self.ytd_total_taxes,self.hrs_total_taxes,self.rate_total_taxes,self.total_regular,self.current_total_regular,self.ytd_total_regular,self.hrs_total_regular,self.rate_total_regular,self.total_pre,self.current_total_pre,self.ytd_total_pre,self.hrs_total_pre,self.rate_total_pre,self.total_post,self.current_total_post,self.ytd_total_post,self.hrs_total_post,self.rate_total_post
 
-                    elif 'Taxes' in pays_keys[i]:
-                        self.deduction.append(item[0])
-                        self.current_deduction.append(item[1])
-                        self.ytd_deduction.append(item[2])
-
-                    elif 'Deductions' in pays_keys[i]:
-                        self.other.append(item[0])
-                        self.current_other.append(item[1])
-                        self.ytd_other.append(item[2])
-            return self.earnings,self.current_earnings,self.ytd_earnings,self.deduction,self.current_deduction,self.ytd_deduction\
-                ,self.other,self.current_other,self.ytd_other,self.current_gross_pay,self.current_net_pay,self.ytd_gross_pay,self.ytd_net_pay
         except Exception as e:
             print(e)
     def get_details(self,text,path,description,result):
         try:
             #print(text)
-            earnings, current_earnings, ytd_earnings, deduction, current_deduction, ytd_deduction \
-                , other, current_other,ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay= self.get_gross_net_pay(path,description,result)
+            current_gross_pay,ytd_gross_pay, current_net_pay,ytd_net_pay,taxes,current_taxes,ytd_taxes,rate_taxes,hrs_taxes,earnings,current_earnings,ytd_earnings,rate_regular,hrs_regular,pre_deduction,current_pre_deduction,ytd_pre_deduction,rate_pre_deduction,hrs_pre_deduction,post_deduction,current_post_deduction,ytd_post_deduction,rate_post_deduction,hrs_post_deduction,total_calculated_taxes,current_total_calculated_taxes,ytd_total_calculated_taxes,hrs_total_calculated_taxes,rate_total_calculated_taxes,total_calculated_regular,current_total_calculated_regular,ytd_total_calculated_regular,hrs_total_calculated_regular,rate_total_calculated_regular,total_calculated_pre,current_total_calculated_pre,ytd_total_calculated_pre,hrs_total_calculated_pre,rate_total_calculated_pre,total_calculated_post,current_total_calculated_post,ytd_total_calculated_post,hrs_total_calculated_post,rate_total_calculated_post,total_taxes,current_total_taxes,ytd_total_taxes,hrs_total_taxes,rate_total_taxes,total_regular,current_total_regular,ytd_total_regular,hrs_total_regular,rate_total_regular,total_pre,current_total_pre,ytd_total_pre,hrs_total_pre,rate_total_pre,total_post,current_total_post,ytd_total_post,hrs_total_post,rate_total_post= self.get_gross_net_pay(path,description,result)
             employer_full_address, employer_street, employer_state, employer_zipcode, employer_city=self.employer_address(text)
             employee_full_address, employee_street, employee_state, employee_zipcode, employee_city=self.employee_address(text)
             start_date,pay_frequency, string_date_value,employment_Start_date,pay_date = self.get_paystub_date(text)
             employer_name=self.employer_name(text,employer_street)
-            employee_name=self.employee_name(text,employee_street)
-            return employer_full_address, employer_street, employer_state, employer_zipcode, employer_city,employee_full_address, employee_street, employee_state, employee_zipcode, employee_city,start_date,pay_frequency, string_date_value,employer_name,employee_name,earnings, current_earnings, ytd_earnings, deduction, current_deduction, ytd_deduction \
-                , other, current_other,ytd_other, current_gross_net, current_net, ytd_gross_pay, ytd_net_pay,employment_Start_date,pay_date
+            employee_name=self.employee_name(text,employee_street,employee_zipcode,employer_zipcode)
+            return employer_full_address, employer_street, employer_state, employer_zipcode, employer_city,employee_full_address, employee_street, employee_state, employee_zipcode, employee_city,start_date,pay_frequency, string_date_value,employer_name,employee_name,current_gross_pay,ytd_gross_pay, current_net_pay,ytd_net_pay,taxes,current_taxes,ytd_taxes,rate_taxes,hrs_taxes,earnings,current_earnings,ytd_earnings,rate_regular,hrs_regular,pre_deduction,current_pre_deduction,ytd_pre_deduction,rate_pre_deduction,hrs_pre_deduction,post_deduction,current_post_deduction,ytd_post_deduction,rate_post_deduction,hrs_post_deduction,total_calculated_taxes,current_total_calculated_taxes,ytd_total_calculated_taxes,hrs_total_calculated_taxes,rate_total_calculated_taxes,total_calculated_regular,current_total_calculated_regular,ytd_total_calculated_regular,hrs_total_calculated_regular,rate_total_calculated_regular,total_calculated_pre,current_total_calculated_pre,ytd_total_calculated_pre,hrs_total_calculated_pre,rate_total_calculated_pre,total_calculated_post,current_total_calculated_post,ytd_total_calculated_post,hrs_total_calculated_post,rate_total_calculated_post,total_taxes,current_total_taxes,ytd_total_taxes,hrs_total_taxes,rate_total_taxes,total_regular,current_total_regular,ytd_total_regular,hrs_total_regular,rate_total_regular,total_pre,current_total_pre,ytd_total_pre,hrs_total_pre,rate_total_pre,total_post,current_total_post,ytd_total_post,hrs_total_post,rate_total_post,employment_Start_date,pay_date
         except Exception as e:
             print(e)
 

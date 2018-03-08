@@ -10,6 +10,7 @@ import avoid
 import Common
 from enum import Enum
 import get_paystub_details
+
 class Licence_details:
 
     def __init__(self):
@@ -34,6 +35,7 @@ class Licence_details:
             self.failure_case = json.load(data)
         with open('../config/NJ_Cities', 'r') as data:
             self.NJ_Cities = json.load(data)
+
     def get_id(self,text,zip_code):
         try:
             print(zip_code)
@@ -108,27 +110,31 @@ class Licence_details:
     def get_address(self,value,keys,values):
 
         try:
-            data=''
+            value = value.replace('.', " ")
+            number_val=''
             nj_city=''
             value=value.replace(',','')
+
             value=avoid.address_replace(value)
             all_number = re.findall(
-                r"\s?\s\d{1}\s?[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\d{2}[A-Za-z]{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w*\s?\d{5}\s?\-?\.?\s?\d{1,4}|\w*\s?\d{5}\s?\-?\.?\s?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*|\w*\s?\d{5}",
+                r"\s?\s\d{1}\sA-Za-z]+|\s\d{4}\s?[A-Za-z]+|\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w*\s?\d{5}\s?\s?\-?\.?\s?\s?\d{1,4}|\w*\s?\d{5}\s?\-?\.?\s?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*|\w*\s?\d{5}|\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+",
                 value)
-            number_val = ' '.join(map(str, all_number))
-            if re.search(r'\s\s',number_val):
-                number_val=number_val.replace(re.findall(r'\s\s',number_val)[0]," ")
-            print("Number val", number_val)
-            data = re.findall(r'\b((!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5}))', number_val)
+            number_val1 = ' '.join(map(str, all_number))
+            if re.search(r'\s\s',number_val1):
+                number_val1=number_val1.replace(re.findall(r'\s\s',number_val1)[0]," ")
+            print("Number val", number_val1)
+            number_val = number_val1
+            data = re.findall(r'\b((!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\s?\s?\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5}))', number_val1)
             if data != []:
                 if len(data)==1:
                     data.clear()
-                    all_number1 = re.findall(r"\s?\s\d{1}\s?[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\d{2}[A-Za-z]{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w+\s\d{2,5}\-?\.?\d{2,4}|\w*\s\d{2,5}\-?\.?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*",
+                    all_number = re.findall(r"\s?\s\d{1}\s?[A-Za-z]+|\s?\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w+\s\d{2,5}\-?\.?\d{2,4}|\w*\s\d{2,5}\-?\.?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*",
                         value)
-                    number_val = ' '.join(map(str, all_number1))
+                    number_val = ' '.join(map(str, all_number))
                     print(number_val)
                     data=re.findall(r'\b((!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{2,5}(?:\s?\-\s?\d{4})|\d{2,5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{2,5}(?:\s?\.\s?\d{4})|\d{2,5}))', number_val)
                 if len(data)>=2:
+
                     if re.search(r'\s(=?ID\s\d+\s\d+)', number_val):
                         self.code.append(data[0][0])
                         self.code.append(data[1][0])
@@ -138,7 +144,13 @@ class Licence_details:
                     else:
                         self.code.append(data[0][0])
                         self.code.append(data[1][0])
-
+                    if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', self.code[0]):
+                        if re.search(r'\b\s?(!?8|2)\s?(\d+)?\s?(\w+)?\b', value):
+                            value = value.replace(re.findall(r'[A-Za-z]+\s?(!?2)\s?[A-Za-z]+',value)[0], ' ')
+                    # if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', self.code[0]):
+                    #     if re.search(r'\b\s?(!?8|2)\s?(\d+)?\s?(\w+)?\b', value):
+                    #         value = value.split(re.findall(r'[A-Za-z]+\s?(!?2)\s?[A-Za-z]+',value)[0], 1)
+                    #         value = " ".join(value)
                     self.regex_value.append(' '.join(map(str, value.split(self.code[0], 1)[0].split()[-8:])))
                     self.regex_value.append(' '.join(map(str, value.split(self.code[1]+" ",1)[0].split()[-8:])))
                     self.regex_value[0] =self.regex_value[0] +" "+ self.code[0]
@@ -146,20 +158,30 @@ class Licence_details:
                     self.regex_value[1]=self.regex_value[1].replace(' STAP ','ST APT ')
                     self.regex_value[0]=self.regex_value[0].replace(' STAP ','ST APT ')
                     print("address traverse",self.regex_value)
-                    if re.search(r'(\d+\s?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w?\.?\,?\s[A-Z]{2}\s\d{2,})\b',self.regex_value[0]):
-                        self.street.append(' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-4:-2])))
+
+
+                    if re.search(r'(\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?[#.,/*-]?\s?(\d+)?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',self.regex_value[0]):
+
+                        if re.search(r'\s\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}',self.regex_value[0]):
+                            self.street.append(' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-6:-4])))
+                        else:
+                            self.street.append(' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-4:-2])))
                     elif re.search(r'[A-Za-z]+(!?' + self.code[0] + ')', value):
                         self.street.append(' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-3:-1])))
                     else:
                         self.street.append(' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-2:])))
 
-                    if re.search(r'(\d+\s?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
+                    if re.search(r'(\s\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?[#.,/*-]?\s?(\d+)?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
                             self.regex_value[1]):
-                        self.street.append(' '.join(map(str, number_val.split(self.code[1])[0].split()[-4:-2])))
+                        if re.search(r'\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}',self.regex_value[1]):
+                            self.street.append(' '.join(map(str, number_val.split(self.code[1], 1)[0].split()[-6:-4])))
+                        else:
+                            self.street.append(' '.join(map(str, number_val.split(self.code[1], 1)[0].split()[-4:-2])))
                     elif re.search(r'[A-Za-z]+(!?' + self.code[1] + ')', value):
                         self.street.append(' '.join(map(str, number_val.split(self.code[1])[0].split()[-3:-1])))
                     else:
                         self.street.append(' '.join(map(str, number_val.split(self.code[1])[0].split()[-2:])))
+
 
                     for i in range(len(self.regex_value)):
                         self.address.append(self.c.find_between_r(self.regex_value[i], self.street[i], self.code[i]))
@@ -169,9 +191,9 @@ class Licence_details:
                     actual_city=[]
 
                     for i in range(len(self.cities['city'])):
-                        if city.lower() in self.cities['city'][i].lower():
+                        if city.lower() == self.cities['city'][i].lower():
                             actual_city.append(self.cities['city'][i])
-                        if city1.lower() in self.cities['city'][i].lower():
+                        if city1.lower() == self.cities['city'][i].lower():
                             actual_city.append(self.cities['city'][i])
                     if actual_city == []:
                         city_dict,street_dict={},{}
@@ -198,9 +220,9 @@ class Licence_details:
                         else:
                             actual_city.append(actual_city[0])
                         if city1 != actual_city[0]:
-                            actual_city.append(actual_city[0].upper())
+                            actual_city[1] = actual_city[0].upper()
                         else:
-                            actual_city.append(actual_city[0])
+                            actual_city[1] =actual_city[0]
 
                     full_address=self.c.find_between_r(self.regex_value[0],self.street[0],actual_city[0])
                     full_address1=self.c.find_between_r(self.regex_value[1],self.street[1],actual_city[1])
@@ -318,27 +340,42 @@ class Licence_details:
                     if re.search(r'(!?\s?\d{2,5}(?:\s?\-?\s?[A-Za-z]+\d{1,4}))',actual_zipcode):
                         actual_zipcode=re.findall(r'\b(!?\d{5})',actual_zipcode)[0]
 
+                    if actual_city in actual_full_address:
+                        if actual_city not in full_address:
+                            actual_full_address=full_address
+                        else:
+                            actual_full_address=full_address1
+
+
                     self.street[0] = self.street[0].replace(':', "")
                     self.street[1] = self.street[1].replace(':', "")
 
-                    for i in range(len(self.NJ_Cities['NJ'])):
-                        if actual_city.lower() in self.NJ_Cities['NJ'][i].lower() :
-                            nj_city=self.NJ_Cities['NJ'][i]
+                    # for i in range(len(self.NJ_Cities['NJ'])):
+                    #     if actual_city.lower() in self.NJ_Cities['NJ'][i].lower() :
+                    #         nj_city=self.NJ_Cities['NJ'][i]
+                    #
+                    # print("CITY",actual_city.lower(),nj_city.lower())
+                    # if actual_city.lower() == nj_city.lower():
+                    #     actual_state='NJ'
 
-                    print("CITY",actual_city.lower(),nj_city.lower())
-                    if actual_city.lower() in nj_city.lower():
-                        actual_state='NJ'
-                    # if city=='ATCo':
-                    #     city=""
-
+                    if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',actual_state):
+                        if re.search(r'\b\s?(!?8)\s?\d+',actual_full_address):
+                            actual_full_address=actual_full_address.split('8',1)[1]
+                            self.street[0] = self.street[0].replace('8', "")
+                            self.street[1] = self.street[1].replace('8', "")
                     if 'DRVE' in actual_full_address:
                         actual_full_address=actual_full_address.replace('DRVE','DRIVE')
 
                     if 'IENA.SE' in actual_full_address:
                         actual_full_address=actual_full_address.replace('IENA.SE','TERRASE')
 
+                    if 'RDA' in actual_full_address:
+                        actual_full_address=actual_full_address.replace('RDA','RD')
+
                     return actual_full_address, self.street[0], self.street[1], actual_state, actual_zipcode, actual_city
                 else:
+
+                    number_val=number_val1
                     full_address, street, state, zip_code, city = '', '', '', '', ''
                     actual_city = ''
                     if re.search(r'\s(=?ID\s\d+\s\d+)', number_val):
@@ -354,7 +391,11 @@ class Licence_details:
                     # if re.search(r'(\s\d{1,3}\s\w*\s?\w?\s?\w+?\s?\,?\s[A-Z]{2}\s\d{5})\b', reg_value):
                     if re.search(r'(\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w?\.?\,?\s[A-Z]{2}\s\d{5,})\b', reg_value):
                         print("in 4 back traverse")
-                        street1 = ' '.join(map(str, number_val.split(code, 1)[0].split()[-4:-2]))
+
+                        if re.search(r'\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}', code):
+                            street1=' '.join(map(str, number_val.split(code, 1)[0].split()[-6:-4]))
+                        else:
+                            street1 = ' '.join(map(str, number_val.split(code, 1)[0].split()[-4:-2]))
                     elif re.search(r'[A-Za-z]+(!?'+code+')',value):
                         street1 = ' '.join(map(str, number_val.split(code, 1)[0].split()[-3:-1]))
                     else:
@@ -370,7 +411,7 @@ class Licence_details:
                     state, zipcode, city = self.c.get_address_zipcode(full_address, code)
                     print("Full Address:", full_address)
                     for i in range(len(self.cities['city'])):
-                        if self.cities['city'][i].lower() in city.lower():
+                        if self.cities['city'][i].lower() == city.lower():
                             actual_city = self.cities['city'][i]
 
                     if actual_city=='':
@@ -380,8 +421,11 @@ class Licence_details:
                         city=actual_city.upper()
                     else:
                         city=actual_city
-                    full_address = self.c.find_between_r(value, street, city)
+                    full_address = self.c.find_between_r(value, street, state)
                     full_address = street + full_address
+                    st=re.compile(r'(!?'+state+r')',re.IGNORECASE)
+
+                    full_address=full_address.replace(st.findall(full_address)[0],'')
                     print("address",full_address)
                     full_address=' '.join(s[:1].upper() + s[1:] for s in full_address.split())
                     city=city.replace(",","")
@@ -389,29 +433,39 @@ class Licence_details:
                     full_address=full_address.replace("DRI","DR")
                     full_address=full_address.replace("ss ","55 ")
                     if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',state):
-                        if re.search(r'\b\s?(!?8)\w+',full_address):
+                        if re.search(r'\b\s?(!?8)\s?\d+',full_address):
                             full_address=full_address.split('8',1)[1]
-                    for i in range(len(self.NJ_Cities['NJ'])):
-                        if self.NJ_Cities['NJ'][i].lower() in city.lower():
-                            nj_city=self.NJ_Cities['NJ'][i]
+                            street=street.replace('8',' ')
+                    # for i in range(len(self.NJ_Cities['NJ'])):
+                    #     if self.NJ_Cities['NJ'][i].lower() in city.lower():
+                    #         nj_city=self.NJ_Cities['NJ'][i]
+                    #
+                    # print("CITY",city.lower,nj_city.lower())
+                    # if city.lower() == nj_city.lower():
+                    #     state='NJ'
 
-                    print("CITY",city.lower,nj_city.lower())
-                    if city.lower() in nj_city.lower():
-                        state='NJ'
+                    if 'DRVE' in full_address:
+                        full_address=full_address.replace('DRVE','DRIVE')
+
+                    if 'IENA.SE' in full_address:
+                        full_address=full_address.replace('IENA.SE','TERRASE')
+                    if 'RDA' in full_address:
+                        full_address = full_address.replace('RDA', 'RD')
 
                     return full_address, street,street, state, zipcode, city
             else:
+                number_val = number_val1
                 full_address, street, state, zip_code, city = '', '', '', '', ''
                 actual_city = ''
                 print("in else")
                 val1 = re.findall(
-                    r"\s(\d+)\-?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\-?\s?(\d+)?\s?([A-Za-z]+)?\.?\s?(\d+)?\s(\w+)?\s?\.?\,?(!? AL| AK| AS| AZ| AŽ| AŻ| AR| CA| CO| CT| DE| DC| FM| FL| GA| GU| HI| ID| IL| IN| IA| KS| KY| LA| ME| MH| MD| MA| MI| MN| MS| MO| MT| NE| NV| NH| NJ| NM| NY| NC| ND| MP| OH| OK| OR| PW| PA| PR| RI| SC| SD| TN| TX| UT| VT| VI| VA| WA| WV| WI| WY)\s",
+                    r"\s(\d+)\-?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\-?\s?(\d+)?\s?([A-Za-z]+)?\.?\s?(\d+)?\s(\w+)?\s?\.?\,?(!? AL| AK| AS| AZ| AŽ| AŻ| AR| CA| CO| CT| DE| DC| FM| FL| GA| GU| HI| ID| IL| IN| IA| KS| KY| LA| ME| MH| MD| MA| MI| MN| MS| MO| MT| NE| NV| NH| NJ| NM| NY| NC| ND| MP| OH| OK| OR| PW| PA| PR| RI| SC| SD| TN| TX| UT| VT| VI| VA| WA| WV| WI| WY)\s\w+",
                     value)
                 print("else data",data)
                 val=""
                 for item in val1:
                     val=val+" ".join(item)
-                data=re.findall(r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)',val)
+                data=re.findall(r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\b',val)
                 if data != []:
                     if re.search(r'\s(=?DE\s[A-Za-z]\d{4})',value):
                         code=data[1]
@@ -443,7 +497,7 @@ class Licence_details:
                     state,zip_code,city = self.c.get_address_zipcode(full_address, code)
                     print("Full Address:", full_address, city, state)
                     for i in range(len(self.cities['city'])):
-                        if self.cities['city'][i].lower() in city.lower():
+                        if self.cities['city'][i].lower() == city.lower():
                             actual_city = self.cities['city'][i]
 
                     if actual_city == '':
@@ -463,13 +517,22 @@ class Licence_details:
 
                     if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',state):
                         full_address=full_address.split('8',1)[1]
-                    for i in range(len(self.NJ_Cities['NJ'])):
-                        if self.NJ_Cities['NJ'][i].lower() in city.lower():
-                            nj_city=self.NJ_Cities['NJ'][i]
+                        street = street.replace('8', ' ')
+                    # for i in range(len(self.NJ_Cities['NJ'])):
+                    #     if self.NJ_Cities['NJ'][i].lower() in city.lower():
+                    #         nj_city=self.NJ_Cities['NJ'][i]
+                    #
+                    # print("CITY",city.lower,nj_city.lower())
+                    # if city.lower() == nj_city.lower():
+                    #     state='NJ'
+                    if 'DRVE' in full_address:
+                        full_address=full_address.replace('DRVE','DRIVE')
 
-                    print("CITY",city.lower,nj_city.lower())
-                    if city.lower() in nj_city.lower():
-                        state='NJ'
+                    if 'IENA.SE' in full_address:
+                        full_address=full_address.replace('IENA.SE','TERRASE')
+
+                    if 'RDA' in full_address:
+                        full_address = full_address.replace('RDA', 'RD')
 
                 return full_address, street,street, state, zip_code, city
         except Exception as e:
@@ -480,23 +543,29 @@ class Licence_details:
 
     def get_name(self,text_value,street,street1,licenseid,zip_code,date,keys,values):
         try:
+
             value=avoid.name_replace(text_value,date,zip_code)
+            value=value.replace('.',' ')
             name_value = []
             name_value1 = []
             name_val,name_val1='',''
             if street!=street1:
-                name_reg_val=re.findall(r'\b(\d+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street+r')\b',value)
+                name_reg_val=re.findall(r'\b\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street+r')\b',value)
                 for item in name_reg_val:
                     name_value.append(" ".join(item))
-                name_val = "".join(map(str, name_value[0]))
-                name_val1 = name_val.replace(street, "")
+                name_val = "".join(map(str, name_value))
+                name_val = name_val.replace(street, "")
+                if re.search(r'\s\s',name_val):
+                    name_val=name_val.replace(re.findall(r'\s\s',name_val)[0]," ")
             if street1==street:
-                name_reg_val = re.findall(r'\b(\d+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street1+r')\b',value)
+                name_reg_val = re.findall(r'\b\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street+r')\b',value)
                 for item in name_reg_val:
                     name_value.append(" ".join(item))
                 if len(name_reg_val)==1:
-                    name_val = "".join(map(str, name_value[0]))
+                    name_val = "".join(map(str, name_value))
                     name_val = name_val.replace(street, "")
+                    if re.search(r'\s\s', name_val):
+                        name_val = name_val.replace(re.findall(r'\s\s', name_val)[0], " ")
                 else:
                     name_val = "".join(map(str, name_value[0]))
                     name_val1 = "".join(map(str, name_value[1]))
@@ -504,44 +573,54 @@ class Licence_details:
                     name_val = name_val.replace(street, "")
             if street != street1:
                 name_reg_va11 = re.findall(
-                    r'\b(\d+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street1+r')\b', value)
+                    r'\b\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street1+r')\b', value)
                 for item in name_reg_va11:
                     name_value1.append(" ".join(item))
-                name_val1 = "".join(map(str, name_value[1]))
+                name_val1 = "".join(map(str, name_value1))
                 name_val1=name_val1.replace(street1,"")
+                if re.search(r'\s\s',name_val1):
+                    name_val1=name_val1.replace(re.findall(r'\s\s',name_val1)[0]," ")
 
-            # name_val=" ".join(map(str,name_value))
-            # name_val1=" ".join(map(str,name_value1))
             print("in name", name_val, name_val1)
-            name_regex= re.findall(r'[A-Za-z]+\s?\-?\s?\b', name_val)
+            name_val = name_val.split('2', 1)
+            name_val = "".join(name_val)
+            name_val1 = name_val1.split('2', 1)
+            name_val1= "".join(name_val1)
+            name_regex= re.findall(r'[A-Za-z]+\s?\s?\-?\s?\s?\b', name_val)
             actual_name= " ".join(map(str, name_regex))
 
-            name_regex1 = re.findall(r'[A-Za-z]+\s?\-?\s?\b', name_val1)
+            name_regex1 = re.findall(r'[A-Za-z]+\s?\s?\-?\s?\s?\b', name_val1)
             actual_name1 = " ".join(map(str, name_regex1))
 
             actual_name = avoid.replace(actual_name)
             actual_name1 = avoid.replace(actual_name1)
-            print("in name",actual_name,actual_name1)
-            name_reg = re.findall(r'[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s\s?[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s?\-\s?[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?\s?[A-Za-z]?\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?[A-Za-z]?|[A-Za-z]+',actual_name)
-            name_reg1 = re.findall(r'[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s\s?[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s?\-\s?[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?\s?[A-Za-z]?\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?[A-Za-z]?|[A-Za-z]+',actual_name1)
+
+            if re.search(r'\s\s', actual_name):
+                actual_name = actual_name.replace(re.findall(r'\s\s', actual_name)[0], " ")
+            if re.search(r'\s\s', actual_name1):
+                actual_name1 = actual_name1.replace(re.findall(r'\s\s', actual_name1)[0], " ")
+            print("in name", actual_name, actual_name1)
+            name_reg = re.findall(r'[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s\s?[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s?\-\s?\s?[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?\s?[A-Za-z]?\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?[A-Za-z]?|[A-Za-z]+',actual_name)
+            name_reg1 = re.findall(r'[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s\s?[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s?\-\s?\s?[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?\s?[A-Za-z]?\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?[A-Za-z]?|[A-Za-z]+',actual_name1)
 
             full_name = " ".join(map(str, name_reg))
             full_name1 = " ".join(map(str, name_reg1))
             print(full_name,full_name1)
 
             if re.search('[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s?\s?[A-Za-z]+', full_name):
-                fname=full_name.replace(' -  ',"-")
+                fname=full_name.replace(' - ',"-")
 
                 full_name=fname
             if re.search(r'\s\s',full_name):
                 full_name=full_name.replace(re.findall(r'\s\s',full_name)[0]," ")
 
             if re.search('[A-Za-z]+\s?\-\s?\s?[A-Za-z]+', full_name1):
-                fname1=full_name.replace(' -  ',"-")
-                full_name=fname1
+                fname1=full_name.replace(' - ',"-")
+                full_name1=fname1
             if re.search(r'\s\s',full_name1):
                 full_name1=full_name1.replace(re.findall(r'\s\s',full_name1)[0]," ")
-
+            fn=len(full_name.split())
+            fn1=len(full_name1.split())
             name_dict = {}
             name_dict={'original_name':full_name,'processed_name':full_name1}
             # name=full_name.split()
@@ -578,84 +657,38 @@ class Licence_details:
             #     name_dict.update({"middle_name_processed": name1[3]})
             result = dict(zip(keys, values))
             for k, v in result.items():
-                k=k+" "
+                # k=k+" "
                 for key1, value1 in name_dict.items():
                     if k != '' and value1 != '':
                         if k in name_dict['original_name']:
                             self.first_name_original.update({k: v})
                         if k in name_dict['processed_name']:
                             self.first_name_processed.update({k: v})
-
-                        # elif k in name_dict['last_name_original']:
-                        #     self.last_name_original.update({k: v})
-                        # if k in name_dict['last_name_processed']:
-                        #     self.last_name_processed.update({k: v})
-                        #
-                        # elif k in name_dict['middle_name']:
-                        #     self.middle_name_original.update({k: v})
-                        # if k in name_dict['middle_name_processed']:
-                        #     self.middle_name_processed.update({k: v})
-
             first_name_original_score = 0.0
             first_name_original_a_score = 0
             if len(self.first_name_original)>=1:
                 for key1, value1 in self.first_name_original.items():
                     first_name_original_score = first_name_original_score + value1
                 first_name_original_a_score = int((first_name_original_score / len(self.first_name_original)) * 100)
-
+            print("FN",first_name_original_a_score)
             first_name_processed_score = 0.0
             first_name_processed_a_score = 0
             if len(self.first_name_processed) >=1:
                 for key1, value1 in self.first_name_processed.items():
                     first_name_processed_score = first_name_processed_score + value1
                 first_name_processed_a_score = int((first_name_processed_score / len(self.first_name_processed)) * 100)
-            print(self.first_name_processed)
-            print(self.first_name_original)
-            # last_name_original_score = 0.0
-            # last_name_original_a_score = 0
-            # if len(self.last_name_original) >= 1:
-            #     for key1, value1 in self.last_name_original.items():
-            #         last_name_original_score = last_name_original_score + value1
-            #     last_name_original_a_score = int((last_name_original_score / len(self.last_name_original)) * 100)
-            #
-            # last_name_processed_score = 0.0
-            # last_name_processed_a_score = 0
-            # if len(self.last_name_processed) >= 1:
-            #     for key1, value1 in self.last_name_processed.items():
-            #         last_name_processed_score = last_name_processed_score + value1
-            #     last_name_processed_a_score = int((last_name_processed_score / len(self.last_name_processed)) * 100)
-            #
-            # middle_name_original_score = 0.0
-            # middle_name_original_a_score = 0
-            # if len(self.middle_name_original) >= 1:
-            #     for key1, value1 in self.middle_name_original.items():
-            #         middle_name_original_score = middle_name_original_score + value1
-            #     middle_name_original_a_score = int((middle_name_original_score / len(self.middle_name_original)) * 100)
-            #
-            # middle_name_processed_score = 0.0
-            # middle_name_processed_a_score = 0
-            # if len(self.middle_name_processed) >= 1:
-            #     for key1, value1 in self.middle_name_processed.items():
-            #         middle_name_processed_score = middle_name_processed_score + value1
-            #     middle_name_processed_a_score = int((middle_name_processed_score / len(self.middle_name_processed)) * 100)
-
-
+            print("PN", first_name_processed_a_score)
             first_dict, last_dict, middle_name_dict = {}, {}, {}
             first_dict[full_name] = first_name_original_a_score
             first_dict[full_name1] = first_name_processed_a_score
-            #
-            # last_dict[name[1]] = last_name_original_a_score
-            # last_dict[name1[1]] = last_name_processed_a_score
-            #
-            # middle_name_dict[name[2]] = middle_name_original_a_score
-            # middle_name_dict[name1[2]] = middle_name_processed_a_score
-
 
             actual_full_name = max(first_dict.items(), key=operator.itemgetter(1))[0]
-            # last_name = max(last_dict.items(), key=operator.itemgetter(1))[0]
-            # middle_name = max(middle_name_dict.items(), key=operator.itemgetter(1))[0]
-            # actual_full_name= first_name+" "+last_name+" "+middle_name
-
+            actual_full_name = actual_full_name.replace(' s', " GU")
+            if len(actual_full_name.split())==1:
+                if fn>1:
+                    actual_full_name=full_name
+                else:
+                    actual_full_name=full_name1
 
 
             # name_regex = re.findall(r'[A-Za-z]+\-?\b', name_value)
@@ -706,12 +739,12 @@ class Licence_details:
         try:
             # Todo:To get all date format from text
             expiry_date=''
-            text = text.replace(license_id, '')
+            # text = text.replace(license_id, '')
+            print(text)
             # val = re.findall(
             #     r'\b(?:(1[0-2]|0?[1-9])[./-](3[01]|[12][0-9]|0?[1-9])|(3[01]|[12][0-9]|0?[1-9])[./-](1[0-2]|0?[1-9]))[./-]((19|20|21)(?:[0-9]{2})?[0-9]{2}|[0-9]{2})',
             #     text)
-            val = re.findall(
-                r'(\w*[A-Za-z]\d{1}\d{2}[./-](19|20|21|22)\d\d)|\d{2}\d{2}\d\d|(\w*[A-Za-z]\d{1}[./-]\d{2}[./-](19|20|21|22)\d\d)|(\d{2}\s?[./-]\d{2}[./-](19|20|21|22)\d\d)|(\d{2}\s\d{2}\s(19|20|21|22)\d\d)|(\d{2}[./-]\d{2}\s?(19|20|21|22)\d\d)|(\d{2}\s?\d{2}[./-](19|20|21|22)\d\d)|(\d{2}[./-]\d{2}\s[./-](19|20|21|22)\d\d)|(([0-9]|0[0-9]|1[0-9])[./-]([0-9][0-9]|[0-9])[./-]\d\d)|(([0-9]|0[0-9]|1[0-9])[./-]([0-9][0-9]|[0-9])[./-](19|20|21|22)\d\d|(\d{2}\d{2}[./-]\d\d))\b', text)
+            val = re.findall(r'((\d{2}\s?[./-]\d{2}[./-](19|20|21|22)\d\d)|(\d{2}[./-]\d{2}\s[./-](19|20|21|22)\d\d)|(([0-9]|0[0-9]|1[0-9])[./-]([0-9][0-9]|[0-9])[./-]\d\d)|(([0-9]|0[0-9]|1[0-9])[./-]([0-9][0-9]|[0-9])[./-](19|20|21|22)\d\d)|(0[0-9]|1[0-9])(0[1-9]|1[0-9]|2[0-9]|3[0-9])[./-](19|20|21|22)\d\d)', text)
             date_val1 = []
             for item in val:
                 date_val1.append(" ".join(item))
@@ -719,9 +752,14 @@ class Licence_details:
             if re.search(r'\b\s(!?G|O|8|9|6)',string_date):
                 string_date=string_date.replace(re.findall(r'\b\s(!?G|O|8|9|6)',string_date)[0],'0')
             # Todo:To remove all white spaces and [,/.]
-            date_val = re.findall(r'\d{2}[./-]\d{2}[./-]\d{2,4}', string_date)
-            string_date_value = ",".join(map(str, date_val))
-            for dob in date_val[:3]:
+            if re.search(r'\d{2}[./-]?\d{2}[./-]?\d{4}',string_date):
+                date_val = re.findall(r'\d{2}[./-]?\d{2}[./-]?\d{4}', string_date)
+                string_date_value = ",".join(map(str, date_val))
+            else:
+                date_val = re.findall(r'\d{2}[./-]?\d{2}[./-]?\d{2}', string_date)
+                string_date_value = ",".join(map(str, date_val))
+
+            for dob in date_val[:5]:
                 if 'o' in dob:
                     dob = dob.replace("o", "0")
                 if ' ' in dob:
@@ -879,7 +917,9 @@ class Licence_details:
             try:
 
                 print(text)
-                text=text.replace('.'," ")
+
+                text=text.replace('SOS',"505")
+                text=text.replace('4a',"")
                 if re.search('(!?AŽ|AŻ)',text):
                     text=text.replace(re.findall('(!?AŽ|AŻ)',text)[0],"AZ")
 
@@ -891,7 +931,7 @@ class Licence_details:
                     get_licence_id=' '
                     expiry_date, dob, issue_date, date_val = self.get_date(text, get_licence_id)
 
-                name = self.get_name(text, street,street,get_licence_id,state,date_val,keys,values)
+                name = self.get_name(text, street,street1,get_licence_id,state,date_val,keys,values)
 
                 return get_licence_id, expiry_date, dob, issue_date, address, name, state, zipcode, city,date_val
             except Exception as e:

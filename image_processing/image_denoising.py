@@ -89,18 +89,17 @@ class Denoising:
     def image_conversion_smooth(self,path,doc_type):
         try:
             img = cv2.imread(path)
+            # print(img,path)
             height, width, _ = img.shape
             print(height,width)
             pImg=''
-            head, tail = os.path.split(path)
+            filename=os.path.basename(path)
+            # print(filename)
+            # head, tail = os.path.split(path)
             if 'License' in doc_type:
-                img = cv2.imread(path)  # load as 1-channel 8bit grayscale
-                # img_grey=cv2.imread(path,0)
-                # cv2.imwrite(tail,img_grey)
-                # imh2=cv2.imread(tail)
+                # image = cv2.imread(path)
 
-                # print('greyscale',[img_grey.shape])
-                # print('original',[img.shape])
+                  # load as 1-channel 8bit grayscale
                 image=cv2.GaussianBlur(img,(3,3),0)
 
                 maxIntensity = 255.0  # depends on dtype of image data
@@ -109,20 +108,11 @@ class Denoising:
                 phi = 1
                 theta = 1
                 # Increase intensity such that
-                # dark pixels become much brighter,
-                # bright pixels become slightly bright
-                # newImage0 = (maxIntensity / phi) * (image / (maxIntensity / theta)) ** 0.5
-                # newImage0 = array(newImage0, dtype=uint8)
-                # y = (maxIntensity / phi) * (x / (maxIntensity / theta)) ** 0.5
-                # Decrease intensity such that
-                # dark pixels become much darker,
-                # bright pixels become slightly dark
                 img1 = (maxIntensity / phi) * (image / (maxIntensity / theta)) ** 2
                 # cv2.imwrite("../images/static/" + tail+'_processed', img1)
                 z = (maxIntensity / phi) * (x / (maxIntensity / theta)) ** 1
 
                 pImg = np.vstack((img, img1))
-                # cv2.resize(pImg, (2050, 2050))
                 # img_merge.save( 'test.jpg' )
                 # pImg=cv2.erode(pimg,(3,2),0)
             elif 'SSN' in doc_type:
@@ -148,8 +138,8 @@ class Denoising:
                     contrast = ImageEnhance.Contrast(sharpImg)
                     img = contrast.enhance(1.5)
                 pImg = np.array(img)
-            cv2.imwrite("../images/static/" + tail, pImg)
-            return "../images/static/" + tail
+            cv2.imwrite("../images/static/" + filename, pImg)
+            return "../images/static/" + filename
         except Exception as e:
             print(e)
 
