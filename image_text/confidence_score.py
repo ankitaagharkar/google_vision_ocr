@@ -49,42 +49,41 @@ class text_score:
                     word_text=''
                     for symbol in word.symbols:
                         word_text = word_text + symbol.text
-
                     # ##print(u'Word text: {} (confidence: {})\n'.format(
                     #     word_text, word.confidence))
                     self.keys.append(word_text)
                     self.values.append(word.confidence)
         self.result = zip(self.keys, self.values)
         return self.keys,self.values
-    def license_confidence(self,data,text):
+    def license_confidence(self,data,text,keys,values):
         try:
-
-            for key, value in enumerate(self.result):
+            result = dict(zip(keys, values))
+            for key, value in result.items():
                 # print(value)
                 for key1, value1 in data.items():
-                    if value[0] != '' and value1 != '':
-                        # if value[0] in value1:
-                        if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
-                            if value[0] in data['date_val']:
-                                    self.dict.update({value[0]: value[1]})
+                    if key != '' and value1 != '':
+                        # if key in value1:
+                        if re.search(r'(?!' + re.escape(key) + r')', value1):
+                            if key in data['date_val']:
+                                    self.dict.update({key: value})
 
-                            elif any(char in data['first_name'] for char in value[0]):
-                                self.others.update({value[0]: value[1]})
+                            elif any(char in data['first_name'] for char in key):
+                                self.others.update({key: value})
 
-                            elif any(char in data['last_name'] for char in value[0]):
-                                self.others.update({value[0]: value[1]})
+                            elif any(char in data['last_name'] for char in key):
+                                self.others.update({key: value})
 
-                            elif any(char in data['middle_name'] for char in value[0]):
-                                self.others.update({value[0]: value[1]})
+                            elif any(char in data['middle_name'] for char in key):
+                                self.others.update({key: value})
 
-                            elif any(char in data['address'] for char in value[0]):
-                                self.address_val.update({value[0]: value[1]})
+                            elif any(char in data['address'] for char in key):
+                                self.address_val.update({key: value})
 
-                            elif any(char in data['license_id'] for char in value[0]):
-                                self.license_id_dict.update({value[0]: value[1]})
+                            elif any(char in data['license_id'] for char in key):
+                                self.license_id_dict.update({key: value})
 
                             else:
-                                self.others.update({value[0]:value[1]})
+                                self.others.update({key:value})
             for key5, value5 in self.license_id_dict.items():
                 self.license_confidence_score = self.license_confidence_score + value5
                 self.val.append(value5)
@@ -133,21 +132,23 @@ class text_score:
             return self.dict,self.date_score,self.address_score,self.license_score,self.other_score
         except Exception as e:
             return self.dict, self.date_score, self.address_score, self.license_score, self.other_score
-    def ssn_confidence(self,data):
+    def ssn_confidence(self,data,keys,values):
         try:
-            for key, value in enumerate(self.result):
+            result = dict(zip(keys, values))
+            for key, value in result.items():
                 for key1, value1 in data.items():
-                    if value[0] != '' and value1 != '':
-                        if re.search(r'\b(=?' + re.escape(value[0]) + r')\b', value1):
-                            if value[0] in data['ssn_number']:
-                                self.ssn_confidence_score = value[1]
+                    if key != '' and value1 != '':
+                        if re.search(r'\b(=?' + re.escape(key) + r')\b', value1):
+                            if key in data['ssn_number']:
+                                self.ssn_confidence_score = value
             self.ssn_score = int((self.ssn_confidence_score * 100))
             return self.ssn_score
         except Exception as E:
             return self.ssn_score
-    def paystub_confidence(self,data_val):
+    def paystub_confidence(self,data_val,keys,values):
         data={}
         try:
+            result=dict(zip(keys,values))
             a = 0
             b = 0
             c = 0
@@ -160,121 +161,121 @@ class text_score:
                         data.update({key: value})
 
             # print("in None Data",data)
-            for key, value in enumerate(self.result):
+            for key, value in result.items():
                 a = a + 1
                 b = b + 1
                 c = c + 1
                 for key1, value1 in data.items():
                     if key1 != '' and value1 != '':
-                        if value[0] != '':
+                        if key != '':
                             if "field_value_original" in data[key1]:
-                                if value[0] in value1['field_value_original']:
+                                if key in value1['field_value_original']:
                                     if "regular" in value1['alias']:
 
                                         var_name = "regular" + str(a)
                                         if "1" in var_name:
-                                            self.regular1.update({str(value[0]): value[1]})
+                                            self.regular1.update({str(key): value})
                                         if "2" in var_name:
-                                            self.regular2.update({str(value[0]): value[1]})
+                                            self.regular2.update({str(key): value})
                                         if "3" in var_name:
-                                            self.regular3.update({str(value[0]): value[1]})
+                                            self.regular3.update({str(key): value})
                                         if "4" in var_name:
-                                            self.regular4.update({str(value[0]): value[1]})
+                                            self.regular4.update({str(key): value})
                                         if "5" in var_name:
-                                            self.regular5.update({str(value[0]): value[1]})
+                                            self.regular5.update({str(key): value})
                                         if "6" in var_name:
-                                            self.regular6.update({str(value[0]): value[1]})
+                                            self.regular6.update({str(key): value})
                                         if "7" in var_name:
-                                            self.regular7.update({str(value[0]): value[1]})
+                                            self.regular7.update({str(key): value})
                                         if "8" in var_name:
-                                            self.regular8.update({str(value[0]): value[1]})
+                                            self.regular8.update({str(key): value})
                                         if "9" in var_name:
-                                            self.regular9.update({str(value[0]): value[1]})
+                                            self.regular9.update({str(key): value})
                                         if "10" in var_name:
-                                            self.regular10.update({str(value[0]): value[1]})
+                                            self.regular10.update({str(key): value})
 
                                     elif "tax" in value1['alias']:
 
                                         var_name = "tax" + str(b)
                                         if "1" in var_name:
-                                            self.tax1.update({str(value[0]): value[1]})
+                                            self.tax1.update({str(key): value})
                                         if "2" in var_name:
-                                            self.tax2.update({str(value[0]): value[1]})
+                                            self.tax2.update({str(key): value})
                                         if "3" in var_name:
-                                            self.tax3.update({str(value[0]): value[1]})
+                                            self.tax3.update({str(key): value})
                                         if "4" in var_name:
-                                            self.tax4.update({str(value[0]): value[1]})
+                                            self.tax4.update({str(key): value})
                                         if "5" in var_name:
-                                            self.tax5.update({str(value[0]): value[1]})
+                                            self.tax5.update({str(key): value})
                                         if "6" in var_name:
-                                            self.tax6.update({str(value[0]): value[1]})
+                                            self.tax6.update({str(key): value})
                                         if "7" in var_name:
-                                            self.tax7.update({str(value[0]): value[1]})
+                                            self.tax7.update({str(key): value})
                                         if "8" in var_name:
-                                            self.tax8.update({str(value[0]): value[1]})
+                                            self.tax8.update({str(key): value})
                                         if "9" in var_name:
-                                            self.tax9.update({str(value[0]): value[1]})
+                                            self.tax9.update({str(key): value})
                                         if "10" in value:
-                                            self.tax10.update({str(value[0]): value[1]})
+                                            self.tax10.update({str(key): value})
 
                                     elif "deduction" in value1['alias']:
                                         var_name = "deduction" + str(c)
                                         if "1" in var_name:
-                                            self.deduction1.update({str(value[0]): value[1]})
+                                            self.deduction1.update({str(key): value})
                                         if "2" in var_name:
-                                            self.deduction2.update({str(value[0]): value[1]})
+                                            self.deduction2.update({str(key): value})
                                         if "3" in var_name:
-                                            self.deduction3.update({str(value[0]): value[1]})
+                                            self.deduction3.update({str(key): value})
                                         if "4" in var_name:
-                                            self.deduction4.update({str(value[0]): value[1]})
+                                            self.deduction4.update({str(key): value})
                                         if "5" in var_name:
-                                            self.deduction5.update({str(value[0]): value[1]})
+                                            self.deduction5.update({str(key): value})
                                         if "6" in var_name:
-                                            self.deduction6.update({str(value[0]): value[1]})
+                                            self.deduction6.update({str(key): value})
                                         if "7" in var_name:
-                                            self.deduction7.update({str(value[0]): value[1]})
+                                            self.deduction7.update({str(key): value})
                                         if "8" in var_name:
-                                            self.deduction8.update({str(value[0]): value[1]})
+                                            self.deduction8.update({str(key): value})
                                         if "9" in var_name:
-                                            self.deduction9.update({str(value[0]): value[1]})
+                                            self.deduction9.update({str(key): value})
                                         if "10" in var_name:
-                                            self.deduction10.update({str(value[0]): value[1]})
+                                            self.deduction10.update({str(key): value})
                                         if "11" in var_name:
-                                            self.deduction11.update({str(value[0]): value[1]})
+                                            self.deduction11.update({str(key): value})
                                         if "12" in var_name:
-                                            self.deduction12.update({str(value[0]): value[1]})
+                                            self.deduction12.update({str(key): value})
                                         if "13" in var_name:
-                                            self.deduction13.update({str(value[0]): value[1]})
+                                            self.deduction13.update({str(key): value})
                                         if "14" in var_name:
-                                            self.deduction14.update({str(value[0]): value[1]})
+                                            self.deduction14.update({str(key): value})
                                         if "15" in var_name:
-                                            self.deduction15.update({str(value[0]): value[1]})
+                                            self.deduction15.update({str(key): value})
                             else:
-                                if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
-                                    if value[0] in data['pay_period_end_date']:
-                                        self.pay_end_date.update({str(value[0]): value[1]})
+                                if re.search(r'(?!' + re.escape(key) + r')', value1):
+                                    if key in data['pay_period_end_date']:
+                                        self.pay_end_date.update({str(key): value})
 
-                                    elif value[0] in data['pay_period_start_date']:
-                                        self.pay_start_date.update({str(value[0]): value[1]})
+                                    elif key in data['pay_period_start_date']:
+                                        self.pay_start_date.update({str(key): value})
 
-                                    elif value[0] in data['pay_date']:
-                                        self.pay_date.update({str(value[0]): value[1]})
+                                    elif key in data['pay_date']:
+                                        self.pay_date.update({str(key): value})
 
-                                    elif value[0] in data['employee_address'] :
-                                        self.employee_address.update({str(value[0]): value[1]})
+                                    elif key in data['employee_address'] :
+                                        self.employee_address.update({str(key): value})
 
-                                    elif value[0] in data['employer_address']:
-                                        self.emp_address.update({str(value[0]): value[1]})
+                                    elif key in data['employer_address']:
+                                        self.emp_address.update({str(key): value})
 
-                                    elif value[0] in data['employee_name'] :
-                                        self.employee_name.update({str(value[0]): value[1]})
+                                    elif key in data['employee_name'] :
+                                        self.employee_name.update({str(key): value})
 
-                                    elif value[0] in data['employer_name']:
+                                    elif key in data['employer_name']:
 
-                                        self.emp_name.update({str(value[0]): value[1]})
+                                        self.emp_name.update({str(key): value})
                                     else:
 
-                                        self.dict.update({str(value[0]): value[1]})
+                                        self.dict.update({str(key): value})
 
             regular1_scrore,regular2_scrore,regular3_scrore,regular4_scrore,regular5_scrore,regular6_scrore,regular7_scrore,\
             regular8_scrore,regular9_scrore,regular10_scrore,tax1_scrore,tax2_scrore,tax3_scrore,tax4_scrore,tax5_scrore,\

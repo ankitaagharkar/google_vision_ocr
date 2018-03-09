@@ -1,3 +1,4 @@
+from google.cloud import vision_v1p1beta1 as vision
 import io
 import json
 import re
@@ -8,13 +9,14 @@ import threading
 import cv2
 import numpy as np
 import requests
-from google.cloud import vision
+#from google.cloud import vision
 from google.cloud.vision import types
 from multiprocessing import Queue
 
 
 class get_all_location:
     def __init__(self):
+        self.client = vision.ImageAnnotatorClient()
         self.result={}
         self.address_val={}
         self.licence_id={}
@@ -23,6 +25,8 @@ class get_all_location:
         self.keys=[]
         self.values=[]
         self.dict = {}
+        self.conf_keys,self.conf_values=[],[]
+        self.conf_result={}
         self.emp_name,self.employee_name={},{}
         self.emp_address,self.employee_address={},{}
         self.description=[]
@@ -220,14 +224,14 @@ class get_all_location:
 
     def get_text(self,path,doc_type):
         try:
-            client = vision.ImageAnnotatorClient()
+
             text = []
             with io.open(path, 'rb') as image_file:
                 content = image_file.read()
 
             image = vision.types.Image(content=content)
 
-            response = client.document_text_detection(image=image)
+            response = self.client.document_text_detection(image=image)
             for page in response.full_text_annotation.pages:
                 for block in page.blocks:
                     block_words = []
@@ -244,7 +248,23 @@ class get_all_location:
                         block_text = block_text + symbol.text
 
                     text.append(block_text)
+            for page1 in response.full_text_annotation.pages:
+                for block1 in page1.blocks:
+                    block_words1 = []
+                    for paragraph1 in block1.paragraphs:
+                        block_words1.extend(paragraph1.words)
+                    block_text = ''
+                    block_symbols1 = []
+                    for word1 in block_words1:
+                        block_symbols1.extend(word1.symbols)
+                        word_text1 = ''
+                        for symbol1 in word1.symbols:
+                            word_text1 = word_text1 + symbol1.text
+                            print(u'Word text: {} (confidence: {})\n'.format(word_text1, word1.confidence))
 
+                        self.conf_keys.append(word_text1)
+                        self.conf_values.append(word1.confidence)
+            self.conf_result = zip(self.conf_keys, self.conf_values)
             actual_text = " ".join(map(str, text))
             self.description=response.text_annotations[0]
             for text in response.text_annotations[1:]:
@@ -256,7 +276,7 @@ class get_all_location:
                 self.keys.append(text.description)
                 self.values.append(vertices)
             self.result = zip(self.keys, self.values)
-            return actual_text,self.description,self.result
+            return actual_text,self.description,self.result,self.conf_keys,self.conf_values
 
         except Exception as E:
             print(E)

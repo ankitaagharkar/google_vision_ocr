@@ -101,6 +101,7 @@ class Denoising:
 
                   # load as 1-channel 8bit grayscale
                 image=cv2.GaussianBlur(img,(3,1),0)
+                # image=cv2.dilate(image,(1,2),0)
 
                 maxIntensity = 255.0  # depends on dtype of image data
                 x = arange(maxIntensity)
@@ -140,6 +141,7 @@ class Denoising:
                     img = contrast.enhance(1.5)
                 pImg = np.array(img)
             cv2.imwrite("../images/static/" + filename, pImg)
+            print("Done Image Proccessing")
             return "../images/static/" + filename
         except Exception as e:
             print(e)

@@ -7,7 +7,7 @@ import sys
 import os
 import PyPDF2
 
-from Examples.Paystub import pays_keys
+
 
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../all_documents')
@@ -28,9 +28,11 @@ class Scan_OCR:
 
         self.scan_text = Queue()
         self.image_processing =Queue()
+        self.lic_text =Queue()
         self.img2pdf = Queue()
         self.doc_text = Queue()
         self.location = Queue()
+        self.license_conf_text = Queue()
         self.confidence=Queue()
         self.scan_result={}
         self.text=''
@@ -61,6 +63,10 @@ class Scan_OCR:
         employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date = self.Paystub.get_details(self.text, path, description, result)
         self.doc_text.put((self.text,employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date,pay_date))
         print(self.doc_text.qsize())
+    def get_lic_text(self, path, doc_type):
+
+        self.text, self.description, self.result,keys,values = self.Location.get_text(path, doc_type)
+        self.lic_text.put((self.text, self.description, self.result,keys,values))
     def image_to_pdf(self, image_path, doc_type):
         try:
 
@@ -99,36 +105,49 @@ class Scan_OCR:
             print(e)
     def get_doc(self,path, doc_type):
         try:
-            self.text,self.description,self.result = self.Location.get_text(path, doc_type)
-            keys, values = self.score.get_confidence_score(path)
+            thread1 = threading.Thread(target=self.get_lic_text,
+                                      args=(path,doc_type))
+
+            thread1.start()
+
+            (self.text, self.description,self.result,keys,values) = self.lic_text.get()
+
             if 'License' in doc_type:
 
                 licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val = self.licence.get_licence_details1(self.text,keys,values)
-                self.scan_text.put((self.text, licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val))
+                self.scan_text.put((self.text, licence_id, max_date, min_date, iss_date, address, name, state,
+                                    zipcode, city,date_val,keys,values))
             elif 'SSN' in doc_type:
                 SSN_Number = self.ssn.get_all_snn_details(self.text)
-                self.scan_text.put((self.text, SSN_Number))
+                self.scan_text.put((self.text, SSN_Number,keys,values))
 
         except Exception as e:
             print(e)
-    def confidence_score(self,path, doc_type,data):
+    def license_confidence_score(self,path):
+        try:
+            keys, values = self.score.get_confidence_score(path)
+            self.license_conf_text.put((keys,values))
+        except Exception as e:
+            print(e)
+    def confidence_score(self,path, doc_type,data,keys,values):
         try:
 
             if 'License' in doc_type:
-                date_dict,date_score,address_score,license_score,other_score=self.score.license_confidence(data,self.text)
+                date_dict,date_score,address_score,license_score,other_score=self.score.license_confidence(data,self.text,keys,values)
                 self.confidence.put((date_dict,date_score,address_score,license_score,other_score))
             elif 'SSN' in doc_type:
-                keys,values = self.score.get_confidence_score(path)
-                ssn_score=self.score.ssn_confidence(data)
+
+                ssn_score=self.score.ssn_confidence(data,keys,values)
                 self.confidence.put((ssn_score))
             elif 'Paystub' in doc_type:
-                keys, values = self.score.get_confidence_score(path)
+
                 regular1_scrore, regular2_scrore, regular3_scrore, regular4_scrore, regular5_scrore, regular6_scrore, regular7_scrore, \
                 regular8_scrore, regular9_scrore, regular10_scrore, tax1_scrore, tax2_scrore, tax3_scrore, tax4_scrore, tax5_scrore, \
                 tax6_scrore, tax7_scrore, tax8_scrore, tax9_scrore, tax10_scrore, deduction1_scrore, deduction2_scrore, deduction3_scrore, \
                 deduction4_scrore, deduction5_scrore, deduction6_scrore, deduction7_scrore, deduction8_scrore, deduction9_scrore, deduction10,deduction11_scrore,deduction12_scrore,deduction13_scrore,deduction14_scrore,deduction15_scrore, \
                 pay_end_date_scrore, pay_start_date_scrore, pay_date_scrore,employee_address_scrore, employee_name_scrore, \
-                employer_address_scrore, employer_name_scrore, other_scrore=self.score.paystub_confidence(data)
+                employer_address_scrore, employer_name_scrore, other_scrore=self.score.paystub_confidence(data,keys,
+                                                                                                          values)
 
                 self.confidence.put((regular1_scrore,regular2_scrore,regular3_scrore,regular4_scrore,regular5_scrore,regular6_scrore,regular7_scrore,\
             regular8_scrore,regular9_scrore,regular10_scrore,tax1_scrore,tax2_scrore,tax3_scrore,tax4_scrore,tax5_scrore,\
@@ -176,7 +195,9 @@ class Scan_OCR:
                 image_path = self.image_processing.get()
                 thread = threading.Thread(target=self.get_doc,args=(image_path, json_val[doc_id],))
                 thread.start()
-                (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode, city,date_val) = self.scan_text.get()
+                (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode, city,date_val,conf_keys,
+                 conf_values
+                 ) = self.scan_text.get()
                 if licence_id == ' ' and exp_date == '' and dob == '' and iss_date == '' and address == '' and name == '' and state == '' and zipcode == '' and city == '':
 
                      file_path=''
@@ -204,7 +225,7 @@ class Scan_OCR:
                         add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
                                'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
                                "middle_name": self.name_value[2],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
-                    elif len(self.name_value)==4:
+                    elif len(self.name_value)>=4:
                         add = {'first_name': self.name_value[2], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
                                'last_name': self.name_value[1], 'address': address, 'license_id': licence_id,
                                "middle_name": self.name_value[3],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
@@ -228,7 +249,8 @@ class Scan_OCR:
                     thread = threading.Thread(target=self.get_location, args=(add,image_path,application_id,self.config['base_url'], json_val[doc_id],))
                     thread.start()
                     (address_location, licence_id_location, dict_location,file_path) = self.location.get()
-                    thread = threading.Thread(target=self.confidence_score, args=(image_path,json_val[doc_id],add,))
+                    thread = threading.Thread(target=self.confidence_score, args=(image_path,json_val[doc_id],add,
+                                                                                  conf_keys,conf_values,))
                     thread.start()
                     (date_dict,date_score, address_score, license_score, other_score)=self.confidence.get()
 
@@ -380,7 +402,7 @@ class Scan_OCR:
 
                 thread = threading.Thread(target=self.get_doc,args=(image_path, json_val[doc_id],))
                 thread.start()
-                (self.text, SSN_Number ) = self.scan_text.get()
+                (self.text, SSN_Number,conf_keys,conf_values ) = self.scan_text.get()
                 if SSN_Number == 'null':
                     file_path = ''
                     self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
@@ -409,7 +431,8 @@ class Scan_OCR:
                     json_val[doc_id],))
                     thread.start()
                     (ssn_number_location,file_path) = self.location.get()
-                    thread = threading.Thread(target=self.confidence_score, args=(image_path, json_val[doc_id], add,))
+                    thread = threading.Thread(target=self.confidence_score, args=(image_path, json_val[doc_id], add,
+                                                                                  conf_keys,conf_values,))
                     thread.start()
                     (ssn_score) = self.confidence.get()
                     for i in range(len(response['fields'])):

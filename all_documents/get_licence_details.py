@@ -7,7 +7,9 @@ import sys
 sys.path.insert(0, '../image_processing')
 sys.path.insert(0, '../all_documents')
 import avoid
+from multiprocessing import Queue
 import Common
+import threading
 from enum import Enum
 import get_paystub_details
 
@@ -16,6 +18,7 @@ class Licence_details:
     def __init__(self):
         self.date_val=[]
         self.date = []
+        self.name=Queue()
         self.actual_date = []
         self.date_val1 = []
         self.zip_code=[]
@@ -145,46 +148,59 @@ class Licence_details:
                             else:
                                 self.code.append(data[0][0])
                                 self.code.append(data[1][0])
-                            if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',
-                                         self.code[0]):
-                                if re.search(r'\b\s?(!?8|2)\s?(\d+)?\s?(\w+)?\b', value):
-                                    value = value.replace('2 ', ' ')
+                            """if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', self.code[0]):
+                                if re.search(r'[A-Za-z]+\s?(!?2)', value):
+                                    value = value.split(re.findall(r'[A-Za-z]+\s?(!?2)',value)[0], 1)
+                                    value = " ".join(value)"""
                             self.regex_value.append(' '.join(map(str, value.split(self.code[0], 1)[0].split()[-8:])))
-                            self.regex_value.append(
-                                ' '.join(map(str, value.split(self.code[1] + " ", 1)[0].split()[-8:])))
+                            if self.code[0]==self.code[1]:
+                                self.regex_value.append(' '.join(map(str, value.split(self.code[1])[1].split()[-8:])))
+                            else:
+                                self.regex_value.append(' '.join(map(str, value.split(self.code[1]+" ",1)[0].split()[-8:])))
                             self.regex_value[0] = self.regex_value[0] + " " + self.code[0]
                             self.regex_value[1] = self.regex_value[1] + " " + self.code[1]
                             self.regex_value[1] = self.regex_value[1].replace(' STAP ', 'ST APT ')
                             self.regex_value[0] = self.regex_value[0].replace(' STAP ', 'ST APT ')
+
+                            if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',
+                                         self.code[0]):
+                                if re.search(r'[A-Za-z]+\s?(!?2)', self.regex_value[0]):
+                                    rv = self.regex_value[0].split(re.findall(r'[A-Za-z]+\s?(!?2)', self.regex_value[0])[0], 1)
+                                    self.regex_value[0] = " ".join(rv)
+                                if re.search(r'[A-Za-z]+\s?(!?2)', self.regex_value[1]):
+                                    rv1 = self.regex_value[1].split(re.findall(r'[A-Za-z]+\s?(!?2)', self.regex_value[1])[0], 1)
+                                    self.regex_value[1] = " ".join(rv1)
                             print("address traverse", self.regex_value)
-                            if re.search(
-                                    r'([A-Za-z]+\s\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
+                            if re.search(r'[A-Za-z]+(!?' + self.code[0] + ')', value):
+                                self.street.append(
+                                    ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-3:-1])))
+                            elif re.search(
+                                    r'(\s\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
                                     self.regex_value[0]):
 
-                                if re.search(r'\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}', self.regex_value[0]):
+                                if re.search(r'\d+\s\w+\s\d+\w+\s\w+\s\d+\w+\s\w+\s\w+|\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}', self.regex_value[0]):
                                     self.street.append(
                                         ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-6:-4])))
                                 else:
                                     self.street.append(
                                         ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-4:-2])))
-                            elif re.search(r'[A-Za-z]+(!?' + self.code[0] + ')', value):
-                                self.street.append(
-                                    ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-3:-1])))
                             else:
                                 self.street.append(
                                     ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-2:])))
 
-                            if re.search(
-                                    r'([A-Za-z]+\s\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
+
+                            if re.search(r'[A-Za-z]+(!?' + self.code[1] + ')', value):
+                                self.street.append(' '.join(map(str, number_val.split(self.code[1])[0].split()[-3:-1])))
+
+                            elif re.search(
+                                    r'(\s\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
                                     self.regex_value[1]):
-                                if re.search(r'\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}', self.regex_value[0]):
+                                if re.search(r'\d+\s\w+\s\d+\w+\s\w+\s\d+\w+\s\w+\s\w+|\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}', self.regex_value[0]):
                                     self.street.append(
                                         ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-6:-4])))
                                 else:
                                     self.street.append(
                                         ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-4:-2])))
-                            elif re.search(r'[A-Za-z]+(!?' + self.code[1] + ')', value):
-                                self.street.append(' '.join(map(str, number_val.split(self.code[1])[0].split()[-3:-1])))
                             else:
                                 self.street.append(' '.join(map(str, number_val.split(self.code[1])[0].split()[-2:])))
 
@@ -912,15 +928,18 @@ class Licence_details:
 
     def get_name(self,text_value,street,street1,licenseid,zip_code,date,keys,values):
         try:
-
+            print(street,street1)
+            text_value = text_value.replace('.', " ")
             value=avoid.name_replace(text_value,date,zip_code)
-            value = value.replace('.', " ")
+
+            if licenseid!='':
+                value = value.replace(licenseid, " ")
             value=value.replace('.',' ')
             name_value = []
             name_value1 = []
             name_val,name_val1='',''
             if street!=street1:
-                name_reg_val=re.findall(r'\b\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street+r')\b',value)
+                name_reg_val=re.findall(r'\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street+r')\b',value)
                 for item in name_reg_val:
                     name_value.append(" ".join(item))
                 name_val = "".join(map(str, name_value))
@@ -928,7 +947,8 @@ class Licence_details:
                 if re.search(r'\s\s',name_val):
                     name_val=name_val.replace(re.findall(r'\s\s',name_val)[0]," ")
             if street1==street:
-                name_reg_val = re.findall(r'\b\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street+r')\b',value)
+                name_reg_val = re.findall(r'\s?([A-Za-z]+)?(\-)?\s?(['
+                                          r'A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street1+r')\b',value)
                 for item in name_reg_val:
                     name_value.append(" ".join(item))
                 if len(name_reg_val)==1:
@@ -943,7 +963,7 @@ class Licence_details:
                     name_val = name_val.replace(street, "")
             if street != street1:
                 name_reg_va11 = re.findall(
-                    r'\b\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street1+r')\b', value)
+                    r'\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street1+r')\b', value)
                 for item in name_reg_va11:
                     name_value1.append(" ".join(item))
                 name_val1 = "".join(map(str, name_value1))
@@ -993,38 +1013,7 @@ class Licence_details:
             fn1=len(full_name1.split())
             name_dict = {}
             name_dict={'original_name':full_name,'processed_name':full_name1}
-            # name=full_name.split()
-            # name1=full_name1.split()
-            # name_dict={}
-            # if len(name) == 1:
-            #     name_dict = {'first_name_original': "",'last_name_original': name[0],"middle_name_original": ""}
-            # if len(name) == 3:
-            #     name_dict = {'first_name_original': name[1],'last_name_original': name[0],"middle_name": name[2]}
-            #
-            # elif len(name) == 2:
-            #     name_dict = {'first_name_original': name[0],'last_name_original': name[1],"middle_name": ""}
-            # elif len(name) == 4:
-            #     name_dict = {'first_name_original': name[2],'last_name_original': name[1],"middle_name_original": name[3]}
-            #
-            # if len(name1) == 1:
-            #     name_dict.update({'first_name_processed': ""})
-            #     name_dict.update({'last_name_processed': name1[0]})
-            #     name_dict.update({"middle_name_processed": ""})
-            #
-            # elif len(name1) == 3:
-            #     name_dict.update({'first_name_processed': name1[1]})
-            #     name_dict.update({'last_name_processed': name1[0]})
-            #     name_dict.update({"middle_name_processed": name1[2]})
-            #
-            # elif len(name1) == 2:
-            #     name_dict.update({'first_name_processed': name1[0]})
-            #     name_dict.update({'last_name_processed': name1[1]})
-            #     name_dict.update({"middle_name_processed": ""})
-            #
-            # elif len(name1) == 4:
-            #     name_dict.update({'first_name_processed': name1[2]})
-            #     name_dict.update({'last_name_processed': name1[1]})
-            #     name_dict.update({"middle_name_processed": name1[3]})
+
             result = dict(zip(keys, values))
             for k, v in result.items():
                 # k=k+" "
@@ -1057,10 +1046,10 @@ class Licence_details:
             if len(actual_full_name.split())==1:
                 if fn>1:
                     actual_full_name=full_name
+                elif fn==1 and fn1==0:
+                    actual_full_name=actual_full_name
                 else:
                     actual_full_name=full_name1
-
-
             # name_regex = re.findall(r'[A-Za-z]+\-?\b', name_value)
             # actual_name1 = " ".join(map(str, name_regex))
             # actual_name = avoid.replace(actual_name1)
@@ -1096,9 +1085,7 @@ class Licence_details:
             #     full_name="BUTLER DAVID JOSEPH"
             # if "EARLENE MICHELLEPUIG" in full_name:
             #     full_name="SHAEARLENE MICHELLE PUIG"
-
-
-            return actual_full_name
+            self.name.put(actual_full_name)
         except Exception as e:
             full_name=""
             return full_name
@@ -1113,8 +1100,7 @@ class Licence_details:
             # val = re.findall(
             #     r'\b(?:(1[0-2]|0?[1-9])[./-](3[01]|[12][0-9]|0?[1-9])|(3[01]|[12][0-9]|0?[1-9])[./-](1[0-2]|0?[1-9]))[./-]((19|20|21)(?:[0-9]{2})?[0-9]{2}|[0-9]{2})',
             #     text)
-            val = re.findall(
-                r'(((0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|((0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d)|(0[0-9]|1[0-9])(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d)', text)
+            val = re.findall(r'(((0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|((0[0-9]|1[0-2]))[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d)|((0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d)|(0[0-9]|1[0-9])(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d)', text)
             date_val1 = []
             for item in val:
                 date_val1.append(" ".join(item))
@@ -1128,7 +1114,7 @@ class Licence_details:
             else:
                 date_val = re.findall(r'\d{2}[./-]?\d{2}[./-]?\d{2}', string_date)
                 string_date_value = ",".join(map(str, date_val))
-            for dob in date_val[:3]:
+            for dob in date_val:
                 if 'o' in dob:
                     dob = dob.replace("o", "0")
                 if ' ' in dob:
@@ -1288,6 +1274,7 @@ class Licence_details:
                 print(text)
 
                 text=text.replace('SOS ',"505")
+                text=text.replace("'","")
                 if re.search('(!?AŽ|AŻ)',text):
                     text=text.replace(re.findall('(!?AŽ|AŻ)',text)[0],"AZ")
 
@@ -1299,7 +1286,11 @@ class Licence_details:
                     get_licence_id=' '
                     expiry_date, dob, issue_date, date_val = self.get_date(text, get_licence_id)
 
-                name = self.get_name(text, street,street,get_licence_id,state,date_val,keys,values)
+                #name = self.get_name(text, street,street,get_licence_id,state,date_val,keys,values)
+                thread=threading.Thread(target=self.get_name,args=(text, street,street,get_licence_id,state,date_val,
+                                                                   keys,values,))
+                thread.start()
+                name=self.name.get()
 
                 return get_licence_id, expiry_date, dob, issue_date, address, name, state, zipcode, city,date_val
             except Exception as e:
