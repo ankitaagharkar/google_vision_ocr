@@ -3,12 +3,7 @@ import re
 
 def replace(actual_name):
     actual_name1 = actual_name.replace('DONAR', "")
-
     actual_name1 = actual_name1.replace('JERSEY ', "")
-    actual_name1 = actual_name1.replace('com ', "")
-    actual_name1 = actual_name1.replace('iss', "")
-    actual_name1 = actual_name1.replace('Iss', "")
-    actual_name1 = actual_name1.replace(' CIPTA', "")
     actual_name1 = actual_name1.replace('aai ', "")
     actual_name1 = actual_name1.replace('COMMERCIAL', "")
     actual_name1 = actual_name1.replace('E R B', "")
@@ -256,13 +251,8 @@ def address_replace(value):
 
 def name_replace(text_value,date,zip_code):
     text_value = text_value.replace(' EX ', " ")
-    text_value = text_value.replace(' Iss ', " ")
-    text_value = text_value.replace(' Doe ', " ")
-    text_value = text_value.replace(' SLAss ', " ")
     text_value = text_value.replace(' DOB ', " ")
     text_value = text_value.replace('「', " ")
-
-    text_value = text_value.replace('4000EEF01', " ")
     text_value = text_value.replace('|', " ")
     text_value = text_value.replace('_', " ")
     text_value = text_value.replace('(', " ")

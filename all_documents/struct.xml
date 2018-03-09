@@ -129,12 +129,14 @@ Ignore value 			{val_ignore}
 		<data_val>
 			<val type="date">period end</val>
 		</data_val>
-		<!--<data-dict>
-			<type id="Summary_table">
-				<val block="Taxes['Total']">taxes</val>
-				<val block="Others">deds</val>
+		<data_dict>
+			<type id="summary_table">
+				<val block="Taxes" col="Total">taxes</val>
+				<val block="Post Tax Deductions" col="Total">deds</val>
+				<val block="Gross Pay" col="Gross Pay">gross</val>
+				<val block="Net Pay" col="Net Pay">net pay</val>
 			</type>
-		</data-dict>-->
+		</data_dict>
 	</paystub>
 	<paystub id="ADP">
 		<block_headers>
@@ -232,6 +234,11 @@ Ignore value 			{val_ignore}
 				<val>deductions</val>
 				<val col_type="Current">this period</val>
 				<val col_type="YTD">year-to-date</val>
+			</type>
+			<type>
+				<val block_name="Statutory">statutory deductions</val>
+				<val col_type="Current">this period</val>
+				<val col_type="YTD">year to date</val>
 			</type>
 		</col_sequence>
 		<rules>

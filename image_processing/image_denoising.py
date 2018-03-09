@@ -100,7 +100,7 @@ class Denoising:
                 # image = cv2.imread(path)
 
                   # load as 1-channel 8bit grayscale
-                image=cv2.GaussianBlur(img,(3,3),0)
+                image=cv2.GaussianBlur(img,(3,1),0)
 
                 maxIntensity = 255.0  # depends on dtype of image data
                 x = arange(maxIntensity)
@@ -113,6 +113,7 @@ class Denoising:
                 z = (maxIntensity / phi) * (x / (maxIntensity / theta)) ** 1
 
                 pImg = np.vstack((img, img1))
+
                 # img_merge.save( 'test.jpg' )
                 # pImg=cv2.erode(pimg,(3,2),0)
             elif 'SSN' in doc_type:
