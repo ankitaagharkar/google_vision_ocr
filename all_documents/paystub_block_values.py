@@ -223,8 +223,8 @@ class get_all_location:
         s = s.replace('S', '5')
         s = s.replace(',', '')
         s = s.replace('/', '')
-        # s = s.replace('$','')
-        # s = s.replace('s','')
+        # s = s.replace('=','')
+        # s = s.replace('>','')
         s = s.replace('-', '')
         s = s.replace('–', '')
         # s = s.replace('*','')
@@ -243,7 +243,7 @@ class get_all_location:
                 else:
                     return True
 
-    def rectify_data(self):
+    def rectify_data(self,description,result):
         line_list = []
         line_heights = []
         desc = self.description.description
@@ -308,7 +308,7 @@ class get_all_location:
 
             for w_index, word in enumerate(line):
                 print(word)
-                if word[0] in ('$', '|', 'USD', '(', ')'):
+                if word[0] in ('$', '|', 'USD', '(', ')', '=', '>'):
                     pop_elements.append(w_index)
                     continue
                 # if new word is very close to the previous word
@@ -317,7 +317,8 @@ class get_all_location:
                     d = word_val + word[0]
                     d1 = word_val + ' ' + word[0]
                     if self.is_float_or_int(word_val):
-                        if not self.is_float_or_int(word[0]) and word[0] not in (',', '.', '/', '-', '–', '%'):
+                        if not self.is_float_or_int(word[0]) and word[0] not in (
+                        ',', '.', '/', '-', '–', '%'):
                             line_list[k][w_index] = word
                             if general_space_width < (abs(word[1][0][1] - word[1][2][1]) * 1.5):
                                 space_width = general_space_width
@@ -331,29 +332,59 @@ class get_all_location:
                         if word_val[-1] == '.' and len(word[0]) == 2:
                             space_width = 0
                         # if there is a flost value without any decimal point in between
-                        if '.' not in word_val and word[0] not in (',', '.', '/', '-', '–', '%') and len(word[0]) == 2:
+                        if '.' not in word_val and word[0] not in (
+                        ',', '.', '/', '-', '–', '%') and len(word[0]) == 2:
                             d = word_val + '.' + word[0]
                             decimal_value = True
                     if d in desc or decimal_value:
                         decimal_value = False
                         line_list[k][prev_index][0] = d
-                        line_list[k][prev_index][1] = [check_word[1][0], word[1][1], word[1][2], check_word[1][3]]
+                        line_list[k][prev_index][1] = [check_word[1][0], word[1][1], word[1][2],
+                                                       check_word[1][3]]
                         # remove current word from line list
                         pop_elements.append(w_index)
-                        col_word = difflib.get_close_matches(d.lower(), self.column_header_flags, cutoff=0.85)
+
+                        # if word belongs to column header, no further word should be added in it.
+                        col_word = difflib.get_close_matches(d.lower(), self.column_header_flags,
+                                                             cutoff=0.85)
                         if col_word:
+                            # if its next word is not a part of this entire word
+                            try:
+                                if not difflib.get_close_matches(
+                                        d.lower() + line[w_index + 1][0].lower(),
+                                        self.column_header_flags, cutoff=0.85):
+                                    space_width = 0
+                            except:
+                                space_width = 0
+
+                        if d[-1] == ':':
                             space_width = 0
+
                         word_val = d
                         word_end = word[1][2][0]
                         continue
                     if d1 in desc:
                         line_list[k][prev_index][0] = d1
-                        line_list[k][prev_index][1] = [check_word[1][0], word[1][1], word[1][2], check_word[1][3]]
+                        line_list[k][prev_index][1] = [check_word[1][0], word[1][1], word[1][2],
+                                                       check_word[1][3]]
                         # remove current word from line list
                         pop_elements.append(w_index)
-                        col_word = difflib.get_close_matches(d1.lower(), self.column_header_flags, cutoff=0.85)
+                        # if this word is a column header word we should stop adding further words
+                        col_word = difflib.get_close_matches(d1.lower(), self.column_header_flags,
+                                                             cutoff=0.85)
                         if col_word:
-                            space_width = 0
+                            try:
+                                # if its next word is not a part of this entire word
+                                if not difflib.get_close_matches(
+                                        d1.lower() + line[w_index + 1][0].lower(),
+                                        self.column_header_flags, cutoff=0.85):
+                                    space_width = 0
+                                else:
+                                    space_width = abs(word_end - word[1][0][0]) * 2.75
+                                    space_lists.append(space_width)
+                            except:
+                                space_width = abs(word_end - word[1][0][0]) * 2.75
+                                space_lists.append(space_width)
                         else:
                             space_width = abs(word_end - word[1][0][0]) * 2.75
                             space_lists.append(space_width)
@@ -405,16 +436,18 @@ class get_all_location:
                 print(temp_line)
                 match_found = match_not_found = 0
                 for s in range(1, len(seq)):
-                    mean_diff = min(enumerate(temp_line), key=lambda x: abs(word_mean - x[1][1][0][0]))
+                    mean_diff = min(enumerate(temp_line),
+                                    key=lambda x: abs(word_mean - x[1][1][0][0]))
                     try:
                         if self.is_float_or_int(mean_diff[1][0]):
                             temp_w_index = temp_line.index(mean_diff[1])
                             print(temp_line[temp_w_index - 1][0])
-                            if difflib.get_close_matches(temp_line[temp_w_index - 1][0].lower(), [seq[s][0]],
-                                                         cutoff=0.80):
+                            if difflib.get_close_matches(temp_line[temp_w_index - 1][0].lower(),
+                                                         [seq[s][0]], cutoff=0.80):
                                 col_headers.append([temp_line[temp_w_index - 1], temp_w_index - 1])
                         else:
-                            if difflib.get_close_matches(mean_diff[1][0].lower(), [seq[s][0]], cutoff=0.80):
+                            if difflib.get_close_matches(mean_diff[1][0].lower(), [seq[s][0]],
+                                                         cutoff=0.80):
                                 col_headers.append([mean_diff[1], temp_w_index])
                         temp_l_index = temp_l_index + 1
                         temp_line = lines[temp_l_index]
@@ -457,25 +490,40 @@ class get_all_location:
             l3_index = col_headers[2][1]
             tab_width = (paytype_line[w_index + 1][1][0][0] - paytype_line[w_index][1][1][0]) * 1.5
             # for each word in paytype line, look for its respective values
+            paytype_end = False
             try:
                 for p_index in range(w_index, len(paytype_line)):
                     p_word = paytype_line[p_index]
+                    print(p_word)
                     try:
                         if abs(last_word[1][1][0] - p_word[1][0][0]) > tab_width:
-                            break
+                            paytype_end = True
                         last_word = p_word
                     except:
                         last_word = p_word
                     mean_diff = min(enumerate(curr_line),
-                                    key=lambda x: p_word[1][1][0] - x[1][1][0][0] if p_word[1][1][0] - x[1][1][0][
-                                        0] >= 0 else float('inf'))
-                    if self.is_float_or_int(mean_diff[1][0]) and p_word[1][0][0] < mean_diff[1][1][1][0]:
-                        temp_data_blocks.append([p_word[0], self.is_float(mean_diff[1][0]), 'Current', block_name])
+                                    key=lambda x: p_word[1][1][0] - x[1][1][0][0] if p_word[1][1][
+                                                                                         0] -
+                                                                                     x[1][1][0][
+                                                                                         0] >= 0 else float(
+                                        'inf'))
+                    if self.is_float_or_int(mean_diff[1][0]) and p_word[1][0][0] < \
+                            mean_diff[1][1][1][0]:
+                        temp_data_blocks.append(
+                            [p_word[0], self.is_float(mean_diff[1][0]), 'Current', block_name])
+                    elif paytype_end:
+                        print('We need to end this table')
+                        break
                     mean_diff = min(enumerate(ytd_line),
-                                    key=lambda x: p_word[1][1][0] - x[1][1][0][0] if p_word[1][1][0] - x[1][1][0][
-                                        0] >= 0 else float('inf'))
-                    if self.is_float_or_int(mean_diff[1][0]) and p_word[1][0][0] < mean_diff[1][1][1][0]:
-                        temp_data_blocks.append([p_word[0], self.is_float(mean_diff[1][0]), 'YTD', block_name])
+                                    key=lambda x: p_word[1][1][0] - x[1][1][0][0] if p_word[1][1][
+                                                                                         0] -
+                                                                                     x[1][1][0][
+                                                                                         0] >= 0 else float(
+                                        'inf'))
+                    if self.is_float_or_int(mean_diff[1][0]) and p_word[1][0][0] < \
+                            mean_diff[1][1][1][0]:
+                        temp_data_blocks.append(
+                            [p_word[0], self.is_float(mean_diff[1][0]), 'YTD', block_name])
             except Exception as e:
                 print(e)
 
@@ -546,12 +594,14 @@ class get_all_location:
                             end_x = 0
                         try:
                             temp_columns.append([temp_word[1][0][0], temp_word[1][0][1], end_x,
-                                                 (temp_word[1][0][0] + temp_word[1][1][0]) / 2, None, temp_word[0],
-                                                 seq[s][1]['col_type'], abs(temp_word[1][0][1] - temp_word[1][3][1])])
+                                                 (temp_word[1][0][0] + temp_word[1][1][0]) / 2,
+                                                 None, temp_word[0], seq[s][1]['col_type'],
+                                                 abs(temp_word[1][0][1] - temp_word[1][3][1])])
                         except:
                             temp_columns.append([temp_word[1][0][0], temp_word[1][0][1], end_x,
-                                                 (temp_word[1][0][0] + temp_word[1][1][0]) / 2, None, temp_word[0],
-                                                 None, abs(temp_word[1][0][1] - temp_word[1][3][1])])
+                                                 (temp_word[1][0][0] + temp_word[1][1][0]) / 2,
+                                                 None, temp_word[0], None,
+                                                 abs(temp_word[1][0][1] - temp_word[1][3][1])])
                     else:
                         match_not_found = match_not_found + 1
                     temp_w_index = temp_w_index + 1
@@ -572,16 +622,18 @@ class get_all_location:
                         block_name = i[1]['block_name']
                         print(block_name, blocks)
                         # if block name is provided in structure, search for block with this name
-                        block_found = difflib.get_close_matches(block_name, [x[0] for x in blocks if x[5] == True],
+                        block_found = difflib.get_close_matches(block_name, [x[0] for x in blocks if
+                                                                             x[5] == True],
                                                                 cutoff=0.85)
                         if block_found:
                             print('Found block by name ', block_found[0])
-                            block_id = [x for x in blocks if x[5] == True and x[0] == block_found[0]]
+                            block_id = [x for x in blocks if
+                                        x[5] == True and x[0] == block_found[0]]
                             b_index = blocks.index(block_id[0])
                         # if no such block found, create a new block
                         else:
-                            blocks.append([block_name, temp_columns[0][0], temp_columns[0][1], temp_columns[0][3],
-                                           temp_columns[0][7], True])
+                            blocks.append([block_name, temp_columns[0][0], temp_columns[0][1],
+                                           temp_columns[0][3], temp_columns[0][7], True])
                             b_index = len(blocks) - 1
                         break
                     except Exception as e:
@@ -593,8 +645,9 @@ class get_all_location:
                 seq_mean = (temp_columns[0][0] + temp_columns[-1][0]) / 2
                 seq_y = temp_columns[0][1]
                 try:
-                    y_diff = enumerate([x for x in blocks if x[5] == True and abs(x[2] - seq_y) < (3 * x[4])])
-                    mean_diff = min(y_diff, key=lambda x: abs(seq_mean - x[1][3]))
+                    y_diff = enumerate(
+                        [x for x in blocks if x[5] == True and abs(x[2] - seq_y) < (3 * x[4])])
+                    mean_diff = min(y_diff, key=lambda x: abs(seq_mean - ((x[1][3] * 2) - x[1][1])))
                     print('Block for this sequence is', mean_diff)
                     b_index = blocks.index(mean_diff[1])
                 except Exception as e:
@@ -630,10 +683,10 @@ class get_all_location:
                 print(e)
         return False, columns, blocks, final_seq
 
-    def check_is_star_pre(self):
+    def check_rule(self, rule_name):
         try:
             for sublist in self.rules:
-                if sublist[0] == 'Is Star Pre-Tax':
+                if sublist[0] == rule_name:
                     return sublist[1]['val']
             return False
         except:
@@ -651,6 +704,7 @@ class get_all_location:
         columns = []
 
         data_blocks = []
+        block_with_headers = self.check_rule('All Blocks With Headers')
 
         # block list = [word,start-x,start-y,mean-x,word_height,status]
         # column_list = [start-x,start-y,end-x,mean-x,block_id,None,Type,Word Height]
@@ -691,9 +745,12 @@ class get_all_location:
             for w_index, word in enumerate(line):
                 mean_x = (word[1][0][0] + word[1][1][0]) / 2
 
-                # check if word belongs to a data value pair
+                # check if word belongs to a horizontal data value pair
                 try:
-                    seq_word = difflib.get_close_matches(word[0].lower(), [j[0] for j in self.data_val], cutoff=0.75)
+                    seq_word = difflib.get_close_matches(word[0].lower(), [j[0] for j in
+                                                                           self.data_val[
+                                                                               'Horizontal']],
+                                                         cutoff=0.75)
                     if seq_word:
                         print(word[0], line[w_index + 1][0])
                         data_blocks.append([word[0], line[w_index + 1][0], 'Current', 'General'])
@@ -701,11 +758,29 @@ class get_all_location:
                 except:
                     pass
 
-                # check if word belongs to a horizontal table
+                # check if word belongs to a vertical data value pair
                 try:
                     seq_word = difflib.get_close_matches(word[0].lower(),
-                                                         [j[0] for i in self.vertical_column_sequences for j in i],
-                                                         cutoff=0.80)
+                                                         [j[0] for j in self.data_val['Vertical']],
+                                                         cutoff=0.75)
+                    if seq_word:
+                        possible_word = min(enumerate(lines[l_index + 1]),
+                                            key=lambda x: word[1][1][0] - x[1][1][0][0] if
+                                            word[1][1][0] - x[1][1][0][0] >= 0 else float('inf'))
+                        if possible_word[1][1][1][0] > word[1][0][0]:
+                            val = self.is_float(possible_word[1][0])
+                            if val:
+                                data_blocks.append([word[0], val, 'Current', 'General'])
+                                continue
+                except Exception as e:
+                    print(e)
+                    pass
+
+                # check if word belongs to a horizontal table
+                try:
+                    seq_word = difflib.get_close_matches(word[0].lower(), [j[0] for i in
+                                                                           self.vertical_column_sequences
+                                                                           for j in i], cutoff=0.80)
                     if seq_word:
                         print('We have got a start of some horizontal table', seq_word)
                         probable_list = []
@@ -715,9 +790,8 @@ class get_all_location:
                                 if s in [j[0] for j in i]:
                                     if i not in probable_list:
                                         probable_list.append(i)
-                        status, columns, data_blocks, update_lines = self.read_horizontal_table(lines, l_index, word,
-                                                                                                probable_list, columns,
-                                                                                                data_blocks)
+                        status, columns, data_blocks, update_lines = self.read_horizontal_table(
+                            lines, l_index, word, probable_list, columns, data_blocks)
                         if status:
                             print('Horizontal Table has been read properly')
                             lines[l_index] = update_lines[0]
@@ -733,8 +807,8 @@ class get_all_location:
                 b = difflib.get_close_matches(word[0].lower(), block_header_flags, cutoff=0.90)
                 if b:
                     print('\nI am in B', word[0])
-                    blocks.append(
-                        [word[0], word[1][0][0], word[1][0][1], mean_x, abs(word[1][0][1] - word[1][3][1]), True])
+                    blocks.append([word[0], word[1][0][0], word[1][0][1], mean_x,
+                                   abs(word[1][0][1] - word[1][3][1]), True])
                     print(blocks[-1])
                     block_flag = True
                     # check if there is any column upto 3 lines above which this block can be a part of
@@ -768,14 +842,17 @@ class get_all_location:
                             # closest block' mean and its respective 'Current' type column's start-x
                             else:
                                 for i, x in enumerate(columns):
-                                    if x[4] == b_index and x[6] == 'Current' and blocks[-1][3] > blocks[b_index][3] and \
-                                            blocks[-1][3] < x[0]:
+                                    if x[4] == b_index and x[6] == 'Current' and blocks[-1][3] > \
+                                            blocks[b_index][3] and blocks[-1][3] < x[0]:
                                         change_block = True
                             if change_block:
                                 print('we are changing blocks')
-                                for i in range(len(columns)):
-                                    if columns[i][4] == b_index:
-                                        columns[i][4] = len(blocks) - 1
+                                # assign previous block's columns to new block iff
+                                # all blocks doesnt have headers
+                                if not block_with_headers:
+                                    for i in range(len(columns)):
+                                        if columns[i][4] == b_index:
+                                            columns[i][4] = len(blocks) - 1
                                 blocks[b_index][5] = False
                                 print(blocks, columns)
                         except:
@@ -787,7 +864,8 @@ class get_all_location:
                     g_pt_header = True
 
                 # check if word belongs to column headers
-                c = difflib.get_close_matches(word[0].lower(), self.column_header_flags, cutoff=0.80)
+                c = difflib.get_close_matches(word[0].lower(), self.column_header_flags,
+                                              cutoff=0.80)
                 if c:
                     mw_factor = 1
                     print('\nI am in C', word, c)
@@ -804,8 +882,9 @@ class get_all_location:
 
                     # check if it belongs to any pre-defined sequence
                     try:
-                        seq_word = difflib.get_close_matches(word[0], [j[0] for i in self.column_sequences for j in i],
-                                                             cutoff=0.80)
+                        seq_word = difflib.get_close_matches(word[0],
+                                                             [j[0] for i in self.column_sequences
+                                                              for j in i], cutoff=0.80)
                         if seq_word:
                             print('We have got a start of some sequence(s)', seq_word)
                             probable_list = []
@@ -814,14 +893,19 @@ class get_all_location:
                                     if s in [j[0] for j in i]:
                                         if i not in probable_list:
                                             probable_list.append(i)
-                            status, columns, blocks, final_seq = self.find_column_sequence(line, word, probable_list,
-                                                                                           columns, blocks)
+                            status, columns, blocks, final_seq = self.find_column_sequence(line,
+                                                                                           word,
+                                                                                           probable_list,
+                                                                                           columns,
+                                                                                           blocks)
                             if status:
-                                self.column_sequences.remove(final_seq)
-                                print('we have deleted col seq')
+                                # comment this for a while
+                                # self.column_sequences.remove(final_seq)
+                                # print('we have deleted col seq')
                                 continue
                             else:
-                                print('No Sequence found, we will continue looking for normal columns')
+                                print(
+                                    'No Sequence found, we will continue looking for normal columns')
                     except Exception as e:
                         print(e)
 
@@ -855,7 +939,8 @@ class get_all_location:
 
                     try:
                         if line[w_index + 1][1][0][0] > word[1][1][0]:
-                            if not difflib.get_close_matches(word[0] + line[w_index + 1][0], check_flag, cutoff=0.80):
+                            if not difflib.get_close_matches(word[0] + line[w_index + 1][0],
+                                                             check_flag, cutoff=0.80):
                                 end_x = line[w_index + 1][1][0][0]
                             else:
                                 end_x = 0
@@ -863,12 +948,14 @@ class get_all_location:
                             end_x = 0
                     except:
                         end_x = 0
-                    columns.append([word[1][0][0], word[1][0][1], end_x, mean_x, None, word[0], col_type,
-                                    abs(word[1][0][1] - word[1][3][1])])
+                    columns.append(
+                        [word[1][0][0], word[1][0][1], end_x, mean_x, None, word[0], col_type,
+                         abs(word[1][0][1] - word[1][3][1])])
 
                     # check if it is blocking some other column headers, if yes deactivate that column
                     try:
-                        mean_diff = min(enumerate(columns[0:-1]), key=lambda x: abs(x[1][3] - mean_x))
+                        mean_diff = min(enumerate(columns[0:-1]),
+                                        key=lambda x: abs(x[1][3] - mean_x))
                         mean_width = mean_diff[1][7] * 1.5 * mw_factor
                         if abs(mean_diff[1][3] - mean_x) < mean_width or abs(
                                 mean_diff[1][0] - word[1][0][0]) < mean_width:
@@ -881,14 +968,21 @@ class get_all_location:
                     # check the block where this column belongs to,
                     # look for upto 3 lines of document above this column as per column height
                     try:
-                        y_diff = enumerate(
-                            [x for x in blocks if x[5] == True and abs(x[2] - word[1][0][1]) < (3 * x[4])])
+                        y_diff = enumerate([x for x in blocks if
+                                            x[5] == True and abs(x[2] - word[1][0][1]) < (
+                                                        3 * x[4])])
                         try:
-                            mean_diff = min(y_diff, key=lambda x: word[1][0][0] - x[1][1] if word[1][0][0] - x[1][
-                                1] > 0 else float('inf'))
+                            mean_diff = min(y_diff,
+                                            key=lambda x: word[1][0][0] - x[1][1] if word[1][0][0] -
+                                                                                     x[1][
+                                                                                         1] > 0 else float(
+                                                'inf'))
                         except:
-                            mean_diff = min(y_diff, key=lambda x: x[1][1] - word[1][0][0] if x[1][1] - word[1][0][
-                                0] >= 0 else float('inf'))
+                            mean_diff = min(y_diff,
+                                            key=lambda x: x[1][1] - word[1][0][0] if x[1][1] -
+                                                                                     word[1][0][
+                                                                                         0] >= 0 else float(
+                                                'inf'))
                         print('Block where this column belongs to is', mean_diff)
                         b_index = blocks.index(mean_diff[1])
                         columns[-1][4] = b_index
@@ -896,28 +990,41 @@ class get_all_location:
 
                         # DELETE COLUMNS IF THERE ARE MORE THAN ONE FOR SAME BLOCK SAME TYPE
                         del_columns = []
-                        num_cols = sum(1 for x in columns if x[4] == b_index and x[6] == columns[-1][6])
+                        num_cols = sum(
+                            1 for x in columns if x[4] == b_index and x[6] == columns[-1][6])
                         if num_cols > 1:
                             print('We might have to delete some column')
-                            c_block = enumerate([x for x in columns if x[4] == b_index and x[6] == columns[-1][6]])
+                            c_block = enumerate(
+                                [x for x in columns if x[4] == b_index and x[6] == columns[-1][6]])
                             try:
                                 mean_diff = min(c_block,
-                                                key=lambda x: x[1][0] - blocks[b_index][1] if x[1][1] > blocks[b_index][
-                                                    2] else float('inf'))
-                                if not mean_diff[1][1] > (blocks[b_index][2] + blocks[b_index][4] / 2):
+                                                key=lambda x: x[1][0] - blocks[b_index][1] if x[1][
+                                                                                                  1] >
+                                                                                              blocks[
+                                                                                                  b_index][
+                                                                                                  2] else float(
+                                                    'inf'))
+                                if not mean_diff[1][1] > (
+                                        blocks[b_index][2] + blocks[b_index][4] / 2):
                                     raise Exception('Go to exception')
                             except:
                                 print('we are in except')
-                                c_block = enumerate([x for x in columns if x[4] == b_index and x[6] == columns[-1][6]])
-                                mean_diff = min(c_block, key=lambda x: x[1][0] - blocks[b_index][1] if x[1][0] !=
-                                                                                                       blocks[b_index][
-                                                                                                           1] else float(
-                                    'inf'))
-                            print(mean_diff, mean_diff[1][0], mean_diff[1][1], b_index, columns[-1][6])
+                                c_block = enumerate([x for x in columns if
+                                                     x[4] == b_index and x[6] == columns[-1][6]])
+                                mean_diff = min(c_block,
+                                                key=lambda x: x[1][0] - blocks[b_index][1] if x[1][
+                                                                                                  0] !=
+                                                                                              blocks[
+                                                                                                  b_index][
+                                                                                                  1] else float(
+                                                    'inf'))
+                            print(mean_diff, mean_diff[1][0], mean_diff[1][1], b_index,
+                                  columns[-1][6])
                             pop_cols = []
                             for i, x in enumerate(columns):
                                 if x[4] == mean_diff[1][4] and x[6] == mean_diff[1][6] and (
-                                        x[0] != mean_diff[1][0] or x[1] != mean_diff[1][1]) and x[5] != mean_diff[1][5]:
+                                        x[0] != mean_diff[1][0] or x[1] != mean_diff[1][1]) and x[
+                                    5] != mean_diff[1][5]:
                                     print('deleting', x)
                                     pop_cols.append(i)
                             for i in reversed(pop_cols):
@@ -942,23 +1049,37 @@ class get_all_location:
                         except:
                             pass
                         for i, e in reversed(list(enumerate(columns))):
-                            if word[1][1][0] > columns[i][3] and (word[1][1][0] <= columns[i][2] or columns[i][2] == 0):
+                            if word[1][1][0] > columns[i][3] and (
+                                    word[1][1][0] <= columns[i][2] or columns[i][2] == 0):
+                                # if block of this column is deactivated, no need to read values
+                                try:
+                                    if not blocks[columns[i][4]][5]:
+                                        break
+                                except:
+                                    pass
                                 if columns[i][2] == 0:
-                                    if abs(columns[i][3] - word[1][0][0]) <= (3 * columns[i][7] * 1.5):
+                                    if abs(columns[i][3] - word[1][0][0]) <= (
+                                            3 * columns[i][7] * 1.5):
                                         columns[i][2] = word[1][1][0] + (3 * columns[i][7] * 1.5)
                                     try:
-                                        print('-----**-----', prev_word, val, columns[i][6], blocks[columns[i][4]])
-                                        data_blocks.append([prev_word, val, columns[i][6], blocks[columns[i][4]][0]])
+                                        print('-----**-----', prev_word, val, columns[i][6],
+                                              blocks[columns[i][4]])
+                                        data_blocks.append([prev_word, val, columns[i][6],
+                                                            blocks[columns[i][4]][0]])
                                     except:
                                         print('-----**-----', prev_word, val, columns[i][6])
-                                        data_blocks.append([prev_word, val, columns[i][6], 'Undefined'])
+                                        data_blocks.append(
+                                            [prev_word, val, columns[i][6], 'Undefined'])
                                 else:
                                     try:
-                                        print('-----**-----', prev_word, val, columns[i][6], blocks[columns[i][4]])
-                                        data_blocks.append([prev_word, val, columns[i][6], blocks[columns[i][4]][0]])
+                                        print('-----**-----', prev_word, val, columns[i][6],
+                                              blocks[columns[i][4]])
+                                        data_blocks.append([prev_word, val, columns[i][6],
+                                                            blocks[columns[i][4]][0]])
                                     except:
                                         print('-----**-----', prev_word, val, columns[i][6])
-                                        data_blocks.append([prev_word, val, columns[i][6], 'Undefined'])
+                                        data_blocks.append(
+                                            [prev_word, val, columns[i][6], 'Undefined'])
                                 break
                     else:
                         if self.is_pay_component(word[0]):
@@ -982,15 +1103,27 @@ class get_all_location:
         print(columns)
         return data_blocks
 
+    def read_data_dict(self, val_name):
+        print(val_name)
+        data_def = {
+            'post_deduction_total_auto': ['Post Tax Deductions', 'Total'],
+            'pre_deduction_total_auto': ['Pre Tax Deductions', 'Total'],
+            'tax_total_auto': ['Taxes', 'Total']
+        }
+        try:
+            return data_def[val_name]
+        except:
+            return False
+
     def create_blocks(self, data_blocks):
         print(data_blocks)
-        is_star_pre = self.check_is_star_pre()
+        is_star_pre = self.check_rule('Is Star Pre-Tax')
         star_found = False
 
-        net_columns = ['net pay', 'total net']
+        net_columns = ['net pay', 'total net', 'net earnings']
         gross_columns = ['gross pay', 'total gross', 'gross earnings', 'gross']
-        other_columns = ['checking ', 'net check', 'savings', 'direct deposit', 'checkng', 'Chck1', 'dir dip check',
-                         'your federal taxable wages this period']
+        other_columns = ['checking ', 'net check', 'savings', 'direct deposit', 'checkng', 'Chck1',
+                         'dir dip check', 'your federal taxable wages this period']
         final_data = {'Net Pay': [], 'Gross Pay': [], 'Earnings': [], 'Pre Tax Deductions': [],
                       'Post Tax Deductions': [], 'Taxes': [], 'Others': []}
 
@@ -1001,48 +1134,62 @@ class get_all_location:
 
         for i, db in enumerate(data_blocks):
             # finalize block name based on column name or block name
-            x = difflib.get_close_matches(db[0].lower(), net_columns + gross_columns + other_columns, cutoff=0.80)
-            if x:
-                if x[0] in net_columns:
+            pc = difflib.get_close_matches(db[0].lower(),
+                                           net_columns + gross_columns + other_columns, cutoff=0.85)
+            if pc:
+                if pc[0] in net_columns:
                     block_name = 'Net Pay'
-                elif x[0] in gross_columns:
+                elif pc[0] in gross_columns:
                     block_name = 'Gross Pay'
                 else:
                     block_name = 'Others'
             else:
-                if db[3].lower() in self.earning_headers:
-                    block_name = 'Earnings'
-                elif db[3].lower() in self.deduction_headers:
-                    if db[3].lower() in self.pre_deduction_headers:
-                        block_name = 'Pre Tax Deductions'
-                    elif is_star_pre and db[1].find('*') != -1:
-                        db[1] = db[1].replace('*', '')
-                        block_name = 'Pre Tax Deductions'
-                        star_found = True
-                    elif is_star_pre and db[0].find('*') != -1:
-                        db[0] = db[0].replace('*', '')
-                        block_name = 'Pre Tax Deductions'
-                        star_found = True
-                    else:
-                        block_name = 'Post Tax Deductions'
-                elif db[3].lower() in self.tax_headers:
-                    block_name = 'Taxes'
+                bn = difflib.get_close_matches(db[3].lower(),
+                                               self.earning_headers + self.deduction_headers + self.tax_headers,
+                                               cutoff=0.80)
+                if bn:
+                    if bn[0] in self.earning_headers:
+                        block_name = 'Earnings'
+                    elif bn[0] in self.deduction_headers:
+                        if bn[0] in self.pre_deduction_headers:
+                            block_name = 'Pre Tax Deductions'
+                        elif is_star_pre and db[1].find('*') != -1:
+                            db[1] = db[1].replace('*', '')
+                            block_name = 'Pre Tax Deductions'
+                            star_found = True
+                        elif is_star_pre and db[0].find('*') != -1:
+                            db[0] = db[0].replace('*', '')
+                            block_name = 'Pre Tax Deductions'
+                            star_found = True
+                        else:
+                            block_name = 'Post Tax Deductions'
+                    elif bn[0] in self.tax_headers:
+                        block_name = 'Taxes'
                 else:
                     block_name = 'Others'
-            # finalize column name based on column name and block name
-            if difflib.get_close_matches(db[0].lower(), ['total', 'total ' + db[3].lower(), db[3].lower()],
-                                         cutoff=0.80):
-                db[0] = 'Total'
-            if db[3].lower() in ['summary_table', 'summary']:
+
+            if block_name == 'Others':
+                print(db, [s[0].lower() for s in self.data_dict])
                 summary_word = difflib.get_close_matches(db[0].lower(),
-                                                         [s[0].lower() for s in self.data_dict['summary_table']],
+                                                         [s[0].lower() for s in self.data_dict],
                                                          cutoff=0.85)
                 if summary_word:
-                    s_index = [s[0] for s in self.data_dict['summary_table']].index(summary_word[0])
-                    db[0] = self.data_dict['summary_table'][s_index][1]['col']
-                    block_name = self.data_dict['summary_table'][s_index][1]['block']
+                    print(summary_word)
+                    s_index = [s[0] for s in self.data_dict].index(summary_word[0])
+                    [bn, cn] = self.read_data_dict(self.data_dict[s_index][1]['col'])
+                    db[0] = cn
+                    block_name = bn
                 else:
                     block_name = 'Others'
+
+            # finalize column name based on column name and block name
+            if difflib.get_close_matches(db[0].lower(),
+                                         ['total', 'total ' + db[3].lower(), db[3].lower()],
+                                         cutoff=0.80):
+                db[0] = 'Total'
+            elif "total" in db[0].lower():
+                db[0] = 'Total'
+
             if db[2] == 'Rate':
                 temp_rate = db[0]
                 temp_rate_val = db[1]
@@ -1059,7 +1206,7 @@ class get_all_location:
                 if prev_word == temp_hour:
                     final_data[block_name][-1][4] = temp_hour_val
                     temp_hour = ''
-            else:
+            elif db[2] == 'YTD':
                 if db[0] == prev_word and block_name == prev_block:
                     final_data[block_name][-1][2] = db[1]
                     prev_word = ''
@@ -1088,7 +1235,9 @@ class get_all_location:
                             cal_ytd = cal_ytd + float(dt[2])
                         except:
                             pass
-                final_data[x].append(['Total_Calculated', "{:.2f}".format(cal_cur), "{:.2f}".format(cal_ytd), '', ''])
+                final_data[x].append(
+                    ['Total_Calculated', "{:.2f}".format(cal_cur), "{:.2f}".format(cal_ytd), '',
+                     ''])
         return final_data
 
     def get_text(self, path):
@@ -1168,74 +1317,31 @@ class get_all_location:
                         except:
                             all_headers[table.tag][-1].append([vals.text, None])
             elif table.tag in ['data_val']:
-                all_headers[table.tag] = []
-                for val_type in table.findall('./'):
-                    try:
-                        all_headers[table.tag].append([val_type.text, val_type.attrib])
-                    except:
-                        all_headers[table.tag].append([val_type.text, None])
-            elif table.tag in ['data_dict']:
                 all_headers[table.tag] = {}
                 for val_type in table.findall('./'):
                     type_id = val_type.attrib.get('id')
                     all_headers[table.tag][type_id] = []
                     for vals in val_type.findall('./'):
-                        all_headers[table.tag][type_id].append([vals.text, vals.attrib])
+                        try:
+                            all_headers[table.tag][type_id].append([vals.text, vals.attrib])
+                        except:
+                            all_headers[table.tag][type_id].append([vals.text, None])
+            elif table.tag in ['data_dict']:
+                all_headers[table.tag] = []
+                for val_type in table.findall('./'):
+                    all_headers[table.tag].append([val_type.text, val_type.attrib])
             else:
                 all_headers['rules'] = []
                 for val_type in table.findall('./'):
                     all_headers['rules'].append([val_type.text, val_type.attrib])
         return all_headers
 
-        def all_location_details(self,path,description,result):
-            tree = ElementTree.parse('struct.xml')
-            root = tree.getroot()
-
-            # get all headers from Generic structure
-            all_headers = {}
-            all_headers = self.get_structure(root, all_headers, 'Generic')
-
-            # get paystub specific structures, if structure is defined
-            try:
-                paystub_type = sys.argv[2]
-                all_headers = self.get_structure(root, all_headers, paystub_type)
-            except:
-                pass
-            self.earning_headers = all_headers['block_headers']['earnings']
-            self.normal_deduction_headers = all_headers['block_headers']['normal_deductions']
-            self.pre_deduction_headers = all_headers['block_headers']['pre_deductions']
-            self.post_deduction_headers = all_headers['block_headers']['post_deductions']
-            self.deduction_headers = self.normal_deduction_headers + self.pre_deduction_headers + self.post_deduction_headers
-
-            self.tax_headers = all_headers['block_headers']['taxes']
-            self.other_headers = all_headers['block_headers']['other']
-
-            # define column headers
-            self.current_col_flags = all_headers['col_headers']['current']
-            self.ytd_col_flags = all_headers['col_headers']['ytd']
-            self.other_col_flags = all_headers['col_headers']['other_earnings']
-            self.rate_col_flags = all_headers['col_headers']['rate']
-            self.hour_col_flags = all_headers['col_headers']['hours']
-            self.column_header_flags = self.current_col_flags + self.ytd_col_flags + self.other_col_flags + self.rate_col_flags + self.hour_col_flags
-
-            self.column_sequences = all_headers['col_sequence']
-            self.rules = all_headers['rules']
-            self.vertical_column_sequences = all_headers['vertical_col_sequence']
-
-            self.data_val = all_headers['data_val']
-            self.data_dict = all_headers['data_dict']
-
-            self.get_text(path)
-            lines=self.rectify_data()
-            for line in lines:
-                print(line)
-            data_blocks = self.get_payslip_amounts(lines)
-            final_data = self.create_blocks(data_blocks)
-            return final_data
-
-    def all_location_details(self, path, description, result):
+    def all_location_details(self, path, description,result,filename):
         tree = ElementTree.parse('../all_documents/struct.xml')
         root = tree.getroot()
+        paystub_structs = []
+        for item in root.findall('./paystub'):
+            paystub_structs.append(item.attrib.get('id'))
 
         # get all headers from Generic structure
         all_headers = {}
@@ -1243,8 +1349,12 @@ class get_all_location:
 
         # get paystub specific structures, if structure is defined
         try:
-            paystub_type = sys.argv[2]
-            all_headers = self.get_structure(root, all_headers, paystub_type)
+            f_name = filename.split('/')[-1]
+            for st in paystub_structs:
+                if st in f_name:
+                    print(st)
+                    all_headers = self.get_structure(root, all_headers, st)
+                    break
         except:
             pass
         self.earning_headers = all_headers['block_headers']['earnings']
@@ -1271,13 +1381,13 @@ class get_all_location:
         self.data_val = all_headers['data_val']
         self.data_dict = all_headers['data_dict']
 
-        self.get_text(path)
-        lines = self.rectify_data()
+        text=self.get_text(path)
+        lines = self.rectify_data(description,result)
         for line in lines:
             print(line)
         data_blocks = self.get_payslip_amounts(lines)
         final_data = self.create_blocks(data_blocks)
-        return final_data
+        return final_data,text
 
 
 

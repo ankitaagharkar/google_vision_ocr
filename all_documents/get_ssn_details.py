@@ -1,4 +1,6 @@
-import re
+import re,sys
+sys.path.insert(0, '../all_documents')
+import avoid
 class SSN_details:
 
     def get_all_snn_details(self,text):
@@ -14,17 +16,18 @@ class SSN_details:
             else:
                 ssn_number = data[0][0]
                 # print(text)
-                # name = ' '.join(map(str, text.split(data[0][0], 1)[1].split()[0:3]))
-                # print(name)
-                # name_regex = re.findall(r'[A-Z]{2,}(?:(?!\d))\s?[A-Z]{1,}', name)
-                # print("name", name_regex)
-                # if name_regex == []:
-                #     actual_name = "null"
-                # else:
-                #     actual_name = " ".join(map(str, name_regex))
-                #     actual_name = actual_name.replace('THIS', "")
-            return ssn_number
+                name = ' '.join(map(str, text.split(ssn_number, 1)[1].split()[6:9]))
+                actual_name = name.split('2', 1)
+                actual_name = "".join(actual_name)
+                actual_name=avoid.replace(actual_name)
+                actual_name=actual_name.replace('.',"")
+                val = re.findall(
+                    r'(((0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|((0[0-9]|1[0-2]))[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d)|((0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d)|(0[0-9]|1[0-9])(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d)',
+                    text)
+                date=val[0][0]
+            return ssn_number,actual_name,str(date)
         except Exception as E:
 
-            data = "null"
-            return data
+            data,name,date = "",'',''
+            return data,name,date
+

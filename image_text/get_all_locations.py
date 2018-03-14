@@ -21,6 +21,8 @@ class get_all_location:
         self.address_val={}
         self.licence_id={}
         self.ssn={}
+        self.name={}
+        self.date={}
         self.pay_Val=Queue()
         self.keys=[]
         self.values=[]
@@ -260,7 +262,7 @@ class get_all_location:
                         word_text1 = ''
                         for symbol1 in word1.symbols:
                             word_text1 = word_text1 + symbol1.text
-                            print(u'Word text: {} (confidence: {})\n'.format(word_text1, word1.confidence))
+                            # print(u'Word text: {} (confidence: {})\n'.format(word_text1, word1.confidence))
 
                         self.conf_keys.append(word_text1)
                         self.conf_values.append(word1.confidence)
@@ -389,11 +391,20 @@ class get_all_location:
                             vrx = vrx.reshape((-1, 1, 2))
                             img = cv2.polylines(img.copy(), [vrx], True, (255, 0, 0), 3)
                             self.ssn.update({value[0]: value[1]})
-
+                        elif value[0] in value_json['ssn_date']:
+                            vrx = np.array(value[1], np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (255, 0, 0), 3)
+                            self.date.update({value[0]: value[1]})
+                        else:
+                            vrx = np.array(value[1], np.int32)
+                            vrx = vrx.reshape((-1, 1, 2))
+                            img = cv2.polylines(img.copy(), [vrx], True, (255, 0, 0), 3)
+                            self.name.update({value[0]: value[1]})
         dt = datetime.datetime.now()
         date_val = dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
         cv2.imwrite("../images/processed/" + date_val + ".jpg", img)
-        return self.ssn,"../images/processed/" + date_val + ".jpg"
+        return self.ssn,self.name,self.date,"../images/processed/" + date_val + ".jpg"
 
     def paystub_get_location(self,data,image,application_id,base_url):
         value_data,value_json={},{}

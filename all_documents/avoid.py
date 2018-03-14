@@ -3,8 +3,21 @@ import re
 
 def replace(actual_name):
     actual_name1 = actual_name.replace('DONAR', "")
+    actual_name1 = actual_name1.replace('Iss', "")
+    actual_name1 = actual_name1.replace('iss', "")
+    actual_name1 = actual_name1.replace('Doe', "")
+    actual_name1 = actual_name1.replace('LICENSED', "")
     actual_name1 = actual_name1.replace(' I ', "")
+    actual_name1 = actual_name1.replace('ID ', "")
+    # actual_name1 = actual_name1.replace('DO ', "")
+    actual_name1 = actual_name1.replace(' Les ', "")
     actual_name1 = actual_name1.replace(' CLASSE ', "")
+    actual_name1 = actual_name1.replace('Signature', "")
+    actual_name1 = actual_name1.replace('signature', "")
+    actual_name1 = actual_name1.replace('For', "")
+    actual_name1 = actual_name1.replace('FOR', "")
+    actual_name1 = actual_name1.replace('for', "")
+    actual_name1 = actual_name1.replace('SIGNATURE', "")
     actual_name1 = actual_name1.replace('JERSEY ', "")
     actual_name1 = actual_name1.replace('aai ', "")
     actual_name1 = actual_name1.replace('COMMERCIAL', "")
@@ -16,8 +29,11 @@ def replace(actual_name):
     actual_name1 = actual_name1.replace('CLASS A', "")
     actual_name1 = actual_name1.replace('Cam ', "")
     actual_name1 = actual_name1.replace('YORK', "")
+    actual_name1 = actual_name1.replace('NEWJERSE', "")
+    actual_name1 = actual_name1.replace('USA ', "")
+    actual_name1 = actual_name1.replace('Blocked ', "")
     actual_name1 = actual_name1.replace('STATE', "")
-    actual_name1 = actual_name1.replace('AC ', "")
+    actual_name1 = actual_name1.replace(' AC', "")
     actual_name1 = actual_name1.replace('CLASS A', "")
     actual_name1 = actual_name1.replace('Can ', "")
     actual_name1 = actual_name1.replace(' K ', " ")
@@ -117,8 +133,6 @@ def replace(actual_name):
     actual_name1 = actual_name1.replace('DIVERSENSE', "")
     actual_name1 = actual_name1.replace('nnFOR', "")
     actual_name1 = actual_name1.replace('vehicle', "")
-
-
     actual_name1 = actual_name1.replace('JERSEYFeater', "")
     actual_name1 = actual_name1.replace('NEW ', "")
     actual_name1 = actual_name1.replace('Address', "")
@@ -159,7 +173,7 @@ def replace(actual_name):
     actual_name1 = actual_name1.replace(' am ', "")
     actual_name1 = actual_name1.replace(' Mal ', "")
     actual_name1 = actual_name1.replace(' OL ', "")
-    actual_name1 = actual_name1.replace('GIN', "")
+    actual_name1 = actual_name1.replace('GIN ', "")
     actual_name1 = actual_name1.replace('CASS', "")
     actual_name1 = actual_name1.replace('ADP ', "")
     actual_name1 = actual_name1.replace('CITY', "")
@@ -217,9 +231,10 @@ def address_replace(value):
     if 'NU ' in value:
         value = value.replace('NU ', 'NJ ')
     elif re.search(
-            r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?NL))',
+            r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?\.?NL))',
             value):
-        value = value.replace(' NL ', ' NJ ')
+        value = value.replace('NL', ' NJ ')
+        value = value.replace('.NL', ' NJ ')
     if re.search(
             r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?N\.))',
             value):
@@ -249,12 +264,22 @@ def address_replace(value):
             r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?J))',
             value):
         value = value.replace(' J ', ' NJ ')
-
+    print(value)
     return value
 
 def name_replace(text_value,date,zip_code):
     text_value = text_value.replace(' EX ', " ")
+    text_value = text_value.replace(' CLAss D ', " ")
+    text_value = text_value.replace(' CLAss ', " ")
     text_value = text_value.replace(' DOB ', " ")
+    text_value = text_value.replace(' Dos ', " ")
+    text_value = text_value.replace('Commission', " ")
+    text_value = text_value.replace('Health', " ")
+    text_value = text_value.replace(' oos ', " ")
+    text_value = text_value.replace(' Exer ', " ")
+    text_value = text_value.replace(' Exe ', " ")
+    text_value = text_value.replace('Vehicle', " ")
+    text_value = text_value.replace('NEWJERSEY', " ")
     text_value = text_value.replace(' IOWA ', " ")
     text_value = text_value.replace('USA ', " ")
     text_value = text_value.replace('4000EEF01', " ")
@@ -275,6 +300,7 @@ def name_replace(text_value,date,zip_code):
     text_value = text_value.replace('*', " ")
     text_value = text_value.replace(' Dob ', " ")
     text_value = text_value.replace(' names ', " ")
+    # text_value = text_value.replace(' NEW JERSEY NEW JERSEY AUTO DRIVER LICENSED ', " ")
     text_value = text_value.replace(',', " ")
     text_value = text_value.replace(' Given ', " ")
     text_value = text_value.replace(' Family ', " ")
@@ -308,5 +334,13 @@ def name_replace(text_value,date,zip_code):
     print("in replace",value)
     return value
 
+def paystub_replace(actual_name):
+    # actual_name=actual_name.replace('NY',"")
+    actual_name=actual_name.replace(' HDV',"")
+    actual_name=actual_name.replace('Additional',"")
+    actual_name=actual_name.replace('Taxes',"")
+    actual_name=actual_name.replace('Tax',"")
+    actual_name=actual_name.replace('',"")
+    return actual_name
 
 

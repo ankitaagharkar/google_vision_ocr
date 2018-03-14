@@ -2,20 +2,22 @@ import datetime
 import json
 import operator
 import re
-import string
 import sys
+import avoid
+from multiprocessing import Queue
+import threading
+import googlemaps
+from enum import Enum
 sys.path.insert(0, '../image_processing')
 sys.path.insert(0, '../all_documents')
 import avoid
-from multiprocessing import Queue
 import Common
-import threading
-from enum import Enum
-import get_paystub_details
+
 
 class Licence_details:
 
     def __init__(self):
+        self.api_key='AIzaSyC7SQ-1m0M6dN9L4E2aUhTM1ihAfTXIA0k '
         self.date_val=[]
         self.date = []
         self.name=Queue()
@@ -41,6 +43,8 @@ class Licence_details:
 
     def get_id(self,text,zip_code):
         try:
+            if re.search(r'(!?IA)', zip_code):
+                text = text.replace(re.findall(r'(=?DD\s\d\w+)', text)[0], " ")
             print(zip_code)
             text=text.replace('DL','')
             state_regex=re.findall(r"\b(!?AL|AK|AS|AZ|AŽ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE"
@@ -113,24 +117,50 @@ class Licence_details:
     def get_address(self,value,keys,values):
 
         try:
-            value = value.replace('.', " ")
+
             value=value.replace(',','')
             value=avoid.address_replace(value)
-            all_number = re.findall(
-                r"\s?\s\d{1}\s[A-Za-z]|\s?\s\d{1}\s?[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w*\s?\d{5}\-?\.?\d{1,4}|\w*\s?\d{5}\s?\-?\.?\s?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*|\w*\s?\d{5}|\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+",
+            all_number = re.findall(r"\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+|\s?\s\d{1}\s[A-Za-z]+|\s?\s\d{1}\s?[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\s\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w*\s?\d{5}\-?\.?\d{1,4}|\w*\s?\d{5}\s?\-?\.?\s?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*|\w*\s?\d{5}",
                 value)
             number_val1 = ' '.join(map(str, all_number))
             if re.search(r'\s\s',number_val1):
                 number_val1=number_val1.replace(re.findall(r'\s\s',number_val1)[0]," ")
             print("Number val", number_val1)
             number_val = number_val1
-            data = re.findall(r'\b((!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5}))', number_val1)
+            data = re.findall(r'\b((!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5}))', number_val)
+
             if data != []:
+                data1 = re.findall(
+                    r'\b((!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH'
+                    r'|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT'
+                    r'|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?['
+                    r'A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5}))', value)
+
+                if re.search(
+                        '(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',
+                        data1[0][0]):
+                    if re.search(r'[A-Za-z]+\s?(!?2)\s[A-Za-z]+', value):
+                        value = re.sub('[A-Za-z]+\s?(=?2)\s[A-Za-z]+', " ", value)
+                regex_value=""
+                for i in range(len(self.state_value['data'])):
+                    if self.state_value['data'][i]['state'] in data[0][0]:
+                        regex_value=self.state_value['data'][i]['license_id']
+                value=value.replace(re.findall(regex_value,value)[0]," ")
+                all_number = re.findall(r"\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+|\s?\s\d{1}\s[A-Za-z]+|\s?\s\d{1}\s?[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\s\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w*\s?\d{5}\-?\.?\d{1,4}|\w*\s?\d{5}\s?\-?\.?\s?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*|\w*\s?\d{5}",
+                    value)
+                number_val1 = ' '.join(map(str, all_number))
+                if re.search(r'\s\s', number_val1):
+                    number_val1 = number_val1.replace(re.findall(r'\s\s', number_val1)[0], " ")
+                print("Number val", number_val1)
+                number_val = number_val1
+                data = re.findall(r'\b((!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5}))',
+                    number_val)
+
                 if "NJ" not in data[0][0]:
                         if len(data) == 1:
                             data.clear()
                             all_number = re.findall(
-                                r"\s?\s\d{1}\s?[A-Za-z]+|\s?\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w+\s\d{2,5}\-?\.?\d{2,4}|\w*\s\d{2,5}\-?\.?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*",
+                                r"\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+|\s?\s\d{1}\s[A-Za-z]+|\s?\s\d{1}\s?[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\s\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w*\s?\d{2,5}\-?\.?\d{1,4}|\w*\s?\d{2,5}\s?\-?\.?\s?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*|\w*\s?\d{2,5}",
                                 value)
                             number_val = ' '.join(map(str, all_number))
                             print(number_val)
@@ -148,12 +178,10 @@ class Licence_details:
                             else:
                                 self.code.append(data[0][0])
                                 self.code.append(data[1][0])
-                            """if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', self.code[0]):
-                                if re.search(r'[A-Za-z]+\s?(!?2)', value):
-                                    value = value.split(re.findall(r'[A-Za-z]+\s?(!?2)',value)[0], 1)
-                                    value = " ".join(value)"""
+
+
                             self.regex_value.append(' '.join(map(str, value.split(self.code[0], 1)[0].split()[-8:])))
-                            if self.code[0]==self.code[1]:
+                            if self.code[0] == self.code[1]:
                                 self.regex_value.append(' '.join(map(str, value.split(self.code[1])[1].split()[-8:])))
                             else:
                                 self.regex_value.append(' '.join(map(str, value.split(self.code[1]+" ",1)[0].split()[-8:])))
@@ -161,16 +189,16 @@ class Licence_details:
                             self.regex_value[1] = self.regex_value[1] + " " + self.code[1]
                             self.regex_value[1] = self.regex_value[1].replace(' STAP ', 'ST APT ')
                             self.regex_value[0] = self.regex_value[0].replace(' STAP ', 'ST APT ')
-
-                            if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',
-                                         self.code[0]):
-                                if re.search(r'[A-Za-z]+\s?(!?2)', self.regex_value[0]):
-                                    rv = self.regex_value[0].split(re.findall(r'[A-Za-z]+\s?(!?2)', self.regex_value[0])[0], 1)
-                                    self.regex_value[0] = " ".join(rv)
-                                if re.search(r'[A-Za-z]+\s?(!?2)', self.regex_value[1]):
-                                    rv1 = self.regex_value[1].split(re.findall(r'[A-Za-z]+\s?(!?2)', self.regex_value[1])[0], 1)
-                                    self.regex_value[1] = " ".join(rv1)
+                            # if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',
+                            #              self.code[0]):
+                            #     if re.search(r'[A-Za-z]+\s?(!?2)', self.regex_value[0]):
+                            #         rv = self.regex_value[0].split(re.findall(r'[A-Za-z]+\s?(!?2)', self.regex_value[0])[0], 1)
+                            #         self.regex_value[0] = " ".join(rv)
+                            #     if re.search(r'[A-Za-z]+\s?(!?2)', self.regex_value[1]):
+                            #         rv1 = self.regex_value[1].split(re.findall(r'[A-Za-z]+\s?(!?2)', self.regex_value[1])[0], 1)
+                            #         self.regex_value[1] = " ".join(rv1)
                             print("address traverse", self.regex_value)
+
                             if re.search(r'[A-Za-z]+(!?' + self.code[0] + ')', value):
                                 self.street.append(
                                     ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-3:-1])))
@@ -184,9 +212,19 @@ class Licence_details:
                                 else:
                                     self.street.append(
                                         ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-4:-2])))
+                            elif re.search(
+                                    r'(\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
+                                    self.regex_value[0]):
+
+                                if re.search(r'\d+\s\w+\s\d+\w+\s\w+\s\d+\w+\s\w+\s\w+|\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}', self.regex_value[0]):
+                                    self.street.append(
+                                        ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-6:-4])))
+                                else:
+                                    self.street.append(
+                                        ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-4:-2])))
                             else:
-                                self.street.append(
-                                    ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-2:])))
+                                self.street.append( ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-2:])))
+
 
 
                             if re.search(r'[A-Za-z]+(!?' + self.code[1] + ')', value):
@@ -197,10 +235,21 @@ class Licence_details:
                                     self.regex_value[1]):
                                 if re.search(r'\d+\s\w+\s\d+\w+\s\w+\s\d+\w+\s\w+\s\w+|\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}', self.regex_value[0]):
                                     self.street.append(
-                                        ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-6:-4])))
+                                        ' '.join(map(str, number_val.split(self.code[1], 1)[0].split()[-6:-4])))
                                 else:
                                     self.street.append(
-                                        ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-4:-2])))
+                                        ' '.join(map(str, number_val.split(self.code[1], 1)[0].split()[-4:-2])))
+                            elif re.search(
+                                    r'(\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
+                                    self.regex_value[1]):
+
+                                if re.search(r'\d+\s\w+\s\d+\w+\s\w+\s\d+\w+\s\w+\s\w+|\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}', self.regex_value[1]):
+                                    self.street.append(
+                                        ' '.join(map(str, number_val.split(self.code[1], 1)[0].split()[-6:-4])))
+                                else:
+                                    self.street.append(
+                                        ' '.join(map(str, number_val.split(self.code[1], 1)[0].split()[-4:-2])))
+
                             else:
                                 self.street.append(' '.join(map(str, number_val.split(self.code[1])[0].split()[-2:])))
 
@@ -213,9 +262,9 @@ class Licence_details:
                             actual_city = []
 
                             for i in range(len(self.cities['city'])):
-                                if city.lower() in self.cities['city'][i].lower():
+                                if city.lower() == self.cities['city'][i].lower():
                                     actual_city.append(self.cities['city'][i])
-                                if city1.lower() in self.cities['city'][i].lower():
+                                if city1.lower() == self.cities['city'][i].lower():
                                     actual_city.append(self.cities['city'][i])
                             if actual_city == []:
                                 city_dict, street_dict = {}, {}
@@ -227,17 +276,6 @@ class Licence_details:
                                 actual_city[1] = actual_city[1].replace(',', '')
                                 actual_city[0] = actual_city[0].replace('.', '')
                                 actual_city[1] = actual_city[1].replace('.', '')
-                                # for key, value in enumerate(result):
-                                #     if value[0] in actual_city[0]:
-                                #         city_dict.update({value[0]: value})
-                                #     if value[0] in actual_city[1]:
-                                #         city_dict.update({value[0]: value})
-                                #     if value[0] in self.street[0]:
-                                #         street_dict.update({value[0]: value})
-                                #     if value[0] in self.street[1]:
-                                #         street_dict.update({value[0]: value})
-                                # actual_city_val = max(city_dict.items(), key=operator.itemgetter(1))[0]
-                                # actual_street_val = max(street_dict.items(), key=operator.itemgetter(1))[0]
                             else:
                                 if city != actual_city[0]:
                                     actual_city[0] = actual_city[0].upper()
@@ -253,6 +291,7 @@ class Licence_details:
                             full_address = self.street[0] + " " + full_address
                             full_address = full_address.replace("*", "")
                             full_address1 = self.street[1] + " " + full_address1
+                            full_address1 = full_address1.replace("*", "")
                             address_dict = {'street_address_original': full_address, 'state_original': state,
                                             'city_original': actual_city[0], 'zip_code_original': zipcode,
                                             'street_address_processed': full_address1, 'state_processed': state1,
@@ -306,7 +345,6 @@ class Licence_details:
                                 (street_address_original_score / len(self.street_address_original)) * 100)
                             # print(street_address_original_a_score)
                             # print(self.street_address_original)
-
                             street_address_processed_score = 0.0
                             street_address_processed_a_score = 0
                             for key1, value1 in self.street_address_processed.items():
@@ -363,10 +401,12 @@ class Licence_details:
                             actual_zipcode = max(zip_code_dict.items(), key=operator.itemgetter(1))[0]
 
                             if re.search(r'\b\d{6,9}\b', actual_zipcode):
-                                actual_zipcode = actual_zipcode[0:5] + "-" + actual_zipcode[5:9]
-
-                            if re.search(r'(!?\s?\d{2,5}(?:\s?\-?\s?[A-Za-z]+\d{1,4}))', actual_zipcode):
-                                actual_zipcode = re.findall(r'\b(!?\d{5})', actual_zipcode)[0]
+                                gmaps = googlemaps.Client(key=self.api_key)
+                                json_val = gmaps.geocode(actual_full_address + " " + actual_city + " " + actual_state)
+                                for i in range(len(json_val[0]['address_components'])):
+                                    # print(json_val[0]['address_components'][i]['types'])
+                                    if json_val[0]['address_components'][i]['types'] == ['postal_code']:
+                                        actual_zipcode = json_val[0]['address_components'][i]['long_name']
 
                             self.street[0] = self.street[0].replace(':', "")
                             self.street[1] = self.street[1].replace(':', "")
@@ -393,6 +433,12 @@ class Licence_details:
 
                             if 'RDA' in actual_full_address:
                                 actual_full_address = actual_full_address.replace('RDA', 'RD')
+
+                            actual_full_address = actual_full_address.replace('.', " ")
+                            actual_state = actual_state.replace('.', " ")
+                            actual_city = actual_city.replace('.', " ")
+                            if re.search(r'(!?[a-z]{1})',actual_city):
+                                actual_city=actual_city.upper()
 
                             return actual_full_address, self.street[0], self.street[
                                 1], actual_state, actual_zipcode, actual_city
@@ -421,10 +467,12 @@ class Licence_details:
                                     street1 = ' '.join(map(str, number_val.split(code, 1)[0].split()[-6:-4]))
                                 else:
                                     street1 = ' '.join(map(str, number_val.split(code, 1)[0].split()[-4:-2]))
+
                             elif re.search(r'[A-Za-z]+(!?' + code + ')', value):
                                 street1 = ' '.join(map(str, number_val.split(code, 1)[0].split()[-3:-1]))
                             else:
                                 street1 = ' '.join(map(str, number_val.split(code, 1)[0].split()[-2:]))
+                                
                             if re.search(r'\d+\s\d+', street1):
                                 street = street1.replace(re.findall(r'\b\d+\s', street1)[0], "")
                             else:
@@ -436,7 +484,7 @@ class Licence_details:
                             state, zipcode, city = self.c.get_address_zipcode(full_address, code)
                             print("Full Address:", full_address)
                             for i in range(len(self.cities['city'])):
-                                if self.cities['city'][i].lower() in city.lower():
+                                if self.cities['city'][i].lower() == city.lower():
                                     actual_city = self.cities['city'][i]
 
                             if actual_city == '':
@@ -466,7 +514,13 @@ class Licence_details:
                             # print("CITY",city.lower,nj_city.lower())
                             # if city.lower() == nj_city.lower():
                             #     state='NJ'
-
+                            if re.search(r'\b\d{6,9}\b', zipcode):
+                                gmaps = googlemaps.Client(key=self.api_key)
+                                json_val = gmaps.geocode(full_address + " " + actual_city + " " + state)
+                                for i in range(len(json_val[0]['address_components'])):
+                                    # print(json_val[0]['address_components'][i]['types'])
+                                    if json_val[0]['address_components'][i]['types'] == ['postal_code']:
+                                        zipcode = json_val[0]['address_components'][i]['long_name']
                             if 'DRVE' in full_address:
                                 full_address = full_address.replace('DRVE', 'DRIVE')
 
@@ -478,7 +532,7 @@ class Licence_details:
                             return full_address, street, street, state, zipcode, city
                 else:
                     all_number = re.findall(
-                        r"\s?\s\d{1}\s[A-Za-z]|\s?\s\d{1}\s?[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w*\s?\d{5}\s?\-?\.?\s?\d{1,4}|\w*\s?\d{5}\s?\-?\.?\s?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*|\w*\s?\d{5}|\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+",
+                        r"\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+|\s?\s\d{1}\s[A-Za-z]+|\s?\s\d{1}\s?[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\s\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w*\s?\d{5}\-?\.?\d{1,4}|\w*\s?\d{5}\s?\-?\.?\s?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*|\w*\s?\d{5}",
                         value)
                     number_val1 = ' '.join(map(str, all_number))
                     if re.search(r'\s\s', number_val1):
@@ -491,7 +545,7 @@ class Licence_details:
                     if len(data) == 1:
                         data.clear()
                         all_number = re.findall(
-                            r"\s?\s\d{1}\s?[A-Za-z]+|\s?\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w+\s\d{2,5}\-?\.?\d{2,4}|\w*\s\d{2,5}\-?\.?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*",
+                            r"\s\d{1}\s?[A-Za-z]+\s[A-Za-z]+|\s?\s\d{1}\s[A-Za-z]+|\s?\s\d{1}\s?[A-Za-z]+|\s\d{4}\s?[A-Za-z]+|\d+[A-Za-z]+\s[A-Za-z]+|\d{2}\s[A-Za-z]+|\:?\d{2}\s[A-Za-z]+|\d{2}-\d{2}\s[A-Za-z]+|\s?\d{3}\w?\s\w+\,?|\s\d{3}\s\d{1}|\w*\s?\d{2,5}\-?\.?\d{1,4}|\w*\s?\d{2,5}\s?\-?\.?\s?[A-Za-z]+\d{2,3}|\w*\s?\d{5}\s\w*|\w*\s?\d{2,5}",
                             value)
                         number_val = ' '.join(map(str, all_number))
                         print(number_val)
@@ -509,16 +563,9 @@ class Licence_details:
                         else:
                             self.code.append(data[0][0])
                             self.code.append(data[1][0])
-                        if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',
-                                     self.code[0]):
-                            if re.search(r'\b\s?(!?8|2)\s?(\d+)?\s?(\w+)?\b', value):
-                                value = value.replace(re.findall(r'[A-Za-z]+\s?(!?2)\s?[A-Za-z]+', value)[0], ' ')
-                        # if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|PA|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', self.code[0]):
-                        #     if re.search(r'\b\s?(!?8|2)\s?(\d+)?\s?(\w+)?\b', value):
-                        #         value = value.split(re.findall(r'[A-Za-z]+\s?(!?2)\s?[A-Za-z]+',value)[0], 1)
-                        #         value = " ".join(value)
+
                         self.regex_value.append(' '.join(map(str, value.split(self.code[0], 1)[0].split()[-8:])))
-                        self.regex_value.append(' '.join(map(str, value.split(self.code[1] + " ", 1)[0].split()[-8:])))
+                        self.regex_value.append(' '.join(map(str, value.split(self.code[1])[1].split()[-8:])))
                         self.regex_value[0] = self.regex_value[0] + " " + self.code[0]
                         self.regex_value[1] = self.regex_value[1] + " " + self.code[1]
                         self.regex_value[1] = self.regex_value[1].replace(' STAP ', 'ST APT ')
@@ -527,7 +574,7 @@ class Licence_details:
 
                         if re.search(r'[A-Za-z]+(!?' + self.code[0] + ')', value):
                             self.street.append(' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-3:-1])))
-                        if re.search(
+                        elif re.search(
                                 r'(\s\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?[#.,/*-]?\s?(\d+)?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
                                 self.regex_value[0]):
 
@@ -537,8 +584,24 @@ class Licence_details:
                             else:
                                 self.street.append(
                                     ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-4:-2])))
+                        elif re.search(
+                                r'(\s\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
+                                self.regex_value[0]):
+
+                            if re.search(
+                                    r'\d+\s\w+\s\d+\w+\s\w+\s\d+\w+\s\w+\s\w+|\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}',
+                                    self.regex_value[0]):
+                                self.street.append(
+                                    ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[
+                                                      -6:-4])))
+                            else:
+                                self.street.append(
+                                    ' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[
+                                                      -4:-2])))
                         else:
                             self.street.append(' '.join(map(str, number_val.split(self.code[0], 1)[0].split()[-2:])))
+
+
 
                         if re.search(r'[A-Za-z]+(!?' + self.code[1] + ')', value):
                             self.street.append(' '.join(map(str, number_val.split(self.code[1])[0].split()[-3:-1])))
@@ -551,6 +614,20 @@ class Licence_details:
                             else:
                                 self.street.append(
                                     ' '.join(map(str, number_val.split(self.code[1], 1)[0].split()[-4:-2])))
+
+                        elif re.search(r'(\s\d+\s([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)?\s?\s?(\d+)?([A-Za-z]+)\s?[#.,/*-]?\s?(\w*)?\s?[#.,/*-]?\d{1,}(\w+)?\s\w+\s?\w+?\s?\w+?\.?\,?\s[A-Z]{2}\s\d{2,})\b',
+                                self.regex_value[1]):
+
+                            if re.search(
+                                    r'\d+\s\w+\s\d+\w+\s\w+\s\d+\w+\s\w+\s\w+|\d+\s\w+\s\d+\s?\w+\s\w+\s\w+\s\d+\w{1}',
+                                    self.regex_value[1]):
+                                self.street.append(
+                                    ' '.join(map(str, number_val.split(self.code[1], 1)[0].split()[
+                                                      -6:-4])))
+                            else:
+                                self.street.append(
+                                    ' '.join(map(str, number_val.split(self.code[1], 1)[0].split()[
+                                                      -4:-2])))
                         else:
                             self.street.append(' '.join(map(str, number_val.split(self.code[1])[0].split()[-2:])))
 
@@ -713,15 +790,12 @@ class Licence_details:
                         actual_zipcode = max(zip_code_dict.items(), key=operator.itemgetter(1))[0]
 
                         if re.search(r'\b\d{6,9}\b', actual_zipcode):
-                            if re.search(r'\d{5}-\d{4}', zipcode):
-                                actual_zipcode = zipcode
-                            elif re.search(r'\d{5}-\d{4}', zipcode1):
-                                actual_zipcode = zipcode1
-                            else:
-                                actual_zipcode = actual_zipcode[0:5] + "-" + actual_zipcode[5:9]
-
-                        if re.search(r'(!?\s?\d{2,5}(?:\s?\-?\s?[A-Za-z]+\d{1,4}))', actual_zipcode):
-                            actual_zipcode = re.findall(r'\b(!?\d{5})', actual_zipcode)[0]
+                            gmaps = googlemaps.Client(key=self.api_key)
+                            json_val = gmaps.geocode(actual_full_address + " " + actual_city + " " + actual_state)
+                            for i in range(len(json_val[0]['address_components'])):
+                                # print(json_val[0]['address_components'][i]['types'])
+                                if json_val[0]['address_components'][i]['types'] == ['postal_code']:
+                                    actual_zipcode = json_val[0]['address_components'][i]['long_name']
 
                         if actual_city in actual_full_address:
                             if actual_city not in full_address:
@@ -807,11 +881,11 @@ class Licence_details:
                             city = actual_city.upper()
                         else:
                             city = actual_city
-                        full_address = self.c.find_between_r(full_address, street, state)
+                        full_address = self.c.find_between_r(full_address, street, city)
                         full_address = street + full_address
-                        st = re.compile(r'(!?' + state + r')', re.IGNORECASE)
-
-                        full_address = full_address.replace(st.findall(full_address)[0], '')
+                        if re.search('(!?'+state+r')',full_address):
+                            st = re.compile(r'(!?' + state + r')', re.IGNORECASE)
+                            full_address = full_address.replace(st.findall(full_address)[0], '')
                         print("address", full_address)
                         full_address = ' '.join(s[:1].upper() + s[1:] for s in full_address.split())
                         city = city.replace(",", "")
@@ -829,7 +903,13 @@ class Licence_details:
                         # print("CITY",city.lower,nj_city.lower())
                         # if city.lower() == nj_city.lower():
                         #     state='NJ'
-
+                            if re.search(r'\b\d{6,9}\b', zipcode):
+                                gmaps = googlemaps.Client(key=self.api_key)
+                                json_val = gmaps.geocode(full_address + " " + actual_city + " " + state)
+                                for i in range(len(json_val[0]['address_components'])):
+                                    # print(json_val[0]['address_components'][i]['types'])
+                                    if json_val[0]['address_components'][i]['types'] == ['postal_code']:
+                                        zipcode = json_val[0]['address_components'][i]['long_name']
                         if 'DRVE' in full_address:
                             full_address = full_address.replace('DRVE', 'DRIVE')
 
@@ -844,8 +924,7 @@ class Licence_details:
                 full_address, street, state, zip_code, city = '', '', '', '', ''
                 actual_city = ''
                 print("in else")
-                val1 = re.findall(
-                    r"\s(\d+)\-?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\-?\s?(\d+)?\s?([A-Za-z]+)?\.?\s?(\d+)?\s(\w+)?\s?\.?\,?(!? AL| AK| AS| AZ| AŽ| AŻ| AR| CA| CO| CT| DE| DC| FM| FL| GA| GU| HI| ID| IL| IN| IA| KS| KY| LA| ME| MH| MD| MA| MI| MN| MS| MO| MT| NE| NV| NH| NJ| NM| NY| NC| ND| MP| OH| OK| OR| PW| PA| PR| RI| SC| SD| TN| TX| UT| VT| VI| VA| WA| WV| WI| WY)\s\w+",
+                val1 = re.findall(r"\s(\d+)\-?\.?\s?([A-Za-z]+)?\.?\-?\s?([A-Za-z]+)?\.?\-?\s?([A-Za-z]+)?\s?([A-Za-z]+)?\.?\-?\s?(\d+)?\s?([A-Za-z]+)?\-?\.?\s?(\d+)?\s(\w+)?\s?\.?\,?\.?(!? AL| AK| AS| AZ| AŽ| AŻ| AR| CA| CO| CT| DE| DC| FM| FL| GA| GU| HI| ID| IL| IN| IA| KS| KY| LA| ME| MH| MD| MA| MI| MN| MS| MO| MT| NE| NV| NH| NJ| NM| NY| NC| ND| MP| OH| OK| OR| PW| PA| PR| RI| SC| SD| TN| TX| UT| VT| VI| VA| WA| WV| WI| WY)\s\s?\w+",
                     value)
                 print("else data",data)
                 val=""
@@ -899,7 +978,6 @@ class Licence_details:
                     full_address = ' '.join(s[:1].upper() + s[1:] for s in full_address.split())
                     city = city.replace(",", "")
                     city = city.replace(".", "")
-                    zipcode=""
 
                     if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',state):
                         full_address=full_address.split('8',1)[1]
@@ -918,6 +996,12 @@ class Licence_details:
 
                     if 'RDA' in full_address:
                         full_address = full_address.replace('RDA', 'RD')
+                    gmaps = googlemaps.Client(key=self.api_key)
+                    json_val = gmaps.geocode(full_address+" "+city+" "+state)
+                    for i in range(len(json_val[0]['address_components'])):
+                        # print(json_val[0]['address_components'][i]['types'])
+                        if json_val[0]['address_components'][i]['types'] == ['postal_code']:
+                            zip_code=json_val[0]['address_components'][i]['long_name']
 
                 return full_address, street,street, state, zip_code, city
         except Exception as e:
@@ -939,7 +1023,8 @@ class Licence_details:
             name_value1 = []
             name_val,name_val1='',''
             if street!=street1:
-                name_reg_val=re.findall(r'\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street+r')\b',value)
+                val=re.compile(r'\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s([A-Za-z]+)?\s?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street+r')\b',re.IGNORECASE)
+                name_reg_val=val.findall(value)
                 for item in name_reg_val:
                     name_value.append(" ".join(item))
                 name_val = "".join(map(str, name_value))
@@ -947,8 +1032,11 @@ class Licence_details:
                 if re.search(r'\s\s',name_val):
                     name_val=name_val.replace(re.findall(r'\s\s',name_val)[0]," ")
             if street1==street:
-                name_reg_val = re.findall(r'\s?([A-Za-z]+)?(\-)?\s?(['
-                                          r'A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street1+r')\b',value)
+                val = re.compile(
+                    r'\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(['
+                    r'A-Za-z]+)?(\-)?\s([A-Za-z]+)?\s?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?' + street1 + r')\b',
+                    re.IGNORECASE)
+                name_reg_val = val.findall(value)
                 for item in name_reg_val:
                     name_value.append(" ".join(item))
                 if len(name_reg_val)==1:
@@ -962,9 +1050,12 @@ class Licence_details:
                     name_val1 = name_val1.replace(street, "")
                     name_val = name_val.replace(street, "")
             if street != street1:
-                name_reg_va11 = re.findall(
-                    r'\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?([A-Za-z]+)?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?'+street1+r')\b', value)
-                for item in name_reg_va11:
+                val = re.compile(
+                    r'\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(['
+                    r'A-Za-z]+)?(\-)?\s([A-Za-z]+)?\s?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?' + street1 + r')\b',
+                    re.IGNORECASE)
+                name_reg_val1 = val.findall(value)
+                for item in name_reg_val1:
                     name_value1.append(" ".join(item))
                 name_val1 = "".join(map(str, name_value1))
                 name_val1=name_val1.replace(street1,"")
@@ -972,6 +1063,13 @@ class Licence_details:
                     name_val1=name_val1.replace(re.findall(r'\s\s',name_val1)[0]," ")
 
             print("in name", name_val, name_val1)
+            if re.search(r'(!?'+street+'|'+street1+')',name_val):
+                rv=re.compile(r'(!?'+street+'|'+street1+')',re.IGNORECASE)
+                name_val=name_val.replace(rv.findall(name_val)[0],"")
+            if re.search(r'(!?'+street+'|'+street1+')',name_val1):
+                rv1 = re.compile(r'(!?' + street + '|' + street1 + ')', re.IGNORECASE)
+                name_val1 = name_val1.replace(rv1.findall(name_val1)[0], "")
+
             name_val = name_val.split('2', 1)
             name_val = "".join(name_val)
             name_val1 = name_val1.split('2', 1)
@@ -1005,7 +1103,7 @@ class Licence_details:
                 full_name=full_name.replace(re.findall(r'\s\s',full_name)[0]," ")
 
             if re.search('[A-Za-z]+\s?\-\s?\s?[A-Za-z]+', full_name1):
-                fname1=full_name.replace(' - ',"-")
+                fname1=full_name1.replace(' - ',"-")
                 full_name1=fname1
             if re.search(r'\s\s',full_name1):
                 full_name1=full_name1.replace(re.findall(r'\s\s',full_name1)[0]," ")
@@ -1042,7 +1140,7 @@ class Licence_details:
             first_dict[full_name1] = first_name_processed_a_score
 
             actual_full_name = max(first_dict.items(), key=operator.itemgetter(1))[0]
-            actual_full_name = actual_full_name.replace(' s', " GU")
+            # actual_full_name = actual_full_name.replace(' s', " GU")
             if len(actual_full_name.split())==1:
                 if fn>1:
                     actual_full_name=full_name
@@ -1085,7 +1183,7 @@ class Licence_details:
             #     full_name="BUTLER DAVID JOSEPH"
             # if "EARLENE MICHELLEPUIG" in full_name:
             #     full_name="SHAEARLENE MICHELLE PUIG"
-            self.name.put(actual_full_name)
+            self.name.put(actual_full_name.upper())
         except Exception as e:
             full_name=""
             return full_name

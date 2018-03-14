@@ -1,14 +1,13 @@
 import json
 import threading
-from multiprocessing import Process, Queue
+from multiprocessing import Queue
 from time import sleep
 from urllib.request import urlopen
 import sys
 import os
 import PyPDF2
-
-
-
+import subprocess
+from subprocess import call
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../image_processing')
@@ -59,34 +58,42 @@ class Scan_OCR:
             pass
     def get_doc_text(self,path,doc_type):
 
-        self.text,description,result = self.Location.get_text(path,doc_type)
-        employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date = self.Paystub.get_details(self.text, path, description, result)
+        self.text,description,result,_,_ = self.Location.get_text(path,doc_type)
+        employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date = self.Paystub.get_details(self.text, path,description,result)
         self.doc_text.put((self.text,employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date,pay_date))
         print(self.doc_text.qsize())
     def get_lic_text(self, path, doc_type):
 
-        self.text, self.description, self.result,keys,values = self.Location.get_text(path, doc_type)
-        self.lic_text.put((self.text, self.description, self.result,keys,values))
-    def image_to_pdf(self, image_path, doc_type):
+        self.text,description,result,keys,values = self.Location.get_text(path, doc_type)
+        self.lic_text.put((self.text, description,result,keys,values))
+    def image_to_pdf(self, image_path1, doc_type):
         try:
 
-            if 'Paystub' in doc_type:
-                _,filename = os.path.split(image_path)
-
-                src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"))
-                file = self.c.pdf_page_to_png(src_pdf,doc_type, pagenum=0, resolution=300)
-                filename = filename.rsplit('.', 1)[0] + ".jpg"
+            _,filename = os.path.split(image_path1)
+            image_path=r'C:/Users/ankitaa/PycharmProjects/iDocufy_OCR/images/documents_upload/'+filename
+            print(image_path)
+            # image_path=r'C:/Users/ankitaa/PycharmProjects/iDocufy_OCR'+image_path
+            filename = filename.rsplit('.', 1)[0] + ".png"
+            # f_path="../images/documents_upload/"+filename
+            f_path=r'C:/Users/ankitaa/PycharmProjects/iDocufy_OCR/images/documents_upload/'+filename
+            process = subprocess.Popen(
+                ['soffice', '--headless', '--convert-to', 'png', image_path,
+                 '--outdir', f_path])
+            process.wait()
+                # src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"))
+                # file = self.c.pdf_page_to_png(src_pdf,doc_type, pagenum=0, resolution=300)
+                # filename = filename.rsplit('.', 1)[0] + ".jpg"
                 #print('in paystub', filename)
-                file.save(filename="../images/documents_upload/"+filename)
-                path="../images/documents_upload/"+filename
-            else:
-                _, filename = os.path.split(image_path)
-                src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"),strict = False)
-                file = self.c.pdf_page_to_png(src_pdf, doc_type,pagenum=0, resolution=300)
-                filename = filename.rsplit('.', 1)[0] + ".jpg"
-                file.save(filename=os.path.join("../images/documents_upload/", filename))
-                path=os.path.join("../images/documents_upload/", filename)
-            self.img2pdf.put(path)
+                # file.save(filename="../images/documents_upload/"+filename)
+                # path="../images/documents_upload/"+filename
+            # else:
+            #     _, filename = os.path.split(image_path)
+            #     src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"),strict = False)
+            #     file = self.c.pdf_page_to_png(src_pdf, doc_type,pagenum=0, resolution=300)
+            #     filename = filename.rsplit('.', 1)[0] + ".jpg"
+            #     file.save(filename=os.path.join("../images/documents_upload/", filename))
+            #     path=os.path.join("../images/documents_upload/", filename)
+            self.img2pdf.put(f_path)
         except Exception as e:
             print("in image to pdf",e)
             pass
@@ -96,8 +103,8 @@ class Scan_OCR:
                 address_location, licence_id_location, dict,filename=self.Location.get_location(value_json,image,application_id,base_url)
                 self.location.put((address_location, licence_id_location, dict,filename))
             elif 'SSN' in doc_type:
-                ssn_location,filename = self.Location.ssn_get_location(value_json, image, application_id, base_url)
-                self.location.put((ssn_location,filename))
+                ssn_location,name_location,date_location,filename = self.Location.ssn_get_location(value_json, image,application_id, base_url)
+                self.location.put((ssn_location,name_location,date_location,filename))
             elif 'Paystub' in doc_type:
                 emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4, regular5, regular6, regular7, regular8, regular9, regular10, tax1, tax2, tax3, tax4, tax5, tax6, tax7, tax8, tax9, tax10, deduction1, deduction2, deduction3, deduction4, deduction5, deduction6, deduction7, deduction8, deduction9, deduction10,deduction11,deduction12,deduction13,deduction14,deduction15, pay_start_date, pay_end_date, pay_date, dict_location,filename,value_data = self.Location.paystub_get_location(value_json, image, application_id, base_url)
                 self.location.put((emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4,regular5, regular6, regular7, regular8, regular9, regular10,tax1, tax2, tax3, tax4, tax5, tax6, tax7, tax8,tax9, tax10, deduction1, deduction2, deduction3, deduction4,deduction5, deduction6, deduction7, deduction8, deduction9,deduction10,deduction11,deduction12,deduction13,deduction14,deduction15, pay_start_date, pay_end_date, pay_date, dict_location,filename,value_data))
@@ -105,21 +112,16 @@ class Scan_OCR:
             print(e)
     def get_doc(self,path, doc_type):
         try:
-            thread1 = threading.Thread(target=self.get_lic_text,
-                                      args=(path,doc_type))
-
+            thread1 = threading.Thread(target=self.get_lic_text,args=(path,doc_type))
             thread1.start()
-
-            (self.text, self.description,self.result,keys,values) = self.lic_text.get()
-
+            (self.text, description,result,keys,values) = self.lic_text.get()
             if 'License' in doc_type:
-
                 licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val = self.licence.get_licence_details1(self.text,keys,values)
                 self.scan_text.put((self.text, licence_id, max_date, min_date, iss_date, address, name, state,
                                     zipcode, city,date_val,keys,values))
             elif 'SSN' in doc_type:
-                SSN_Number = self.ssn.get_all_snn_details(self.text)
-                self.scan_text.put((self.text, SSN_Number,keys,values))
+                SSN_Number,name,date = self.ssn.get_all_snn_details(self.text)
+                self.scan_text.put((self.text, SSN_Number,name,date,keys,values))
 
         except Exception as e:
             print(e)
@@ -137,8 +139,8 @@ class Scan_OCR:
                 self.confidence.put((date_dict,date_score,address_score,license_score,other_score))
             elif 'SSN' in doc_type:
 
-                ssn_score=self.score.ssn_confidence(data,keys,values)
-                self.confidence.put((ssn_score))
+                ssn_score,ssn_name_score,ssn_date_score=self.score.ssn_confidence(data,keys,values)
+                self.confidence.put((ssn_score,ssn_name_score,ssn_date_score))
             elif 'Paystub' in doc_type:
 
                 regular1_scrore, regular2_scrore, regular3_scrore, regular4_scrore, regular5_scrore, regular6_scrore, regular7_scrore, \
@@ -225,10 +227,14 @@ class Scan_OCR:
                         add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
                                'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
                                "middle_name": self.name_value[2],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
-                    elif len(self.name_value)>=4:
+                    elif len(self.name_value)==4:
                         add = {'first_name': self.name_value[2], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
                                'last_name': self.name_value[1], 'address': address, 'license_id': licence_id,
                                "middle_name": self.name_value[3],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
+                    elif len(self.name_value)==5:
+                        add = {'first_name': self.name_value[3], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
+                               'last_name': self.name_value[2], 'address': address, 'license_id': licence_id,
+                               "middle_name": self.name_value[4],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
                     else:
                         add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date,
                                'expiration_date': exp_date, 'last_name': self.name_value[0], 'address': address,
@@ -255,7 +261,7 @@ class Scan_OCR:
                     (date_dict,date_score, address_score, license_score, other_score)=self.confidence.get()
 
                     for i in range(len(response['fields'])):
-                        for j in range(len(actual_value)):
+
                             if response['fields'][i]['name']=="address":
                                 for key,value in address_location.items():
                                     self.location_val.append(value)
@@ -395,29 +401,28 @@ class Scan_OCR:
                 else:
                     thread = threading.Thread(target=self.image_processing_threading,
                                               args=("../images/documents_upload/" + filename, json_val[doc_id],))
-
-
                 thread.start()
                 image_path = self.image_processing.get()
-
                 thread = threading.Thread(target=self.get_doc,args=(image_path, json_val[doc_id],))
                 thread.start()
-                (self.text, SSN_Number,conf_keys,conf_values ) = self.scan_text.get()
-                if SSN_Number == 'null':
+                (self.text, SSN_Number,name,date,conf_keys,conf_values ) = self.scan_text.get()
+                if SSN_Number == '' or name=='' or date=='':
                     file_path = ''
                     self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
                     self.scan_result['status'] = "INCORRECT_DOCUMENT"
                     #print(self.scan_result)
                     return self.scan_result, file_path
                 else:
-                    # self.name_value = name.split()
-                    # #print("self.name_value", self.name_value)
-                    # if len( self.name_value) > 2:
-                    #     add = {"ssn_number": SSN_Number, "first_name":  self.name_value[0], "last_name":  self.name_value[2],
-                    #            "middle_name":  self.name_value[1]}
-                    # else:
-                    add = {"ssn_number": SSN_Number
-                           }
+                    actual_name = name.split()
+                    #print("self.name_value", self.name_value)
+                    add={}
+                    if len(actual_name)==2:
+                        add = {"ssn_number": SSN_Number, "ssn_firstname":  actual_name[0], "ssn_lastname":
+                            actual_name[1], "ssn_middlename":  '','date':date,'ssn_name':""}
+                    elif len(actual_name)==3:
+                        add = {"ssn_number": SSN_Number, "ssn_firstname":  actual_name[0], "ssn_lastname":
+                            actual_name[2], "ssn_middlename": actual_name[1],'ssn_date':date,'ssn_name':""}
+
                     actual_value = list(add.keys())
                     actual_value = sorted(actual_value)
 
@@ -426,17 +431,14 @@ class Scan_OCR:
                             if response['fields'][i]['name'] == actual_value[j]:
                                 response['fields'][i]['field_value_original'] = add[actual_value[j]]
                                 pass
-                    thread = threading.Thread(target=self.get_location, args=(
-                    add, image_path, application_id, self.config['base_url'],
-                    json_val[doc_id],))
+                    thread = threading.Thread(target=self.get_location, args=(add, image_path, application_id, self.config['base_url'],json_val[doc_id],))
                     thread.start()
-                    (ssn_number_location,file_path) = self.location.get()
-                    thread = threading.Thread(target=self.confidence_score, args=(image_path, json_val[doc_id], add,
-                                                                                  conf_keys,conf_values,))
+                    (ssn_number_location,name_location,date_location,file_path) = self.location.get()
+                    thread = threading.Thread(target=self.confidence_score, args=(image_path, json_val[doc_id], add,conf_keys,conf_values,))
                     thread.start()
-                    (ssn_score) = self.confidence.get()
+                    (ssn_score,ssn_name_score,ssn_date_score) = self.confidence.get()
                     for i in range(len(response['fields'])):
-                        for j in range(len(actual_value)):
+
                             if response['fields'][i]['name'] == "ssn_number":
                                 self.location_val.clear()
                                 for key, value in ssn_number_location.items():
@@ -444,6 +446,20 @@ class Scan_OCR:
                                     if key in response['fields'][i]['field_value_original']:
                                         response['fields'][i]['location'] = str([self.location_val])
                                         response['fields'][i]['confidence'] = ssn_score
+                            elif response['fields'][i]['name'] == "ssn_date":
+                                self.location_val.clear()
+                                for key, value in date_location.items():
+                                    self.location_val.append(value)
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str([self.location_val])
+                                        response['fields'][i]['confidence'] = ssn_date_score
+                            else:
+                                self.location_val.clear()
+                                for key, value in name_location.items():
+                                    self.location_val.append(value)
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str([self.location_val])
+                                        response['fields'][i]['confidence'] = ssn_name_score
 
                     self.scan_result = response
                     self.scan_result['error_msg'] = "Successfully Scanned"
@@ -497,7 +513,7 @@ class Scan_OCR:
                                 response['fields'][i]['optional_value'] = ''
                                 response['fields'][i]['hrs'] = ''
                                 response['fields'][i]['rates'] = ''
-                        elif 'tax' == response['fields'][i]['name']:
+                        elif 'tax' == response['fields'][i]['alias']:
                             if j < len(taxes):
 
                                 response['fields'][i]['alias'] = taxes[j]
@@ -512,7 +528,7 @@ class Scan_OCR:
                                 response['fields'][i]['optional_value'] = ''
                                 response['fields'][i]['hrs'] = ''
                                 response['fields'][i]['rates'] = ''
-                        elif 'other' == response['fields'][i]['name']:
+                        elif 'other' == response['fields'][i]['alias']:
                             if 'pre deduction' == response['fields'][i]['section_name']:
                                 if l < len(pre_deduction):
                                     response['fields'][i]['alias'] = pre_deduction[l]
@@ -602,7 +618,7 @@ class Scan_OCR:
                             print("total taxes len",len(total_calculated_taxes))
                             if n < len(total_calculated_taxes):
                                 print(total_calculated_taxes,current_total_calculated_taxes,ytd_total_calculated_taxes)
-                                response['fields'][i]['alias'] = total_calculated_taxes[n]
+                                response['fields'][i]['alias'] = 'Total Calculated'
                                 response['fields'][i]['field_value_original'] = current_total_calculated_taxes[n]
                                 response['fields'][i]['optional_value'] = ytd_total_calculated_taxes[n]
                                 response['fields'][i]['hrs'] = hrs_total_calculated_taxes[n]
@@ -617,7 +633,7 @@ class Scan_OCR:
                         elif 'regular_total_manual' == response['fields'][i]['name']:
                             if o < len(total_calculated_regular):
 
-                                response['fields'][i]['alias'] = total_calculated_regular[o]
+                                response['fields'][i]['alias'] = 'Total Calculated'
                                 response['fields'][i]['field_value_original'] =current_total_calculated_regular[o]
                                 response['fields'][i]['optional_value'] =ytd_total_calculated_regular[o]
                                 response['fields'][i]['hrs'] =hrs_total_calculated_regular[o]
@@ -632,7 +648,7 @@ class Scan_OCR:
                         elif 'pre_deduction_total_manual' == response['fields'][i]['name']:
                             if p < len(total_calculated_pre):
 
-                                response['fields'][i]['alias'] = total_calculated_pre[p]
+                                response['fields'][i]['alias'] = 'Total Calculated'
                                 response['fields'][i]['field_value_original'] = current_total_calculated_pre[p]
                                 response['fields'][i]['optional_value'] =ytd_total_calculated_pre[p]
                                 response['fields'][i]['hrs'] = hrs_total_calculated_pre[p]
@@ -647,7 +663,7 @@ class Scan_OCR:
                         elif 'post_deduction_total_manual' == response['fields'][i]['name']:
                             if q < len(total_calculated_post):
 
-                                response['fields'][i]['alias'] = total_calculated_post[q]
+                                response['fields'][i]['alias'] = 'Total Calculated'
                                 response['fields'][i]['field_value_original'] = current_total_calculated_post[q]
                                 response['fields'][i]['optional_value'] = ytd_total_calculated_post[q]
                                 response['fields'][i]['hrs'] = hrs_total_calculated_post[q]

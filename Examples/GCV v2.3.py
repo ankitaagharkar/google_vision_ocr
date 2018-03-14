@@ -567,7 +567,6 @@ class get_all_location:
                     key = key.replace('-48','')
                     if re.search(r'\b(=?' +re.escape(key)+ r')\b', value1):
                         if key in value_json['date_val']:
-                            print("in locations", value_json['date_val'])
                             vrx = np.array(value, np.int32)
                             vrx = vrx.reshape((-1, 1, 2))
                             img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
@@ -575,7 +574,6 @@ class get_all_location:
                             print(key, value)
                             self.dict.update({key: value})
                         elif key in value_json['employer_name']:
-                            print("in locations", value_json['employer_name'])
                             vrx = np.array(value, np.int32)
                             vrx = vrx.reshape((-1, 1, 2))
                             img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 2)

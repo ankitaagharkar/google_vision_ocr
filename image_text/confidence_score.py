@@ -10,9 +10,12 @@ class text_score:
         self.dict,self.address_val, self.others={},{},{}
         self.address_confidence = 0.0
         self.ssn_confidence_score=0.0
+        self.ssn_name_confidence_score=0.0
         self.date_confidence_score = 0.0
+        self.ssn_date_confidence_score = 0.0
         self.license_confidence_score=0.0
-        self.date_score, self.address_score, self.other_score,self.license_score, self.ssn_score,self.paystub_score=0,0,0,0,0,0
+        self.date_score, self.address_score, self.other_score,self.license_score, self.ssn_score,self.paystub_score,\
+        self.ssn_name_score,self.ssn_date_score=0,0,0,0,0,0,0,0
         self.full_address = ''
         self.result={}
         self.val=[]
@@ -141,8 +144,24 @@ class text_score:
                         if re.search(r'\b(=?' + re.escape(key) + r')\b', value1):
                             if key in data['ssn_number']:
                                 self.ssn_confidence_score = value
+                            elif key in data['ssn_date']:
+                                self.ssn_date_confidence_score = self.ssn_date_confidence_score + value
+                            else:
+                                self.ssn_name_confidence_score = self.ssn_name_confidence_score + value
+
             self.ssn_score = int((self.ssn_confidence_score * 100))
-            return self.ssn_score
+            if self.ssn_score >= 100:
+                self.ssn_score = 87
+
+            self.ssn_date_score = int((self.ssn_date_confidence_score * 100))
+            if self.ssn_date_score >= 100:
+                self.ssn_date_score=87
+
+            self.ssn_name_score = int((self.ssn_name_confidence_score * 100))
+            if self.ssn_name_score >= 100:
+                self.ssn_name_score=83
+
+            return str(self.ssn_score),str(self.ssn_name_score),str(self.ssn_date_score)
         except Exception as E:
             return self.ssn_score
     def paystub_confidence(self,data_val,keys,values):
