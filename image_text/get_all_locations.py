@@ -262,13 +262,14 @@ class get_all_location:
                         word_text1 = ''
                         for symbol1 in word1.symbols:
                             word_text1 = word_text1 + symbol1.text
-                            # print(u'Word text: {} (confidence: {})\n'.format(word_text1, word1.confidence))
+                            #print(u'Word text: {} (confidence: {})\n'.format(word_text1, word1.confidence))
 
                         self.conf_keys.append(word_text1)
                         self.conf_values.append(word1.confidence)
             self.conf_result = zip(self.conf_keys, self.conf_values)
             actual_text = " ".join(map(str, text))
             self.description=response.text_annotations[0]
+            texts=response.text_annotations
             for text in response.text_annotations[1:]:
 
                 #print(text.description)
@@ -278,7 +279,7 @@ class get_all_location:
                 self.keys.append(text.description)
                 self.values.append(vertices)
             self.result = zip(self.keys, self.values)
-            return actual_text,self.description,self.result,self.conf_keys,self.conf_values
+            return actual_text,self.description,self.result,self.conf_keys,self.conf_values,texts
 
         except Exception as E:
             print(E)

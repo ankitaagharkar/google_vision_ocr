@@ -18,6 +18,33 @@ Ignore value 			{val_ignore}
 -->
 
 <structures>
+	<paystub_types>
+		<type id="ADP">
+			<lookup_text>Earnings Statement</lookup_text>
+		</type>
+		<type id="Insperity">
+			<lookup_text>Insperity</lookup_text>
+		</type>
+		<type id="Irvington">
+			<lookup_text>Irvington</lookup_text>
+			<lookup_text>Irvington UFSD</lookup_text>
+		</type>
+		<type id="Johnson">
+			<lookup_text>JOHNSON</lookup_text>
+			<lookup_text>JOHNSON &amp; JOHNSON</lookup_text>
+		</type>
+		<type id="Military">
+			<lookup_text>CIVILIAN LEAVE AND EARNINGS STATEMENT</lookup_text>
+			<lookup_text>Smart Leave and Earnings Statement</lookup_text>
+		</type>
+		<type id="Morgan Stanley">
+			<lookup_text>Morgan Stanley</lookup_text>
+		</type>
+		<type id="IBM">
+			<lookup_text>National Payroll Services</lookup_text>
+		</type>
+	</paystub_types>
+
 	<paystub id="Generic">
 		<block_headers>
 			<type id="earnings">
@@ -69,8 +96,6 @@ Ignore value 			{val_ignore}
 				<val>memo information</val>
 				<val>accruals/others</val>
 				<val>summary</val>
-				<val>colleague</val>
-				<val>employer</val>
 				<val>net pay distribution</val>
 				<val>pay distribution</val>
 				<val>direct deposit distribution</val>
@@ -100,6 +125,7 @@ Ignore value 			{val_ignore}
 				<val>y-t-d</val>
 				<val>year-to-date</val>
 				<val>ytd amount</val>
+				<val>ytd amt</val>
 				<val>ytd earnings</val>
 			</type>
 			<type id="other_earnings">
@@ -113,6 +139,7 @@ Ignore value 			{val_ignore}
 			</type>
 			<type id="hours">
 				<val>hours</val>
+				<val>hrs</val>
 			</type>
 		</col_headers>
 		<col_sequence>
@@ -122,6 +149,14 @@ Ignore value 			{val_ignore}
 				<val col_type="None">ytd</val>
 				<val col_type="Current">current</val>
 				<val col_type="YTD">ytd</val>
+			</type>
+			<type>
+				<val block_name="Deduction">deduction</val>
+				<val col_type="None">pre-tax</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">ytd</val>
+				<val col_type="None">current</val>
+				<val col_type="None">ytd</val>
 			</type>
 		</col_sequence>
 		<rules>
@@ -141,6 +176,7 @@ Ignore value 			{val_ignore}
 		<data_val>
 			<type id="Horizontal">
 				<val type="date">period end</val>
+				<val>net pay</val>
 			</type>
 		</data_val>
 		<data_dict>
@@ -262,7 +298,7 @@ Ignore value 			{val_ignore}
 				<val type="date">pay date</val>
 				<val type="date">advice date</val>
 				<val type="date">period beg/end</val>
-				<val>net pay</val>
+				<val type="date">net pay</val>
 			</type>
 		</data_val>
 		<data_dict>
@@ -363,7 +399,9 @@ Ignore value 			{val_ignore}
 			</type>
 		</col_headers>
 		<col_sequence></col_sequence>
-		<rules></rules>
+		<rules>
+			<type val="True">All Blocks With Headers</type>
+		</rules>
 		<vertical_col_sequence></vertical_col_sequence>
 		<data_val>
 			<type id="Horizontal">
@@ -501,5 +539,128 @@ Ignore value 			{val_ignore}
 			</type>
 		</col_sequence>
 		<rules></rules>
+	</paystub>
+	<paystub id="Johnson">
+		<block_headers>
+			<type id="earnings">
+				<val>earnings</val>
+			</type>
+			<type id="normal_deductions">
+				<val>deductions</val>
+			</type>
+			<type id="pre_deductions"></type>
+			<type id="post_deductions"></type>
+			<type id="taxes">
+				<val>taxes</val>
+			</type>
+			<type id="other">
+				<val>net pay distribution</val>
+				<val>federal taxable wages</val>
+			</type>
+		</block_headers>
+		<col_headers>
+			<type id="current">
+				<val>earnings</val>
+				<val>current</val>
+			</type>
+			<type id="ytd">
+				<val>ytd amt</val>
+				<val>ytd</val>
+			</type>
+			<type id="other_earnings"></type>
+			<type id="rate">
+				<val>rate</val>
+			</type>
+			<type id="hours">
+				<val>ytd hr</val>
+				<val>hrs</val>
+			</type>
+		</col_headers>
+		<col_sequence>
+			<type>
+				<val col_type="None">description</val>
+				<val col_type="Rate">rate</val>
+				<val col_type="Hour">hrs</val>
+				<val col_type="Current">earnings</val>
+				<val col_type="None">ytd hr</val>
+				<val col_type="YTD">ytd amt</val>
+			</type>
+			<type>
+				<val col_type="None">description</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">ytd</val>
+				<val col_type="TaxType">b/a</val>
+			</type>
+		</col_sequence>
+		<rules>
+			<type val="True">Is TaxType Header Defined</type>
+		</rules>
+		<vertical_col_sequence></vertical_col_sequence>
+		<data_val>
+			<type id="Horizontal">
+				<val type="date">begin date</val>
+				<val type="date">end date</val>
+				<val type="date">pay date</val>
+				<val type="date">total net</val>
+			</type>
+		</data_val>
+		<data_dict></data_dict>
+	</paystub>
+	<paystub id="Military">
+		<block_headers>
+			<type id="earnings">
+				<val>current earnings</val>
+			</type>
+			<type id="normal_deductions">
+				<val>deductions</val>
+			</type>
+			<type id="pre_deductions"></type>
+			<type id="post_deductions"></type>
+			<type id="taxes"></type>
+			<type id="other">
+				<val>leave</val>
+			</type>
+		</block_headers>
+		<col_headers>
+			<type id="current">
+				<val>amount</val>
+				<val>current</val>
+			</type>
+			<type id="ytd">
+				<val>year to date</val>
+			</type>
+			<type id="other_earnings"></type>
+			<type id="rate"></type>
+			<type id="hours">
+				<val>hours/days</val>
+			</type>
+		</col_headers>
+		<col_sequence>
+			<type>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">year to date</val>
+			</type>
+			<type>
+				<val col_type="None">type</val>
+				<val col_type="Hour">hours/days</val>
+				<val col_type="Current">amount</val>
+			</type>
+		</col_sequence>
+		<rules>
+			<type val="Compressed">Text Compression Level</type>
+		</rules>
+		<vertical_col_sequence></vertical_col_sequence>
+		<data_val>
+			<type id="Vertical">				
+				<val type="date">pay period end</val>
+				<val type="date">pay date</val>
+			</type>
+		</data_val>
+		<data_dict></data_dict>
+	</paystub>
+	<paystub id="Morgan Stanley">
+		<rules>
+			<type val="True">Is Star Pre-Tax</type>
+		</rules>
 	</paystub>
 </structures>

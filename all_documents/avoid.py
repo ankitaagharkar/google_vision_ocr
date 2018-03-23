@@ -8,7 +8,8 @@ def replace(actual_name):
     actual_name1 = actual_name1.replace('Doe', "")
     actual_name1 = actual_name1.replace('LICENSED', "")
     actual_name1 = actual_name1.replace(' I ', "")
-    actual_name1 = actual_name1.replace('ID ', "")
+    # actual_name1 = actual_name1.replace('ENO ', "")
+    actual_name1 = actual_name1.replace('END ', "")
     # actual_name1 = actual_name1.replace('DO ', "")
     actual_name1 = actual_name1.replace(' Les ', "")
     actual_name1 = actual_name1.replace(' CLASSE ', "")
@@ -189,7 +190,7 @@ def replace(actual_name):
     actual_name1 = actual_name1.replace('Single', "")
     actual_name1 = actual_name1.replace('Exemptions', "")
     actual_name1 = actual_name1.replace('Parasti', "")
-    actual_name1 = actual_name1.replace('JR', " ")
+    # actual_name1 = actual_name1.replace('JR', " ")
     actual_name1 = actual_name1.replace(' LAN', "L")
     # actual_name1 = actual_name1.replace('NG ', "")
     actual_name1 = actual_name1.replace(' ICE', "")
@@ -227,51 +228,89 @@ def replace(actual_name):
     return actual_name1
 
 def address_replace(value):
+    value = value.replace('BLACKWG00', 'BLACKWOOD')
 
+    value = value.replace('FILE', '')
+    value = value.replace(' | ', ' ')
+    value = value.replace('BLACKWOOO', 'BLACKWOOD')
+    if re.search('(!?AŽ|AŻ)', value):
+        value = value.replace(re.findall('(!?AŽ|AŻ)', value)[0], "AZ")
     if 'NU ' in value:
-        value = value.replace('NU ', 'NJ ')
+        value = value.replace('NU ', 'NJ')
     elif re.search(
-            r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?\.?NL))',
+            r'(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?\.?NL))',
             value):
-        value = value.replace('NL', ' NJ ')
-        value = value.replace('.NL', ' NJ ')
+        value = value.replace('NL', 'NJ')
+        value = value.replace('.NL', 'NJ')
     if re.search(
-            r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?N\.))',
+            r'(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?N\.))',
             value):
-        value = value.replace('N. ', ' NJ ')
+        value = value.replace('N. ', 'NJ')
     if ' NJI ' in value:
-        value = value.replace(' NJI ', ' NJ ')
+        value = value.replace(' NJI ', 'NJ')
     if re.search(
-            r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!? NO))',
+            r'(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!? NO))',
             value):
-        value = value.replace(' NO ', ' NJ ')
+        value = value.replace(' NO ', 'NJ')
     if ' SU ' in value:
-        value = value.replace(' SU ', ' NJ ')
+        value = value.replace(' SU ', 'NJ')
     if '$' in value:
         value = value.replace('$', '6')
-    if ' AJ ' in value:
-        value = value.replace(' AJ ', ' NJ ')
-    if ' NA ' in value:
-        value = value.replace(' NA ', ' NJ ')
-    if ' NW ' in value:
-        value = value.replace(' NW ', ' NJ ')
     if re.search(
-            r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?NI))',
+            r'(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?AJ))',
             value):
-        value = value.replace(' NI', ' NJ ')
+        value = value.replace(' AJ ', 'NJ')
+    if ' NA ' in value:
+        value = value.replace(' NA ', 'NJ')
+    if ' Na ' in value:
+        value = value.replace(' Na ', 'NJ')
+    if ' NW ' in value:
+        value = value.replace(' NW ', 'NJ')
+    if re.search(
+            r'(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?NI|NIIN))',
+            value):
+        value = value.replace(' NI', 'NJ')
+        value = value.replace(' NIIN', 'NJ')
 
     if re.search(
-            r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?J))',
+            r'(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?J))',
             value):
-        value = value.replace(' J ', ' NJ ')
+        value = value.replace(' J ', 'NJ')
     print(value)
     return value
 
-def name_replace(text_value,date,zip_code):
+def name_replace(text_value,date,zip_code,text_val):
+    text_value = text_value.replace(' ExP ', " ")
+    text_value = text_value.replace(' DANONE ', " ")
+    text_value = text_value.replace('KMAL ', " ")
+    text_value = text_value.replace('ORGAN ', " ")
+    text_value = text_value.replace(' DONAR ', " ")
     text_value = text_value.replace(' EX ', " ")
+    text_value = text_value.replace(' ! ', " ")
+    text_value = text_value.replace('LN ', " ")
+    text_value = text_value.replace('FN ', " ")
     text_value = text_value.replace(' CLAss D ', " ")
+    text_value = text_value.replace(' EXF ', " ")
+    text_value = text_value.replace(' 2 ', " ",1)
+    # text_value = text_value.replace('2 ', " ",1)
     text_value = text_value.replace(' CLAss ', " ")
+    text_value = text_value.replace(' Imal ', " ")
+    text_value = text_value.replace(' po ', " ")
+    text_value = text_value.replace(' poB ', " ")
+    text_value = text_value.replace(' RESTR ', " ")
+    text_value = text_value.replace('Issued', " ")
+    text_value = text_value.replace('NEW   JERSEY    AMD  Motor AUTO   DRIVER  LICENSEDL', " ")
     text_value = text_value.replace(' DOB ', " ")
+    if re.search(r'\b(!?\d+LOL\s?)',text_value):
+        text_value = text_value.replace('LOL', "")
+    else:
+        text_value = text_value.replace(' LOL ', "")
+    text_value = text_value.replace(' ENO ', " ")
+    text_value = text_value.replace(' Da ', " ")
+    text_value = text_value.replace(' toe ', " ")
+    text_value = text_value.replace(' EXP ', " ")
+    text_value = text_value.replace(' D08 ', " ")
+    # text_value = text_value.replace(' D08 ', " ")
     text_value = text_value.replace(' Dos ', " ")
     text_value = text_value.replace('Commission', " ")
     text_value = text_value.replace('Health', " ")
@@ -306,6 +345,7 @@ def name_replace(text_value,date,zip_code):
     text_value = text_value.replace(' Family ', " ")
     text_value = text_value.replace(' name ', " ")
     text_value = text_value.replace(' Names ', " ")
+    text_value = text_value.replace(' D . O . B . ', " ")
     text_value = text_value.replace(' Name ', " ")
     text_value = text_value.replace(' Address ', " ")
     text_value = text_value.replace(' dob ', " ")
@@ -319,20 +359,21 @@ def name_replace(text_value,date,zip_code):
     text_value = text_value.replace(' a ', "")
 
     val = date.split(",")
+    avoid_signature=''
     for i in range(len(val)):
         text_value = text_value.replace(val[i], "")
     if re.search(r'(!?GA|PA)', zip_code):
-        if re.search('!?Organ|Donar|ORGAN|DONAR', text_value):
-            text_value = text_value.replace(' '.join(map(str, text_value.split(
-                re.findall(r"(=?Expires:|EXP|Expires|Exp|Expiros|EXPIRES|EXPIROS|EER)", text_value)[0], 1)[1].split()[
-                                                              0:2])), "")
-    if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', zip_code):
-        if re.search(r'\b\s?(!?8|2)\s?(\d+)?\b', text_value):
-            text_value = text_value.replace(' 8', ' ')
-            # text_value = text_value.split('2', 1)[1]
+        avoid_signature = ' '.join(map(str, text_val.split(re.findall(r"(!?Expires:|EXP|Expires|Exp|Expiros|EXPIRES|EXPIROS|EER)", text_val)[0], 1)[1].split()[
+                                                              0:1]))
+        for i in range(len(val)):
+            avoid_signature = avoid_signature.replace(val[i], "")
+    # if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', zip_code):
+    #     if re.search(r'\b\s?(!?8|2)\s?(\d+)?\b', text_value):
+    #         text_value = text_value.replace(' 8', ' ')
+    #         # text_value = text_value.split('2', 1)[1]
     value = text_value.replace(":", "")
     print("in replace",value)
-    return value
+    return value,avoid_signature
 
 def paystub_replace(actual_name):
     # actual_name=actual_name.replace('NY',"")

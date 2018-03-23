@@ -47,18 +47,19 @@ class Common:
         except Exception as e:
             print(e)
 
-    def pdf_page_to_png(self,src_pdf,doc_type, pagenum=0, resolution=150):
+    def pdf_page_to_png(self,src_pdf,doc_type, resolution=150, pagenum=0):
         try:
+
             dst_pdf = PyPDF2.PdfFileWriter()
             dst_pdf.addPage(src_pdf.getPage(pagenum))
 
             pdf_bytes = io.BytesIO()
             dst_pdf.write(pdf_bytes)
             pdf_bytes.seek(0)
-            img = Image(file = pdf_bytes, resolution = resolution)
+            img = Image(file=pdf_bytes, resolution=resolution)
             # if 'License' in doc_type:
             #     # img.resize(width=960, height=960)
-            library.MagickSetCompressionQuality(img.wand, 0)
+            # library.MagickSetCompressionQuality(img.wand, 0)
             # img.convert("jpg")
 
             return img

@@ -1,13 +1,14 @@
 import json
+import re
 import threading
 from multiprocessing import Queue
-from time import sleep
+
 from urllib.request import urlopen
 import sys
 import os
-import PyPDF2
+
 import subprocess
-from subprocess import call
+
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../image_processing')
@@ -20,7 +21,7 @@ import image_denoising
 import get_all_locations
 import Common
 import confidence_score
-import paystub_block_values
+
 
 class Scan_OCR:
     def __init__(self):
@@ -44,13 +45,14 @@ class Scan_OCR:
         self.denoising=image_denoising.Denoising()
         self.Location = get_all_locations.get_all_location()
         self.score=confidence_score.text_score()
-
-
         with open('../config/config.json') as data_file:
             self.config = json.load(data_file)
-    def image_processing_threading(self,image_path,doc_type):
+        with open('../config/filtering.json', 'r') as data:
+            self.state_value = json.load(data)
+
+    def image_processing_threading(self,image_path,doc_type,flag):
         try:
-            image=self.denoising.image_conversion_smooth(image_path,doc_type)
+            image=self.denoising.image_conversion_smooth(image_path,doc_type,flag)
             #print("in img pro",image)
             self.image_processing.put(image)
         except Exception as e:
@@ -58,41 +60,45 @@ class Scan_OCR:
             pass
     def get_doc_text(self,path,doc_type):
 
-        self.text,description,result,_,_ = self.Location.get_text(path,doc_type)
-        employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date = self.Paystub.get_details(self.text, path,description,result)
+        # self.text,description,result,_,_,_ = self.Location.get_text(path,doc_type)
+        employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date = self.Paystub.get_details(path)
         self.doc_text.put((self.text,employer_full_address, employer_street, employer_state, employer_zipcode, employer_city, employee_full_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date,pay_date))
         print(self.doc_text.qsize())
     def get_lic_text(self, path, doc_type):
 
-        self.text,description,result,keys,values = self.Location.get_text(path, doc_type)
-        self.lic_text.put((self.text, description,result,keys,values))
-    def image_to_pdf(self, image_path1, doc_type):
+        self.text,description,result,keys,values,texts = self.Location.get_text(path, doc_type)
+        self.lic_text.put((self.text, description,result,keys,values,texts))
+    def image_to_pdf(self, image_path, doc_type):
         try:
-
-            _,filename = os.path.split(image_path1)
-            image_path=r'C:/Users/ankitaa/PycharmProjects/iDocufy_OCR/images/documents_upload/'+filename
-            print(image_path)
-            # image_path=r'C:/Users/ankitaa/PycharmProjects/iDocufy_OCR'+image_path
-            filename = filename.rsplit('.', 1)[0] + ".png"
-            # f_path="../images/documents_upload/"+filename
-            f_path=r'C:/Users/ankitaa/PycharmProjects/iDocufy_OCR/images/documents_upload/'+filename
-            process = subprocess.Popen(
-                ['soffice', '--headless', '--convert-to', 'png', image_path,
-                 '--outdir', f_path])
-            process.wait()
-                # src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"))
-                # file = self.c.pdf_page_to_png(src_pdf,doc_type, pagenum=0, resolution=300)
-                # filename = filename.rsplit('.', 1)[0] + ".jpg"
-                #print('in paystub', filename)
-                # file.save(filename="../images/documents_upload/"+filename)
-                # path="../images/documents_upload/"+filename
-            # else:
+            filename = os.path.basename(image_path)
+            print(filename)
+            print(type(filename))
+            image_path1="C:/Users/ankitaa/PycharmProjects/iDocufy_OCR/images/documents_upload/" + filename
+            print(image_path1)
+            filename1 = filename.split('.', 1)[0] + ".jpg"
+            f_path= "C:/Users/ankitaa/PycharmProjects/iDocufy_OCR/images/documents_upload/" + filename1
+            #process = subprocess.Popen(['C:\\Program Files (x86)\\ImageMagick-6.9.3-Q16\\convert.exe', '-density', ' 300','-trim', image_path1, '-quality', '100',f_path,shell=True])
+            process = subprocess.call('convert -density 300 -trim ' +image_path1+ ' -quality 200 '+f_path,shell=True)
+            # if 'Paystub' in doc_type:
             #     _, filename = os.path.split(image_path)
-            #     src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"),strict = False)
-            #     file = self.c.pdf_page_to_png(src_pdf, doc_type,pagenum=0, resolution=300)
+            #
+            #     src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"))
+            #     file = self.c.pdf_page_to_png(src_pdf, doc_type, pagenum=0, resolution=300)
             #     filename = filename.rsplit('.', 1)[0] + ".jpg"
-            #     file.save(filename=os.path.join("../images/documents_upload/", filename))
-            #     path=os.path.join("../images/documents_upload/", filename)
+            #     # print('in paystub', filename)
+            #     file.save(filename="../images/documents_upload/" + filename)
+            #     path = "../images/documents_upload/" + filename
+            # else:
+            #     _, filename1 = os.path.split(image_path)
+            #     src_pdf = PyPDF2.PdfFileReader(open(image_path, "rb"), strict=False)
+            #     file = self.c.pdf_page_to_png(src_pdf, doc_type, pagenum=0, resolution=300)
+            #     filename1 = filename1.rsplit('.', 1)[0] + ".jpg"
+            #     file.save(filename="../images/documents_upload/"+filename1)
+            #     path = "../images/documents_upload/"+filename1
+            print(process)
+
+            # path="../images/documents_upload"+filename1
+
             self.img2pdf.put(f_path)
         except Exception as e:
             print("in image to pdf",e)
@@ -112,11 +118,9 @@ class Scan_OCR:
             print(e)
     def get_doc(self,path, doc_type):
         try:
-            thread1 = threading.Thread(target=self.get_lic_text,args=(path,doc_type))
-            thread1.start()
-            (self.text, description,result,keys,values) = self.lic_text.get()
+            self.text, description, result, keys, values, texts = self.Location.get_text(path,doc_type)
             if 'License' in doc_type:
-                licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val = self.licence.get_licence_details1(self.text,keys,values)
+                licence_id, max_date, min_date, iss_date, address, name, state, zipcode, city,date_val = self.licence.get_licence_details1(self.text,keys,values,texts,path)
                 self.scan_text.put((self.text, licence_id, max_date, min_date, iss_date, address, name, state,
                                     zipcode, city,date_val,keys,values))
             elif 'SSN' in doc_type:
@@ -167,8 +171,11 @@ class Scan_OCR:
             application_id=response['application_id']
             url = self.config['base_url'] + response['file_path']
             url=url.replace(" ","%20")
+
             image_on_web = urlopen(url)
             filename = os.path.basename(url)
+            if re.search(r'(!?(&|!|@|#|\$|\^|\*))',filename):
+                filename=filename.replace(re.findall(r'(!?(&|!|@|#|\$|\^|\*))',filename)[0],"")
             buf = image_on_web.read()
             with open("../images/documents_upload/" + filename, "wb") as downloaded_image:
                 downloaded_image.write(buf)
@@ -179,228 +186,407 @@ class Scan_OCR:
             resp_dict = json.loads(json.dumps(r.json()))
             value = resp_dict.get('records')
             json_val = dict([(value[i]['id'], value[i]['name']) for i in range(len(value))])
+            flag = False
             if 'License' in json_val[doc_id]:
-                add={}
+
+
                 if filename.rsplit('.', 1)[1] == 'pdf':
                     thread = threading.Thread(target=self.image_to_pdf,
                                               args=("../images/documents_upload/" + filename, json_val[doc_id],))
                     thread.start()
                     path = self.img2pdf.get()
+                    name_file=os.path.basename(path)
+                    f_path="../images/documents_upload/"+name_file
                     thread = threading.Thread(target=self.image_processing_threading,
-                                              args=(path, json_val[doc_id],))
+                                              args=(f_path, json_val[doc_id],flag,))
                 else:
                     thread = threading.Thread(target=self.image_processing_threading,
-                                              args=("../images/documents_upload/" + filename, json_val[doc_id],))
-
-
+                                              args=("../images/documents_upload/" + filename, json_val[doc_id],flag))
                 thread.start()
                 image_path = self.image_processing.get()
                 thread = threading.Thread(target=self.get_doc,args=(image_path, json_val[doc_id],))
                 thread.start()
-                (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode, city,date_val,conf_keys,
-                 conf_values
-                 ) = self.scan_text.get()
+                (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode, city,date_val,conf_keys,conf_values) = self.scan_text.get()
                 if licence_id == ' ' and exp_date == '' and dob == '' and iss_date == '' and address == '' and name == '' and state == '' and zipcode == '' and city == '':
-
-                     file_path=''
-                     self.scan_result['error_msg']= "Incorrect Document or Unable to Scan"
-                     self.scan_result['status'] = "INCORRECT_DOCUMENT"
-                     #print(self.scan_result)
-                     return self.scan_result,file_path
-                else:
-                    if name == '':
-                        self.name_value.append("")
-                        self.name_value.append("")
-                        self.name_value.append("")
+                    flag = True
+                    if filename.rsplit('.', 1)[1] == 'pdf':
+                        thread = threading.Thread(target=self.image_to_pdf,
+                                                  args=("../images/documents_upload/" + filename,
+                                                        json_val[doc_id],))
+                        thread.start()
+                        path = self.img2pdf.get()
+                        name_file = os.path.basename(path)
+                        f_path = "../images/documents_upload/" + name_file
+                        thread = threading.Thread(target=self.image_processing_threading,
+                                                  args=(path, json_val[doc_id], flag,))
                     else:
-                        print(name)
-                        self.name_value = name.split()
+                        thread = threading.Thread(target=self.image_processing_threading,
+                                                  args=("../images/documents_upload/" + filename,
+                                                        json_val[doc_id], flag,))
+
+                    thread.start()
+                    image_path = self.image_processing.get()
+                    thread = threading.Thread(target=self.get_doc,
+                                              args=(image_path, json_val[doc_id],))
+                    thread.start()
+                    (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode,
+                     city, date_val, conf_keys, conf_values) = self.scan_text.get()
+                    if licence_id == ' ' and address == '' and name == '' and state == '' and zipcode == '' and city == '':
+                        file_path = ''
+                        self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
+                        self.scan_result['status'] = "INCORRECT_DOCUMENT"
+                        # print(self.scan_result)
+                        return self.scan_result, file_path
+                    else:
+                        if name == '':
+                            self.name_value[0] = ''
+                            self.name_value[1] = ''
+                            self.name_value[2] = ''
+                        else:
+                            self.name_value = name.split()
+                            # if self.name_value
+                            if re.search('(!?JR|Jr|jr|jR)', name):
+                                if self.name_value.index(re.findall(r'(!?JR|Jr|jr|jR)', name)[0]) == 1:
+                                    self.name_value[1] = self.name_value[1] + " " + self.name_value[2]
+                                    self.name_value.pop(2)
+                                elif self.name_value.index(re.findall('(!?JR|Jr|jr|jR)', name)[0]) == 3:
+                                    self.name_value[2] = self.name_value[2] + " " + self.name_value[3]
+                                    self.name_value.pop(3)
                         print(self.name_value)
+                        print("len of name", len(self.name_value))
+                        name_seq = ''
+                        for i in range(len(self.state_value['data'])):
+                            if self.state_value['data'][i]['state'] == state:
+                                name_seq = self.state_value['data'][i]['name_seq']
+
+                        if len(self.name_value) == 1:
+                            add = {'first_name': "", 'dob': dob, 'issue_date': iss_date,
+                                   'expiration_date': exp_date,
+                                   'last_name': self.name_value[0], 'address': address,
+                                   'license_id': licence_id,
+                                   "middle_name": "", "state": state, "postal_code": zipcode,
+                                   "city": city,
+                                   "date_val": date_val}
+                        elif 'FN_MN_LN_SUF' == name_seq:
+
+                            if len(self.name_value) == 3:
+                                add = {'first_name': self.name_value[0], 'dob': dob,
+                                       'issue_date': iss_date, 'expiration_date': exp_date,
+                                       'last_name': self.name_value[2], 'address': address,
+                                       'license_id': licence_id,
+                                       "middle_name": self.name_value[1], "state": state,
+                                       "postal_code": zipcode, "city": city, "date_val": date_val}
+                            elif len(self.name_value) == 4:
+                                add = {'first_name': self.name_value[0], 'dob': dob,
+                                       'issue_date': iss_date, 'expiration_date': exp_date,
+                                       'last_name': self.name_value[2] + " " + self.name_value[3],
+                                       'address': address, 'license_id': licence_id,
+                                       "middle_name": self.name_value[1], "state": state,
+                                       "postal_code": zipcode, "city": city, "date_val": date_val}
+                            else:
+                                add = {'first_name': self.name_value[0], 'dob': dob,
+                                       'issue_date': iss_date,
+                                       'expiration_date': exp_date, 'last_name': self.name_value[1],
+                                       'address': address,
+                                       'license_id': licence_id, "middle_name": '', "state": state,
+                                       "postal_code": zipcode, "city": city, "date_val": date_val}
+                        elif 'LN_FN_MN_SUF' == name_seq:
+                            if len(self.name_value) == 3:
+                                add = {'first_name': self.name_value[1], 'dob': dob,
+                                       'issue_date': iss_date, 'expiration_date': exp_date,
+                                       'last_name': self.name_value[0], 'address': address,
+                                       'license_id': licence_id,
+                                       "middle_name": self.name_value[2], "state": state,
+                                       "postal_code": zipcode, "city": city, "date_val": date_val}
+                            elif len(self.name_value) == 4:
+                                add = {'first_name': self.name_value[1], 'dob': dob,
+                                       'issue_date': iss_date, 'expiration_date': exp_date,
+                                       'last_name': self.name_value[0], 'address': address,
+                                       'license_id': licence_id,
+                                       "middle_name": self.name_value[2] + " " + self.name_value[3],
+                                       "state": state,
+                                       "postal_code": zipcode, "city": city,
+                                       "date_val": date_val}
+                            else:
+                                add = {'first_name': self.name_value[1], 'dob': dob,
+                                       'issue_date': iss_date,
+                                       'expiration_date': exp_date, 'last_name': self.name_value[0],
+                                       'address': address,
+                                       'license_id': licence_id, "middle_name": '', "state": state,
+                                       "postal_code": zipcode, "city": city, "date_val": date_val}
+                else:
+                    if licence_id==' ' or dob=='' or name=='' or address=='' or state=='' or city=='' or zipcode=='':
+                        flag=True
+
+                        if filename.rsplit('.', 1)[1] == 'pdf':
+                            thread = threading.Thread(target=self.image_to_pdf,
+                                                      args=("../images/documents_upload/" + filename,
+                                                            json_val[doc_id],))
+                            thread.start()
+                            path = self.img2pdf.get()
+                            name_file = os.path.basename(path)
+                            f_path = "../images/documents_upload/" + name_file
+                            thread = threading.Thread(target=self.image_processing_threading,
+                                                      args=(path, json_val[doc_id], flag,))
+                        else:
+                            thread = threading.Thread(target=self.image_processing_threading,
+                                                      args=("../images/documents_upload/" + filename,
+                                                            json_val[doc_id], flag,))
+
+                        thread.start()
+                        image_path = self.image_processing.get()
+
+                        thread = threading.Thread(target=self.get_doc,args=(image_path, json_val[doc_id],))
+                        thread.start()
+                        (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode,city, date_val, conf_keys,conf_values) = self.scan_text.get()
+                    if licence_id == ' '  and address == '' and name == '' and state == '' and zipcode == '' and city == '':
+                            file_path = ''
+                            self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
+                            self.scan_result['status'] = "INCORRECT_DOCUMENT"
+                            # print(self.scan_result)
+                            return self.scan_result, file_path
+                    else:
+                        if name=='':
+                            self.name_value[0]=''
+                            self.name_value[1]=''
+                            self.name_value[2]=''
+                        else:
+                            self.name_value = name.split()
+                            # if self.name_value
+                            if re.search('(!?JR|Jr|jr|jR)',name):
+                                if self.name_value.index(re.findall(r'(!?JR|Jr|jr|jR)',name)[0]) == 1:
+                                    self.name_value[1] = self.name_value[1] + " " + self.name_value[2]
+                                    self.name_value.pop(2)
+                                elif self.name_value.index(re.findall('(!?JR|Jr|jr|jR)',name)[0])==3:
+                                    self.name_value[2] = self.name_value[2] + " " + self.name_value[3]
+                                    self.name_value.pop(3)
+                            print(self.name_value)
                         print("len of name",len(self.name_value))
-                    if len(self.name_value) == 1:
-                        add = {'first_name': "", 'dob': dob, 'issue_date': iss_date,
-                               'expiration_date': exp_date,
-                               'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
-                               "middle_name": "", "state": state, "postal_code": zipcode, "city": city,
-                               "date_val": date_val}
-                    elif len(self.name_value)==3:
-                        add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
-                               'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
-                               "middle_name": self.name_value[2],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
-                    elif len(self.name_value)==4:
-                        add = {'first_name': self.name_value[2], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
-                               'last_name': self.name_value[1], 'address': address, 'license_id': licence_id,
-                               "middle_name": self.name_value[3],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
-                    elif len(self.name_value)==5:
-                        add = {'first_name': self.name_value[3], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
-                               'last_name': self.name_value[2], 'address': address, 'license_id': licence_id,
-                               "middle_name": self.name_value[4],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
-                    else:
-                        add = {'first_name': self.name_value[1], 'dob': dob, 'issue_date': iss_date,
-                               'expiration_date': exp_date, 'last_name': self.name_value[0], 'address': address,
-                               'license_id': licence_id, "middle_name":'',"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
+                        name_seq=''
+                        for i in range(len(self.state_value['data'])):
+                            if self.state_value['data'][i]['state'] == state:
+                                name_seq = self.state_value['data'][i]['name_seq']
+
+                        if len(self.name_value) == 1:
+                            add = {'first_name': "", 'dob': dob, 'issue_date': iss_date,
+                                   'expiration_date': exp_date,
+                                   'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
+                                   "middle_name": "", "state": state, "postal_code": zipcode, "city": city,
+                                   "date_val": date_val}
+                        if 'FN_MN_LN_SUF' == name_seq:
+
+                            if len(self.name_value)==3:
+                                add = {'first_name': self.name_value[0], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
+                                       'last_name': self.name_value[2], 'address': address, 'license_id': licence_id,
+                                       "middle_name": self.name_value[1],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
+                            elif len(self.name_value)==4:
+                                add = {'first_name': self.name_value[0], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
+                                       'last_name': self.name_value[2]+" "+self.name_value[3], 'address': address, 'license_id': licence_id,
+                                       "middle_name": self.name_value[1],"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
+                            else:
+                                add = {'first_name': self.name_value[0], 'dob': dob, 'issue_date': iss_date,
+                                       'expiration_date': exp_date, 'last_name': self.name_value[1], 'address': address,
+                                       'license_id': licence_id, "middle_name":'',"state":state,"postal_code":zipcode,"city":city,"date_val":date_val}
+                        elif 'LN_FN_MN_SUF' == name_seq:
+                            if len(self.name_value) == 3:
+                                add = {'first_name': self.name_value[1], 'dob': dob,
+                                       'issue_date': iss_date, 'expiration_date': exp_date,
+                                       'last_name': self.name_value[0], 'address': address,
+                                       'license_id': licence_id,
+                                       "middle_name": self.name_value[2], "state": state,
+                                       "postal_code": zipcode, "city": city, "date_val": date_val}
+                            elif len(self.name_value) == 4:
+                                add = {'first_name': self.name_value[1], 'dob': dob,
+                                       'issue_date': iss_date, 'expiration_date': exp_date,
+                                       'last_name': self.name_value[0] , 'address': address, 'license_id': licence_id,
+                                       "middle_name": self.name_value[2]+ " " + self.name_value[3], "state": state,
+                                       "postal_code": zipcode, "city": city,
+                                       "date_val": date_val}
+                            else:
+                                add = {'first_name': self.name_value[1], 'dob': dob,
+                                       'issue_date': iss_date,
+                                       'expiration_date': exp_date, 'last_name': self.name_value[0],
+                                       'address': address,
+                                       'license_id': licence_id, "middle_name": '', "state": state,
+                                       "postal_code": zipcode, "city": city, "date_val": date_val}
                     #print(add)
-                    actual_value = list(add.keys())
-                    actual_value = sorted(actual_value)
-                    add_value = list(add.values())
-                    detected_null_value_count = add_value.count('')
-                    #print("detected_null_value_count value", detected_null_value_count, int(len(add_value) / 2))
-                    partial_not_detected,partial_detected=[],[]
+                actual_value = list(add.keys())
+                actual_value = sorted(actual_value)
+                add_value = list(add.values())
+                detected_null_value_count = add_value.count('')
+                #print("detected_null_value_count value", detected_null_value_count, int(len(add_value) / 2))
+                partial_not_detected,partial_detected=[],[]
 
-                    for i in range(len(response['fields'])):
-                        for j in range(len(actual_value)):
-                            if response['fields'][i]['name'] == actual_value[j]:
-                                response['fields'][i]['field_value_original'] = add[actual_value[j]]
-                                pass
-                    thread = threading.Thread(target=self.get_location, args=(add,image_path,application_id,self.config['base_url'], json_val[doc_id],))
-                    thread.start()
-                    (address_location, licence_id_location, dict_location,file_path) = self.location.get()
-                    thread = threading.Thread(target=self.confidence_score, args=(image_path,json_val[doc_id],add,
-                                                                                  conf_keys,conf_values,))
-                    thread.start()
-                    (date_dict,date_score, address_score, license_score, other_score)=self.confidence.get()
+                for i in range(len(response['fields'])):
+                    for j in range(len(actual_value)):
+                        if response['fields'][i]['name'] == actual_value[j]:
+                            response['fields'][i]['field_value_original'] = add[actual_value[j]]
+                            pass
+                thread = threading.Thread(target=self.get_location, args=(add,image_path,application_id,self.config['base_url'], json_val[doc_id],))
+                thread.start()
+                (address_location, licence_id_location, dict_location,file_path) = self.location.get()
+                thread = threading.Thread(target=self.confidence_score, args=(image_path,json_val[doc_id],add,
+                                                                              conf_keys,conf_values,))
+                thread.start()
+                (date_dict,date_score, address_score, license_score, other_score)=self.confidence.get()
+                reg=''
+                state_regex = re.findall(
+                    r"\b(!?AL|AK|AS|AZ|AŽ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE"
+                    r"|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)",
+                    zipcode)
+                if state_regex != []:
+                    for i in range(len(self.state_value['data'])):
+                        if self.state_value['data'][i]['state'] in state_regex[0]:
+                            reg = self.state_value['data'][i]['license_id']
+                            # print("regex_state_value",self.state_value['data'][i]['state'],self.regex_value)
+                    print("state regex", reg)
+                licence_id = re.findall(reg, self.text)
+                if licence_id==[]:
+                    print("in license details")
+                    license_score=45
+                for i in range(len(response['fields'])):
 
-                    for i in range(len(response['fields'])):
+                        if response['fields'][i]['name']=="address":
+                            for key,value in address_location.items():
+                                self.location_val.append(value)
+                                if response['fields'][i]['field_value_original']!= '':
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        if address_score != 0:
+                                            response['fields'][i]['confidence'] = address_score
+                                        else:
+                                            response['fields'][i]['confidence'] = 63
 
-                            if response['fields'][i]['name']=="address":
-                                for key,value in address_location.items():
-                                    self.location_val.append(value)
-                                    if response['fields'][i]['field_value_original']!= '':
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(list(self.location_val))
-                                            if address_score != 0:
-                                                response['fields'][i]['confidence'] = address_score
-                                            else:
-                                                response['fields'][i]['confidence'] = 63
+                        elif response['fields'][i]['name']=="license_id":
+                            self.location_val.clear()
+                            for key,value in licence_id_location.items():
+                                # print("License key",key)
+                                self.location_val.append(value)
+                                if response['fields'][i]['field_value_original'] != '':
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        if license_score!=0:
+                                            response['fields'][i]['confidence'] = license_score
+                                        else:
+                                            response['fields'][i]['confidence'] = 67
 
-                            elif response['fields'][i]['name']=="license_id":
-                                self.location_val.clear()
-                                for key,value in licence_id_location.items():
-                                    # print("License key",key)
-                                    self.location_val.append(value)
-                                    if response['fields'][i]['field_value_original'] != '':
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(list(self.location_val))
-                                            if license_score!=0:
-                                                response['fields'][i]['confidence'] = license_score
-                                            else:
-                                                response['fields'][i]['confidence'] = 67
+                        elif response['fields'][i]['name'] == "dob":
+                            self.location_val.clear()
+                            for key, value in dict_location.items():
+                                self.location_val.append(value)
+                                if response['fields'][i]['field_value_original'] != '':
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        if date_score!=0:
+                                            response['fields'][i]['confidence'] = date_score
+                                        else:
+                                            response['fields'][i]['confidence'] = 57
 
-                            elif response['fields'][i]['name'] == "dob":
-                                self.location_val.clear()
-                                for key, value in dict_location.items():
-                                    self.location_val.append(value)
-                                    if response['fields'][i]['field_value_original'] != '':
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(list(self.location_val))
-                                            if date_score!=0:
-                                                response['fields'][i]['confidence'] = date_score
-                                            else:
-                                                response['fields'][i]['confidence'] = 57
+                        elif response['fields'][i]['name'] == "first_name":
+                            self.location_val.clear()
 
-                            elif response['fields'][i]['name'] == "first_name":
-                                self.location_val.clear()
+                            for key, value in dict_location.items():
+                                self.location_val.append(value)
+                                key = key.replace(',', '')
+                                if response['fields'][i]['field_value_original'] is not "":
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str(self.location_val)
+                                        if other_score!=0:
+                                            response['fields'][i]['confidence'] = other_score+2
+                                        else:
+                                            response['fields'][i]['confidence'] = 78
 
-                                for key, value in dict_location.items():
-                                    self.location_val.append(value)
-                                    key = key.replace(',', '')
-                                    if response['fields'][i]['field_value_original'] is not "":
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(self.location_val)
-                                            if other_score!=0:
-                                                response['fields'][i]['confidence'] = other_score+2
-                                            else:
-                                                response['fields'][i]['confidence'] = 78
+                        elif response['fields'][i]['name'] == "last_name":
+                            self.location_val.clear()
+                            for key, value in dict_location.items():
+                                self.location_val.append(value)
+                                key = key.replace(',', '')
+                                if response['fields'][i]['field_value_original'] is not "":
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str(self.location_val)
+                                        if other_score!=0:
+                                            response['fields'][i]['confidence'] = other_score+1
+                                        else:
+                                            response['fields'][i]['confidence'] = 73
 
-                            elif response['fields'][i]['name'] == "last_name":
-                                self.location_val.clear()
-                                for key, value in dict_location.items():
-                                    self.location_val.append(value)
-                                    key = key.replace(',', '')
-                                    if response['fields'][i]['field_value_original'] is not "":
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(self.location_val)
-                                            if other_score!=0:
-                                                response['fields'][i]['confidence'] = other_score+1
-                                            else:
-                                                response['fields'][i]['confidence'] = 73
+                        elif response['fields'][i]['name'] == "middle_name":
+                            self.location_val.clear()
+                            for key, value in dict_location.items():
+                                self.location_val.append(value)
+                                key = key.replace(',', '')
+                                if response['fields'][i]['field_value_original'] is not "":
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str(self.location_val)
+                                        if other_score!=0:
+                                            response['fields'][i]['confidence'] = other_score+3
+                                        else:
+                                            response['fields'][i]['confidence'] = 58
 
-                            elif response['fields'][i]['name'] == "middle_name":
-                                self.location_val.clear()
-                                for key, value in dict_location.items():
-                                    self.location_val.append(value)
-                                    key = key.replace(',', '')
-                                    if response['fields'][i]['field_value_original'] is not "":
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(self.location_val)
-                                            if other_score!=0:
-                                                response['fields'][i]['confidence'] = other_score+3
-                                            else:
-                                                response['fields'][i]['confidence'] = 58
+                        elif response['fields'][i]['name'] == "issue_date":
+                            self.location_val.clear()
+                            for key, value in dict_location.items():
+                                self.location_val.append(value)
+                                if response['fields'][i]['field_value_original'] != '':
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        if date_score!=0:
+                                            response['fields'][i]['confidence'] = date_score
+                                        else:
+                                            response['fields'][i]['confidence'] = 53
 
-                            elif response['fields'][i]['name'] == "issue_date":
-                                self.location_val.clear()
-                                for key, value in dict_location.items():
-                                    self.location_val.append(value)
-                                    if response['fields'][i]['field_value_original'] != '':
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(list(self.location_val))
-                                            if date_score!=0:
-                                                response['fields'][i]['confidence'] = date_score
-                                            else:
-                                                response['fields'][i]['confidence'] = 53
+                        elif response['fields'][i]['name'] == "expiration_date":
+                            self.location_val.clear()
+                            for key, value in dict_location.items():
+                                self.location_val.append(value)
+                                if response['fields'][i]['field_value_original'] != '':
+                                    if key in response['fields'][i]['field_value_original']:
+                                        response['fields'][i]['location'] = str(list(self.location_val))
+                                        if date_score!=0:
+                                            response['fields'][i]['confidence'] = date_score
+                                        else:
+                                            response['fields'][i]['confidence'] = 56
 
-                            elif response['fields'][i]['name'] == "expiration_date":
-                                self.location_val.clear()
-                                for key, value in dict_location.items():
-                                    self.location_val.append(value)
-                                    if response['fields'][i]['field_value_original'] != '':
-                                        if key in response['fields'][i]['field_value_original']:
-                                            response['fields'][i]['location'] = str(list(self.location_val))
-                                            if date_score!=0:
-                                                response['fields'][i]['confidence'] = date_score
-                                            else:
-                                                response['fields'][i]['confidence'] = 56
+                        else:
+                            self.location_val.clear()
+                            for key,value in dict_location.items():
+                                self.location_val.append(value)
+                                key=key.replace(',','')
+                                if response['fields'][i]['field_value_original'] is not "":
+                                    if key in response['fields'][i]['field_value_original'] :
+                                        response['fields'][i]['location']=str(self.location_val)
+                                        if other_score!=0:
+                                                response['fields'][i]['confidence'] = other_score
+                                        else:
+                                            response['fields'][i]['confidence'] = 73
 
-                            else:
-                                self.location_val.clear()
-                                for key,value in dict_location.items():
-                                    self.location_val.append(value)
-                                    key=key.replace(',','')
-                                    if response['fields'][i]['field_value_original'] is not "":
-                                        if key in response['fields'][i]['field_value_original'] :
-                                            response['fields'][i]['location']=str(self.location_val)
-                                            if other_score!=0:
-                                                    response['fields'][i]['confidence'] = other_score
-                                            else:
-                                                response['fields'][i]['confidence'] = 73
+                self.scan_result = response
+                if detected_null_value_count != 0:
+                    #print("in If statement")
+                    for key, value in add.items():
+                        if value == 'null':
+                            partial_not_detected.append(key)
+                        else:
+                            partial_detected.append(key)
+                    self.scan_result['error_msg'] = "Partially Detected: "+", ".join(map(str,partial_detected))
 
-                    self.scan_result = response
-                    if detected_null_value_count != 0:
-                        #print("in If statement")
-                        for key, value in add.items():
-                            if value == 'null':
-                                partial_not_detected.append(key)
-                            else:
-                                partial_detected.append(key)
-                        self.scan_result['error_msg'] = "Partially Detected: "+", ".join(map(str,partial_detected))
-
-                        self.scan_result['status']="PARTIAL_DETECTION"
-
-                    else:
-                        self.scan_result['error_msg']= "Successfully Scanned"
-                        self.scan_result["status"]= "SUCCESSFUL"
+                    self.scan_result['status']="PARTIAL_DETECTION"
+                else:
+                    self.scan_result['error_msg']= "Successfully Scanned"
+                    self.scan_result["status"]= "SUCCESSFUL"
             elif 'SSN' in json_val[doc_id]:
+                flag=False
                 if filename.rsplit('.', 1)[1] == 'pdf':
                     thread = threading.Thread(target=self.image_to_pdf,
                                               args=("../images/documents_upload/" + filename, json_val[doc_id],))
                     thread.start()
                     path = self.img2pdf.get()
+                    name_file = os.path.basename(path)
+                    f_path = "../images/documents_upload/" + name_file
                     thread = threading.Thread(target=self.image_processing_threading,
-                                              args=(path, json_val[doc_id],))
+                                              args=(f_path, json_val[doc_id],flag,))
                 else:
                     thread = threading.Thread(target=self.image_processing_threading,
-                                              args=("../images/documents_upload/" + filename, json_val[doc_id],))
+                                              args=("../images/documents_upload/" + filename, json_val[doc_id],flag,))
                 thread.start()
                 image_path = self.image_processing.get()
                 thread = threading.Thread(target=self.get_doc,args=(image_path, json_val[doc_id],))
@@ -471,8 +657,9 @@ class Scan_OCR:
                                               args=("../images/documents_upload/" + filename, json_val[doc_id],))
                     thread.start()
                     path=self.img2pdf.get()
-                    _,filename=os.path.split(path)
-                    thread = threading.Thread(target=self.get_doc_text, args=(path, json_val[doc_id],))
+                    name_file = os.path.basename(path)
+                    f_path = "../images/documents_upload/" + name_file
+                    thread = threading.Thread(target=self.get_doc_text, args=(f_path, json_val[doc_id],))
 
                 else:
                     thread = threading.Thread(target=self.get_doc_text, args=("../images/documents_upload/" + filename,json_val[doc_id],))

@@ -86,41 +86,50 @@ class Denoising:
         kernel = np.ones((3, 2), np.int32)
         erode = cv2.erode(dst, kernel, iterations=0)
         return erode
-    def image_conversion_smooth(self,path,doc_type):
+    def image_conversion_smooth(self,path,doc_type,flag):
         try:
-            img = cv2.imread(path)
-            height, width, _ = img.shape
-            print(height,width)
-            pImg=''
+            pImg = ''
             filename=os.path.basename(path)
-            # print(filename)
-            # head, tail = os.path.split(path)
             if 'License' in doc_type:
                 # img1 = cv2.imread(path,0)
                   #
                   # load as 1-channel 8bit grayscale
                 # img=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                img = Image.open(path).convert('L')
-                width, height = img.size
-                img=np.array(img.copy())
-                image=cv2.GaussianBlur(img.copy(),(3,1),0)
-                # image=cv2.dilate(image,(1,2),0)
-                # image=cv2.fastNlMeansDenoisingColored(img,None,15,21,9,25)
-                maxIntensity = 255.0  # depends on dtype of image data
-                x = arange(maxIntensity)
-                # Parameters for manipulating image data
-                phi = 1
-                theta = 1
-                # Increase intensity such that
-                img1 = (maxIntensity / phi) * (image / (maxIntensity / theta)) ** 1.5
-                # cv2.imwrite("../images/static/" + tail+'_processed', img1)
-                z = (maxIntensity / phi) * (x / (maxIntensity / theta)) ** 1
-
-                pImg = np.hstack((img, img1))
-
-                cv2.imwrite("../Examples/" +str(1)+filename, img1)
+                img1=''
+                if flag==False:
+                    img = Image.open(path)
+                    img = np.array(img.copy())
+                    img1 = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                    img1 = cv2.GaussianBlur(img1.copy(), (1, 1), 0)
+                    # img1 = cv2.fastNlMeansDenoising(img1.copy(), None, 10, 7, 21)
+                    # width, height = img.size
+                    # img.save("../images/static/" + filename)
+                elif flag==True:
+                    img1 = Image.open(path)
+                    img=np.array(img1.copy())
+                    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                    image=cv2.GaussianBlur(img.copy(),(1,1),0)
+                    image = cv2.fastNlMeansDenoising(image.copy(), None, 10, 7, 21)
+                    # image=cv2.dilate(image,(1,2),0)
+                    # image=cv2.fastNlMeansDenoisingColored(img,None,15,21,9,25)
+                    maxIntensity = 255.0  # depends on dtype of image data
+                    x = arange(maxIntensity)
+                    # Parameters for manipulating image data
+                    phi = 1
+                    theta = 1
+                    # Increase intensity such that
+                    img1 = (maxIntensity / phi) * (image / (maxIntensity / theta)) ** 1.5
+                    # cv2.imwrite("../images/static/" + tail+'_processed', img1)
+                    z = (maxIntensity / phi) * (x / (maxIntensity / theta)) ** 1
+                cv2.imwrite("../images/static/" + filename,img1)
+                #
+                # pImg = np.hstack((img, img1))
 
             elif 'SSN' in doc_type:
+                img = cv2.imread(path)
+                height, width, _ = img.shape
+                print(height, width)
+
                 print("im method", path)
                 pImg=cv2.GaussianBlur(img,(3,3),0)
                 # pImg=cv2.fastNlMeansDenoisingColored(image,None,13,13,7,21)
@@ -146,7 +155,7 @@ class Denoising:
                 #     contrast = ImageEnhance.Contrast(sharpImg)
                 #     img = contrast.enhance(1.47)
                 # pImg = np.array(img)
-            cv2.imwrite("../images/static/" + filename, pImg)
+                cv2.imwrite("../images/static/" + filename, pImg)
             print("Done Image Proccessing")
             return "../images/static/" + filename
         except Exception as e:
