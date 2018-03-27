@@ -16,16 +16,18 @@ class SSN_details:
             else:
                 ssn_number = data[0][0]
                 # print(text)
-                name = ' '.join(map(str, text.split(ssn_number, 1)[1].split()[6:9]))
+                name = ' '.join(map(str, text.split(ssn_number, 1)[1].split()[5:9]))
                 actual_name = name.split('2', 1)
                 actual_name = "".join(actual_name)
+                actual_name=actual_name.split('SIGNATURE')
+                actual_name =actual_name[0]
                 actual_name=avoid.replace(actual_name)
                 actual_name=actual_name.replace('.',"")
                 val = re.findall(
-                    r'(((0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|((0[0-9]|1[0-2]))[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d)|((0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d)|(0[0-9]|1[0-9])(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d)',
+                    r'(([1-9]|0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?(19|20|21|22)\d\d)',
                     text)
                 date=val[0][0]
-            return ssn_number,actual_name,str(date)
+            return ssn_number,actual_name,date
         except Exception as E:
 
             data,name,date = "",'',''

@@ -17,27 +17,27 @@ from multiprocessing import Queue
 class get_all_location:
     def __init__(self):
         self.client = vision.ImageAnnotatorClient()
-        self.result={}
-        self.address_val={}
-        self.licence_id={}
-        self.ssn={}
-        self.name={}
-        self.date={}
-        self.pay_Val=Queue()
-        self.keys=[]
-        self.values=[]
+        self.result = {}
+        self.address_val = {}
+        self.licence_id = {}
+        self.ssn = {}
+        self.name = {}
+        self.date = {}
+        self.pay_Val = Queue()
+        self.keys = []
+        self.values = []
         self.dict = {}
-        self.conf_keys,self.conf_values=[],[]
-        self.conf_result={}
-        self.emp_name,self.employee_name={},{}
-        self.emp_address,self.employee_address={},{}
-        self.description=[]
-        self.text_val=[]
-        self.location_json=''
-        self.regular1,self.regular2,self.regular3,self.regular4,self.regular5,self.regular6,self.regular7,self.regular8,self.regular9,self.regular10={},{},{},{},{},{},{},{},{},{}
-        self.tax1,self.tax2,self.tax3,self.tax4,self.tax5,self.tax6,self.tax7,self.tax8,self.tax9,self.tax10={},{},{},{},{},{},{},{},{},{}
-        self.deduction1,self.deduction2,self.deduction3,self.deduction4,self.deduction5,self.deduction6,self.deduction7,self.deduction8,self.deduction9,self.deduction10,self.deduction11,self.deduction12,self.deduction13,self.deduction14,self.deduction15={},{},{},{},{},{},{},{},{},{},{},{},{},{},{}
-        self.pay_start_date,self.pay_end_date,self.pay_date={},{},{}
+        self.conf_keys, self.conf_values = [], []
+        self.conf_result = {}
+        self.emp_name, self.employee_name = {}, {}
+        self.emp_address, self.employee_address = {}, {}
+        self.description = []
+        self.text_val = []
+        self.location_json = ''
+        self.regular1, self.regular2, self.regular3, self.regular4, self.regular5, self.regular6, self.regular7, self.regular8, self.regular9, self.regular10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8, self.tax9, self.tax10 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        self.deduction1, self.deduction2, self.deduction3, self.deduction4, self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9, self.deduction10, self.deduction11, self.deduction12, self.deduction13, self.deduction14, self.deduction15 = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        self.pay_start_date, self.pay_end_date, self.pay_date = {}, {}, {}
 
     def paystub_value(self, value_data, path):
         img = cv2.imread(path)

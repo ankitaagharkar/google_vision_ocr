@@ -2,13 +2,11 @@ import json
 import re
 import threading
 from multiprocessing import Queue
-
 from urllib.request import urlopen
 import sys
 import os
-
 import subprocess
-
+from PIL import Image
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../all_documents')
 sys.path.insert(0, '../image_processing')
@@ -25,6 +23,24 @@ import confidence_score
 
 class Scan_OCR:
     def __init__(self):
+        self.regular_earnings=["Regular","Earnings","Wages","Regular Wages","Regular Time","Base Salary","Regular Salary","Salary"]
+        self.Vacation=["Holiday","Holiday Time","Holiday Premiu","Float Holiday","Vacation"]
+        self.Overtime=["Overtime","St Time O/T"]
+        self.Bonus=["Bonus"]
+        self.commission=["Commission"]
+        self.federal_taxes=["Federal Taxes","Federal Income Tax","Federal Witholdings","Federal W/H","Fed Tax","Fed Income Tax","Fed Witholdings","Fed W/H","FFD W/H","FFD Taxes","FFD Tax"]
+        self.SSI=["SSI Tax","Social Security Tax","Socail Security","FICA","Soc Sec"]
+        self.Medicare=["Medicare Tax","FED Medicare Tax","Medicare"]
+        self.tax_di=["DI","Disability Tax"]
+        self.tax_oasdi=["OASDI"]
+        self.State=["State Income Tax","Withholding Tax","State Income","SIT"]
+        self.City=["Cit Income Tax","City Re"]
+        self.pre_duction_K=["401K","401K$","401(K)"]
+        self.pre_duction_medicare=["Medical Pre Tax","Medical","Med125","Med Pre Tax"]
+        self.pre_duction_vision=["Vision Pre Tax","Vision"]
+        self.pre_duction_health=["Hlth Sau","Health","Health Pre Tax"]
+        self.pre_duction_dental=["Dental Pre Tax","Dental"]
+        self.post_duction_disability=["Voluntary Disability","State DI"]
 
         self.scan_text = Queue()
         self.image_processing =Queue()
@@ -78,7 +94,7 @@ class Scan_OCR:
             filename1 = filename.split('.', 1)[0] + ".jpg"
             f_path= "C:/Users/ankitaa/PycharmProjects/iDocufy_OCR/images/documents_upload/" + filename1
             #process = subprocess.Popen(['C:\\Program Files (x86)\\ImageMagick-6.9.3-Q16\\convert.exe', '-density', ' 300','-trim', image_path1, '-quality', '100',f_path,shell=True])
-            process = subprocess.call('convert -density 300 -trim ' +image_path1+ ' -quality 200 '+f_path,shell=True)
+            process = subprocess.call('convert -density 200 -trim ' +image_path1+ ' -quality 100 '+f_path,shell=True)
             # if 'Paystub' in doc_type:
             #     _, filename = os.path.split(image_path)
             #
@@ -166,6 +182,7 @@ class Scan_OCR:
             print(e)
     def all_details(self,response):
         try:
+            f_path=''
             file_path=''
             doc_id = int(response['doc_id'])
             application_id=response['application_id']
@@ -218,7 +235,7 @@ class Scan_OCR:
                         name_file = os.path.basename(path)
                         f_path = "../images/documents_upload/" + name_file
                         thread = threading.Thread(target=self.image_processing_threading,
-                                                  args=(path, json_val[doc_id], flag,))
+                                                  args=(f_path, json_val[doc_id], flag,))
                     else:
                         thread = threading.Thread(target=self.image_processing_threading,
                                                   args=("../images/documents_upload/" + filename,
@@ -232,11 +249,12 @@ class Scan_OCR:
                     (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode,
                      city, date_val, conf_keys, conf_values) = self.scan_text.get()
                     if licence_id == ' ' and address == '' and name == '' and state == '' and zipcode == '' and city == '':
-                        file_path = ''
-                        self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
+                        self.scan_result = response
+                        rej_path,size,resolution = self.rejected_image(image_path)
+                        self.scan_result['error_msg'] = "Could Be One Of The Reason: Size: "+size+"/ Resolution: "+resolution
                         self.scan_result['status'] = "INCORRECT_DOCUMENT"
-                        # print(self.scan_result)
-                        return self.scan_result, file_path
+                        print(self.scan_result)
+                        return self.scan_result, rej_path
                     else:
                         if name == '':
                             self.name_value[0] = ''
@@ -315,7 +333,7 @@ class Scan_OCR:
                                        'license_id': licence_id, "middle_name": '', "state": state,
                                        "postal_code": zipcode, "city": city, "date_val": date_val}
                 else:
-                    if licence_id==' ' or dob=='' or name=='' or address=='' or state=='' or city=='' or zipcode=='':
+                    if licence_id==' ' or dob=='' or name=='' or address=='' or state=='' or city=='':
                         flag=True
 
                         if filename.rsplit('.', 1)[1] == 'pdf':
@@ -340,11 +358,15 @@ class Scan_OCR:
                         thread.start()
                         (self.text, licence_id, exp_date, dob, iss_date, address, name, state, zipcode,city, date_val, conf_keys,conf_values) = self.scan_text.get()
                     if licence_id == ' '  and address == '' and name == '' and state == '' and zipcode == '' and city == '':
-                            file_path = ''
-                            self.scan_result['error_msg'] = "Incorrect Document or Unable to Scan"
-                            self.scan_result['status'] = "INCORRECT_DOCUMENT"
-                            # print(self.scan_result)
-                            return self.scan_result, file_path
+                        self.scan_result=response
+                        rej_path, size, resolution = self.rejected_image(image_path)
+                        self.scan_result['error_msg'] = "Could Be One Of The Reason: Size: "+size+"/ Resolution: "+resolution
+
+
+                        self.scan_result['status'] = "INCORRECT_DOCUMENT"
+                        print(self.scan_result)
+
+                        return self.scan_result, rej_path
                     else:
                         if name=='':
                             self.name_value[0]=''
@@ -373,7 +395,7 @@ class Scan_OCR:
                                    'last_name': self.name_value[0], 'address': address, 'license_id': licence_id,
                                    "middle_name": "", "state": state, "postal_code": zipcode, "city": city,
                                    "date_val": date_val}
-                        if 'FN_MN_LN_SUF' == name_seq:
+                        elif 'FN_MN_LN_SUF' == name_seq:
 
                             if len(self.name_value)==3:
                                 add = {'first_name': self.name_value[0], 'dob': dob, 'issue_date': iss_date, 'expiration_date': exp_date,
@@ -563,11 +585,37 @@ class Scan_OCR:
                 if detected_null_value_count != 0:
                     #print("in If statement")
                     for key, value in add.items():
-                        if value == 'null':
+                        if value == '' or value==' ':
                             partial_not_detected.append(key)
+
                         else:
                             partial_detected.append(key)
-                    self.scan_result['error_msg'] = "Partially Detected: "+", ".join(map(str,partial_detected))
+
+                    for i in range(len(partial_not_detected)):
+                        if partial_not_detected[i]=='first_name':
+                            partial_not_detected[i]=partial_not_detected[i].replace('first_name',"First Name")
+                        elif partial_not_detected[i]=='last_name':
+                            partial_not_detected[i]=partial_not_detected[i].replace('last_name',"Last Name")
+                        elif partial_not_detected[i]=='middle_name':
+                            partial_not_detected[i]=partial_not_detected[i].replace('middle_name',"Middle Name")
+                        elif partial_not_detected[i]=='address':
+                            partial_not_detected[i]=partial_not_detected[i].replace('address',"Address")
+                        elif partial_not_detected[i]=='zipcode':
+                            partial_not_detected[i]=partial_not_detected[i].replace('zipcode',"Zipcode")
+                        elif partial_not_detected[i]=='city':
+                            partial_not_detected[i]=partial_not_detected[i].replace('city',"City")
+                        elif partial_not_detected[i]=='state':
+                            partial_not_detected[i]=partial_not_detected[i].replace('state',"State")
+                        elif partial_not_detected[i]=='dob':
+                            partial_not_detected[i]=partial_not_detected[i].replace('dob',"Date of Birth")
+                        elif partial_not_detected[i]=='issue_date':
+                            partial_not_detected[i]=partial_not_detected[i].replace('issue_date',"Issue Date")
+                        elif partial_not_detected[i]=='expiration_date':
+                            partial_not_detected[i]=partial_not_detected[i].replace('expiration_date',"Expiry Date")
+                        elif partial_not_detected[i]=='license_id':
+                            partial_not_detected[i]=partial_not_detected[i].replace('license_id',"License Id")
+
+                    self.scan_result['error_msg'] = "Field(s) Not Detected: "+",".join(map(str,partial_not_detected))
 
                     self.scan_result['status']="PARTIAL_DETECTION"
                 else:
@@ -604,7 +652,7 @@ class Scan_OCR:
                     add={}
                     if len(actual_name)==2:
                         add = {"ssn_number": SSN_Number, "ssn_firstname":  actual_name[0], "ssn_lastname":
-                            actual_name[1], "ssn_middlename":  '','date':date,'ssn_name':""}
+                            actual_name[1], "ssn_middlename":  '','ssn_date':date,'ssn_name':""}
                     elif len(actual_name)==3:
                         add = {"ssn_number": SSN_Number, "ssn_firstname":  actual_name[0], "ssn_lastname":
                             actual_name[2], "ssn_middlename": actual_name[1],'ssn_date':date,'ssn_name':""}
@@ -671,6 +719,12 @@ class Scan_OCR:
                     self.scan_result['status'] = "INCORRECT_DOCUMENT"
                     return self.scan_result, file_path
                 else:
+                    pra,prb,prc,prd,pre,poa,pob,poc,pod,poe=0,0,0,0,0,0,0,0,0,0
+                    b=0
+                    c=0
+                    d=0
+                    e=0
+                    f,g,h=0,0,0
                     j=0
                     k=0
                     l=0
@@ -683,71 +737,617 @@ class Scan_OCR:
                     s=0
                     t=0
                     u=0
-                    v=0
+                    v,w,x,y,z=0,0,0,0,0
                     for i in range(len(response['fields'])):
-                        if 'regular' in response['fields'][i]['alias']:
-                            if k < len(earnings):
+                        if 'regular_earn' in response['fields'][i]['name']:
+                            for a in range(len(earnings)):
+                                
+                                if self.regular_earnings[b].lower() in earnings[a].lower():
+                                    response['fields'][i]['alias'] = earnings[a]
+                                    response['fields'][i]['field_value_original'] = current_earnings[a]
+                                    response['fields'][i]['optional_value'] = ytd_earnings[a]
+                                    response['fields'][i]['hrs'] = hrs_regular[a]
+                                    response['fields'][i]['rates'] = rate_regular[a]
+                                    earnings.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
 
-                                response['fields'][i]['alias'] = earnings[k]
-                                response['fields'][i]['field_value_original'] = current_earnings[k]
-                                response['fields'][i]['optional_value'] = ytd_earnings[k]
-                                response['fields'][i]['hrs'] = hrs_regular[k]
-                                response['fields'][i]['rates'] = rate_regular[k]
-                                k = k + 1
-                            else:
-                                response['fields'][i]['alias'] = ''
-                                response['fields'][i]['field_value_original'] = ''
-                                response['fields'][i]['optional_value'] = ''
-                                response['fields'][i]['hrs'] = ''
-                                response['fields'][i]['rates'] = ''
-                        elif 'tax' == response['fields'][i]['alias']:
-                            if j < len(taxes):
+                            b = b + 1
+                        elif 'regular_bonus' in response['fields'][i]['name']:
+                            for a in range(len(earnings)):
+                                
+                                if self.Bonus[c].lower() in earnings[a].lower():
+                                    response['fields'][i]['alias'] = earnings[a]
+                                    response['fields'][i]['field_value_original'] = current_earnings[a]
+                                    response['fields'][i]['optional_value'] = ytd_earnings[a]
+                                    response['fields'][i]['hrs'] = hrs_regular[a]
+                                    response['fields'][i]['rates'] = rate_regular[a]
+                                    earnings.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            c = c + 1
+                        elif 'regular_vacation' in response['fields'][i]['name']:
+                            for w in range(len(earnings)):
+                                
+                                if self.Vacation[d].lower() in earnings[w].lower():
+                                    response['fields'][i]['alias'] = earnings[w]
+                                    response['fields'][i]['field_value_original'] = current_earnings[w]
+                                    response['fields'][i]['optional_value'] = ytd_earnings[w]
+                                    response['fields'][i]['hrs'] = hrs_regular[w]
+                                    response['fields'][i]['rates'] = rate_regular[w]
+                                    earnings.pop(w)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            d = d + 1
+                        elif 'regular_overtime' in response['fields'][i]['name']:
+                            for a in range(len(earnings)):
+                                
+                                if self.Overtime[e].lower() in earnings[a].lower():
+                                    response['fields'][i]['alias'] = earnings[a]
+                                    response['fields'][i]['field_value_original'] = current_earnings[a]
+                                    response['fields'][i]['optional_value'] = ytd_earnings[a]
+                                    response['fields'][i]['hrs'] = hrs_regular[a]
+                                    response['fields'][i]['rates'] = rate_regular[a]
+                                    earnings.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            e = e + 1
+                        elif 'regular_commision' in response['fields'][i]['name']:
+                            for a in range(len(earnings)):
+                                
+                                if self.commission[f].lower() in earnings[a].lower():
+                                    response['fields'][i]['alias'] = earnings[a]
+                                    response['fields'][i]['field_value_original'] = current_earnings[a]
+                                    response['fields'][i]['optional_value'] = ytd_earnings[a]
+                                    response['fields'][i]['hrs'] = hrs_regular[a]
+                                    response['fields'][i]['rates'] = rate_regular[a]
+                                    earnings.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            f = f + 1
+                        elif 'tax_federal' in response['fields'][i]['name']:
+                            for a in range(len(taxes)):
+                                
+                                if self.federal_taxes[f].lower() in taxes[a].lower():
+                                    response['fields'][i]['alias'] = taxes[a]
+                                    response['fields'][i]['field_value_original'] = current_taxes[a]
+                                    response['fields'][i]['optional_value'] = ytd_taxes[a]
+                                    response['fields'][i]['hrs'] = hrs_taxes[a]
+                                    response['fields'][i]['rates'] = rate_taxes[a]
+                                    taxes.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            f = f + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                f=0
+                                for a in range(len(pre_deduction)):
 
-                                response['fields'][i]['alias'] = taxes[j]
-                                response['fields'][i]['field_value_original'] = current_taxes[j]
-                                response['fields'][i]['optional_value'] = ytd_taxes[j]
-                                response['fields'][i]['hrs'] = hrs_taxes[j]
-                                response['fields'][i]['rates'] = rate_taxes[j]
-                                j = j + 1
-                            else:
-                                response['fields'][i]['alias'] = ''
-                                response['fields'][i]['field_value_original'] = ''
-                                response['fields'][i]['optional_value'] = ''
-                                response['fields'][i]['hrs'] = ''
-                                response['fields'][i]['rates'] = ''
-                        elif 'other' == response['fields'][i]['alias']:
-                            if 'pre deduction' == response['fields'][i]['section_name']:
-                                if l < len(pre_deduction):
-                                    response['fields'][i]['alias'] = pre_deduction[l]
-                                    response['fields'][i]['field_value_original'] = current_pre_deduction[l]
-                                    response['fields'][i]['optional_value'] = ytd_pre_deduction[l]
-                                    response['fields'][i]['hrs'] = hrs_pre_deduction[l]
-                                    response['fields'][i]['rates'] = rate_pre_deduction[l]
-                                    l = l + 1
+                                    if self.federal_taxes[f].lower() in pre_deduction[a].lower():
+                                        response['fields'][i]['alias'] = pre_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_pre_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_pre_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                        response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                f = f + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                f=0
+                                for a in range(len(post_deduction)):
+
+                                    if self.federal_taxes[f].lower() in post_deduction[a].lower():
+                                        response['fields'][i]['alias'] = post_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_post_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_post_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_post_deduction[a]
+                                        response['fields'][i]['rates'] = rate_post_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                f = f + 1
+                        elif 'tax_state' in response['fields'][i]['name']:
+                            for a in range(len(taxes)):
+                                
+                                if self.State[g].lower() in taxes[a].lower():
+                                    response['fields'][i]['alias'] = taxes[a]
+                                    response['fields'][i]['field_value_original'] = current_taxes[a]
+                                    response['fields'][i]['optional_value'] = ytd_taxes[a]
+                                    response['fields'][i]['hrs'] = hrs_taxes[a]
+                                    response['fields'][i]['rates'] = rate_taxes[a]
+                                    taxes.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            g = g + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                g=0
+                                for a in range(len(pre_deduction)):
+
+                                    if self.federal_taxes[g].lower() in pre_deduction[a].lower():
+                                        response['fields'][i]['alias'] = pre_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_pre_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_pre_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                        response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                g = g + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                g=0
+                                for a in range(len(post_deduction)):
+
+                                    if self.federal_taxes[g].lower() in post_deduction[a].lower():
+                                        response['fields'][i]['alias'] = post_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_post_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_post_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_post_deduction[a]
+                                        response['fields'][i]['rates'] = rate_post_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                g = g + 1
+                        elif 'tax_city' in response['fields'][i]['name']:
+                            for a in range(len(taxes)):
+                                
+                                if self.City[h].lower() in taxes[a].lower():
+                                    response['fields'][i]['alias'] = taxes[a]
+                                    response['fields'][i]['field_value_original'] = current_taxes[a]
+                                    response['fields'][i]['optional_value'] = ytd_taxes[a]
+                                    response['fields'][i]['hrs'] = hrs_taxes[a]
+                                    response['fields'][i]['rates'] = rate_taxes[a]
+                                    taxes.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            h = h + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                h=0
+                                for a in range(len(pre_deduction)):
+
+                                    if self.federal_taxes[h].lower() in pre_deduction[a].lower():
+                                        response['fields'][i]['alias'] = pre_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_pre_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_pre_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                        response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                h = h + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                h=0
+                                for a in range(len(post_deduction)):
+
+                                    if self.federal_taxes[h].lower() in post_deduction[a].lower():
+                                        response['fields'][i]['alias'] = post_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_post_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_post_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_post_deduction[a]
+                                        response['fields'][i]['rates'] = rate_post_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                h = h + 1
+                        elif 'tax_medicare' in response['fields'][i]['name']:
+                            for a in range(len(taxes)):
+                                
+                                if self.Medicare[v].lower() in taxes[a].lower():
+                                    response['fields'][i]['alias'] = taxes[a]
+                                    response['fields'][i]['field_value_original'] = current_taxes[a]
+                                    response['fields'][i]['optional_value'] = ytd_taxes[a]
+                                    response['fields'][i]['hrs'] = hrs_taxes[a]
+                                    response['fields'][i]['rates'] = rate_taxes[a]
+                                    taxes.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            v = v + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                v=0
+                                for a in range(len(pre_deduction)):
+
+                                    if self.federal_taxes[v].lower() in pre_deduction[a].lower():
+                                        response['fields'][i]['alias'] = pre_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_pre_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_pre_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                        response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                v = v + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                v=0
+                                for a in range(len(post_deduction)):
+
+                                    if self.federal_taxes[v].lower() in post_deduction[a].lower():
+                                        response['fields'][i]['alias'] = post_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_post_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_post_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_post_deduction[a]
+                                        response['fields'][i]['rates'] = rate_post_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                v = v + 1
+                        elif 'tax_ss' in response['fields'][i]['name']:
+                            for a in range(len(taxes)):
+                                
+                                if self.SSI[x].lower() in taxes[a].lower():
+                                    response['fields'][i]['alias'] = taxes[a]
+                                    response['fields'][i]['field_value_original'] = current_taxes[a]
+                                    response['fields'][i]['optional_value'] = ytd_taxes[a]
+                                    response['fields'][i]['hrs'] = hrs_taxes[a]
+                                    response['fields'][i]['rates'] = rate_taxes[a]
+                                    taxes.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            x = x + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                x=0
+                                for a in range(len(pre_deduction)):
+
+                                    if self.federal_taxes[x].lower() in pre_deduction[a].lower():
+                                        response['fields'][i]['alias'] = pre_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_pre_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_pre_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                        response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                x = x + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                x=0
+                                for a in range(len(post_deduction)):
+
+                                    if self.federal_taxes[x].lower() in post_deduction[a].lower():
+                                        response['fields'][i]['alias'] = post_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_post_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_post_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_post_deduction[a]
+                                        response['fields'][i]['rates'] = rate_post_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                x = x + 1
+                        elif 'tax_di' in response['fields'][i]['name']:
+                            for a in range(len(taxes)):
+                                
+                                if self.tax_di[y].lower() in taxes[a].lower():
+                                    response['fields'][i]['alias'] = taxes[a]
+                                    response['fields'][i]['field_value_original'] = current_taxes[a]
+                                    response['fields'][i]['optional_value'] = ytd_taxes[a]
+                                    response['fields'][i]['hrs'] = hrs_taxes[a]
+                                    response['fields'][i]['rates'] = rate_taxes[a]
+                                    taxes.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            y= y + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                y=0
+                                for a in range(len(pre_deduction)):
+
+                                    if self.federal_taxes[y].lower() in pre_deduction[a].lower():
+                                        response['fields'][i]['alias'] = pre_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_pre_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_pre_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                        response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                y = y + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                y=0
+                                for a in range(len(post_deduction)):
+
+                                    if self.federal_taxes[y].lower() in post_deduction[a].lower():
+                                        response['fields'][i]['alias'] = post_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_post_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_post_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_post_deduction[a]
+                                        response['fields'][i]['rates'] = rate_post_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                y = y + 1
+                        elif 'tax_oasdi' in response['fields'][i]['name']:
+                            for a in range(len(taxes)):
+                                
+                                if self.tax_oasdi[z].lower() in taxes[a].lower():
+                                    response['fields'][i]['alias'] = taxes[a]
+                                    response['fields'][i]['field_value_original'] = current_taxes[a]
+                                    response['fields'][i]['optional_value'] = ytd_taxes[a]
+                                    response['fields'][i]['hrs'] = hrs_taxes[a]
+                                    response['fields'][i]['rates'] = rate_taxes[a]
+                                    taxes.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] =''
+                                    response['fields'][i]['rates'] = ''
+                            z= z + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                z=0
+                                for a in range(len(pre_deduction)):
+
+                                    if self.federal_taxes[z].lower() in pre_deduction[a].lower():
+                                        response['fields'][i]['alias'] = pre_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_pre_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_pre_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                        response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                z = z + 1
+                            if response['fields'][i]['field_value_original']=='':
+                                z=0
+                                for a in range(len(post_deduction)):
+
+                                    if self.federal_taxes[z].lower() in post_deduction[a].lower():
+                                        response['fields'][i]['alias'] = post_deduction[a]
+                                        response['fields'][i]['field_value_original'] = \
+                                        current_post_deduction[a]
+                                        response['fields'][i]['optional_value'] =ytd_post_deduction[a]
+                                        response['fields'][i]['hrs'] = hrs_post_deduction[a]
+                                        response['fields'][i]['rates'] = rate_post_deduction[a]
+                                        taxes.pop(a)
+                                        break
+                                    else:
+                                        response['fields'][i]['alias'] = ''
+                                        response['fields'][i]['field_value_original'] = ''
+                                        response['fields'][i]['optional_value'] = ''
+                                        response['fields'][i]['hrs'] = ''
+                                        response['fields'][i]['rates'] = ''
+                                z = z + 1
+                        elif 'pre_deduction_401k' in response['fields'][i]['name']:
+                            for a in range(len(pre_deduction)):
+
+                                if self.pre_duction_K[pra].lower() in pre_deduction[a].lower():
+                                    response['fields'][i]['alias'] = pre_deduction[a]
+                                    response['fields'][i]['field_value_original'] = \
+                                    current_earnings[a]
+                                    response['fields'][i]['optional_value'] = ytd_pre_deduction[a]
+                                    response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                    response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                    pre_deduction.pop(a)
+                                    break
                                 else:
                                     response['fields'][i]['alias'] = ''
                                     response['fields'][i]['field_value_original'] = ''
                                     response['fields'][i]['optional_value'] = ''
                                     response['fields'][i]['hrs'] = ''
                                     response['fields'][i]['rates'] = ''
-                            elif 'post deduction' == response['fields'][i]['section_name']:
-                                if m < len(post_deduction):
-                                    response['fields'][i]['alias'] = post_deduction[m]
-                                    response['fields'][i]['field_value_original'] = current_post_deduction[m]
-                                    response['fields'][i]['optional_value'] = ytd_post_deduction[m]
-                                    response['fields'][i]['hrs'] = hrs_post_deduction[m]
-                                    response['fields'][i]['rates'] =rate_post_deduction[m]
-                                    m = m + 1
+
+                            pra = pra + 1
+                        elif 'pre_deduction_medical' in response['fields'][i]['name']:
+                            for a in range(len(pre_deduction)):
+
+                                if self.pre_duction_medicare[prb].lower() in pre_deduction[a].lower():
+                                    response['fields'][i]['alias'] = pre_deduction[a]
+                                    response['fields'][i]['field_value_original'] = \
+                                    current_earnings[a]
+                                    response['fields'][i]['optional_value'] = ytd_pre_deduction[a]
+                                    response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                    response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                    pre_deduction.pop(a)
+                                    break
                                 else:
                                     response['fields'][i]['alias'] = ''
                                     response['fields'][i]['field_value_original'] = ''
                                     response['fields'][i]['optional_value'] = ''
                                     response['fields'][i]['hrs'] = ''
-                                    response['fields'][i]['rates'] =''
+                                    response['fields'][i]['rates'] = ''
+
+                            prb = prb + 1
+                        elif 'pre_deduction_vision' in response['fields'][i]['name']:
+                            for a in range(len(pre_deduction)):
+
+                                if self.pre_duction_vision[prc].lower() in pre_deduction[a].lower():
+                                    response['fields'][i]['alias'] = pre_deduction[a]
+                                    response['fields'][i]['field_value_original'] = \
+                                        current_earnings[a]
+                                    response['fields'][i]['optional_value'] = ytd_pre_deduction[a]
+                                    response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                    response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                    pre_deduction.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] = ''
+                                    response['fields'][i]['rates'] = ''
+
+                            prc = prc + 1
+                        elif 'pre_deduction_health' in response['fields'][i]['name']:
+                            for a in range(len(pre_deduction)):
+
+                                if self.pre_duction_health[prd].lower() in pre_deduction[a].lower():
+                                    response['fields'][i]['alias'] = pre_deduction[a]
+                                    response['fields'][i]['field_value_original'] = \
+                                        current_earnings[a]
+                                    response['fields'][i]['optional_value'] = ytd_pre_deduction[a]
+                                    response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                    response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                    pre_deduction.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] = ''
+                                    response['fields'][i]['rates'] = ''
+
+                            prd = prd + 1
+                        elif 'pre_deduction_dental' in response['fields'][i]['name']:
+                            for a in range(len(pre_deduction)):
+
+                                if self.pre_duction_dental[pre].lower() in pre_deduction[a].lower():
+                                    response['fields'][i]['alias'] = pre_deduction[a]
+                                    response['fields'][i]['field_value_original'] = \
+                                        current_earnings[a]
+                                    response['fields'][i]['optional_value'] = ytd_pre_deduction[a]
+                                    response['fields'][i]['hrs'] = hrs_pre_deduction[a]
+                                    response['fields'][i]['rates'] = rate_pre_deduction[a]
+                                    pre_deduction.pop(a)
+                                    break
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] = ''
+                                    response['fields'][i]['rates'] = ''
+
+                            pre = pre + 1
+
+                        #     else:
+                        #         response['fields'][i]['alias'] = ''
+                        #         response['fields'][i]['field_value_original'] = ''
+                        #         response['fields'][i]['optional_value'] = ''
+                        #         response['fields'][i]['hrs'] = ''
+                        #         response['fields'][i]['rates'] = ''
+
                         elif 'gross_pay' == response['fields'][i]['name']:
                             response['fields'][i]['field_value_original'] = current_gross_pay
                             response['fields'][i]['optional_value'] = ytd_gross_pay
-                        elif 'net_pay' == response['fields'][i]['name']:
+                        if 'net_pay' == response['fields'][i]['name']:
                             response['fields'][i]['field_value_original'] = current_net_pay
                             response['fields'][i]['optional_value'] = ytd_net_pay
                         elif 'employee_name' == response['fields'][i]['name']:
@@ -927,8 +1527,67 @@ class Scan_OCR:
                             response['fields'][i]['optional_value'] = ""
                         else:
                             pass
+                    for i in range(len(response['fields'])):
+                        if 'regular' in response['fields'][i]['alias']:
+                            if k < len(earnings):
 
-                    print("in main paystub response",response)
+                                response['fields'][i]['alias'] = earnings[k]
+                                response['fields'][i]['field_value_original'] = current_earnings[k]
+                                response['fields'][i]['optional_value'] = ytd_earnings[k]
+                                response['fields'][i]['hrs'] = hrs_regular[k]
+                                response['fields'][i]['rates'] = rate_regular[k]
+                                k = k + 1
+                            else:
+                                response['fields'][i]['alias'] = ''
+                                response['fields'][i]['field_value_original'] = ''
+                                response['fields'][i]['optional_value'] = ''
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'tax' == response['fields'][i]['alias']:
+                            if j < len(taxes):
+
+                                response['fields'][i]['alias'] = taxes[j]
+                                response['fields'][i]['field_value_original'] = current_taxes[j]
+                                response['fields'][i]['optional_value'] = ytd_taxes[j]
+                                response['fields'][i]['hrs'] = hrs_taxes[j]
+                                response['fields'][i]['rates'] = rate_taxes[j]
+                                j = j + 1
+                            else:
+                                response['fields'][i]['alias'] = ''
+                                response['fields'][i]['field_value_original'] = ''
+                                response['fields'][i]['optional_value'] = ''
+                                response['fields'][i]['hrs'] = ''
+                                response['fields'][i]['rates'] = ''
+                        elif 'other' == response['fields'][i]['alias']:
+                            if 'pre deduction' == response['fields'][i]['section_name']:
+                                if l < len(pre_deduction):
+                                    response['fields'][i]['alias'] = pre_deduction[l]
+                                    response['fields'][i]['field_value_original'] = current_pre_deduction[l]
+                                    response['fields'][i]['optional_value'] = ytd_pre_deduction[l]
+                                    response['fields'][i]['hrs'] = hrs_pre_deduction[l]
+                                    response['fields'][i]['rates'] = rate_pre_deduction[l]
+                                    l = l + 1
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] = ''
+                                    response['fields'][i]['rates'] = ''
+                            elif 'post deduction' == response['fields'][i]['section_name']:
+                                if m < len(post_deduction):
+                                    response['fields'][i]['alias'] = post_deduction[m]
+                                    response['fields'][i]['field_value_original'] = current_post_deduction[m]
+                                    response['fields'][i]['optional_value'] = ytd_post_deduction[m]
+                                    response['fields'][i]['hrs'] = hrs_post_deduction[m]
+                                    response['fields'][i]['rates'] = rate_post_deduction[m]
+                                    m = m + 1
+                                else:
+                                    response['fields'][i]['alias'] = ''
+                                    response['fields'][i]['field_value_original'] = ''
+                                    response['fields'][i]['optional_value'] = ''
+                                    response['fields'][i]['hrs'] = ''
+                                    response['fields'][i]['rates'] = ''
+                        print("in main paystub response",response)
                     # thread=threading.Thread(target=self.get_location,args=(response, "../images/documents_upload/" + filename, application_id, self.config['base_url'],json_val[doc_id],))
                     # thread.start()
                     # (emp_name, employee_name, emp_address, employee_address, regular1, regular2, regular3, regular4,
@@ -1314,7 +1973,7 @@ class Scan_OCR:
                     self.scan_result = response
                     self.scan_result['error_msg'] = "Successfully Scanned"
                     self.scan_result["status"] = "SUCCESSFUL"
-                    file_path="../images/documents_upload/" + filename
+                    file_path=f_path
             #print(self.text)
             self.scan_result['raw_data'] = self.text
             print("all response", self.scan_result)
@@ -1322,6 +1981,36 @@ class Scan_OCR:
             return self.scan_result,file_path
         except Exception as e:
             print(e)
+    def rejected_image(self,path):
+        filename=os.path.basename(path)
+        image = Image.open(path)
+        width, height = image.size
+        logo = Image.open(r"../api/red-rejected-stamp-4.png")
+        logo.thumbnail(((width / 2), (height / 2)), Image.ANTIALIAS)
+        image_copy = image.copy()
+        position = (10, 10)
+        # position = ((image_copy.width - logo.width), (image_copy.height - logo.height))
+        image_copy.paste(logo, position, logo)
+        image_copy.save('../images/rejected/'+filename)
+        b = os.path.getsize(path)
+        B = int(b)
+        KB = int(1024)
+        MB = int(KB ** 2)  # 1,048,576
+        GB = int(KB ** 3)  # 1,073,741,824
+        TB = int(KB ** 4)  # 1,099,511,627,776
+        if B < KB:
+            print('{0} {1}'.format(B, 'Bytes' if 0 == B > 1 else 'Byte'))
+        elif KB <= B < MB:
+            size=str(int(B/KB))+" KB"
+        elif MB <= B < GB:
+            size=str(int(B/MB))+" MB"
+        elif GB <= B < TB:
+            size=str(int(B/GB))+" GB"
+        elif TB <= B:
+            size=str(int(B/TB))+" TB"
+        resolution=str(width)+"*"+str(height)
+        return '../images/rejected/'+filename,size,resolution
+
                 
 
 

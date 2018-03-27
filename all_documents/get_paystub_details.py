@@ -536,19 +536,14 @@ class Paystub_details:
             advice_pay_date=""
             start_date,end_date,ending_date,advice_pay = "","","",""
             val = re.findall(
-                r'(\w*[A-Za-z]\d{1}\d{2}[./-](19|20|21|22|23|24)\d\d)|(\w*[A-Za-z]\d{1}[./-]\d{2}[./-](19|20|21|22|23|24)\d\d)'
-                r'|(\d{2}\s?[./-]\d{2}[./-](19|20|21|22|23|24)\d\d)|(\d{2}\s\d{2}\s(19|20|21|22|23|24)\d\d)'
-                r'|(\d{2}[./-]\d{2}\s?(19|20|21|22|23|24)\d\d)|(\d{2}[./-]\d{2}\s?\d\s?\d)|(\d{1,2}\s?[./-]\d{2}[./-]\s?\d{2}\s?\d{2})'
-                r'|(\d{2}\d{2}[./-](19|20|21|22|23|24)\d\d)|(\d{2}[./-]\d{2}\s[./-](19|20|21|22|23|24)\d\d)|(([0-9]|0[0-9]'
-                r'|1[0-9])[./-]([0-9][0-9]|[0-9])[./-]\d\d)|(([0-9]|0[0-9]'
-                r'|1[0-9])[./-]([0-9][0-9]|[0-9])[./-](19|20|21|22|23|24)\d\d|(\d{2}\d{2}[./-]\d\d))\b', text)
+                r'(([1-9]|0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?(19|20|21|22)\d\d)', text)
             for item in val:
                 self.date_val1.append("".join(item))
             string_date = " ".join(map(str, self.date_val1))
-            self.date_val = re.findall(r'\d{2}[./-]\d{2}[./-]\d{2,4}', string_date)
-            string_date_value = " ".join(map(str, self.date_val))
+
+            # string_date_value = " ".join(map(str, self.date_val))
             #print(string_date_value)
-            for dob in self.date_val:
+            for dob in self.date_val1:
                 if 'o' in dob:
                     dob = dob.replace("o", "0")
                 if ' ' in dob:
@@ -629,7 +624,7 @@ class Paystub_details:
             ap=parse(advice_pay)
             advice_pay_date=ap.strftime('%m/%d/%Y')
 
-            return str(start_date), self.pay_frequency, string_date_value,end_date,advice_pay_date
+            return str(start_date), self.pay_frequency, string_date,end_date,advice_pay_date
         except Exception as E:
             print(E)
             start_date, self.pay_frequency, string_date_value,end_date,pay_end_date= "", "", "","",""

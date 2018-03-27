@@ -191,7 +191,7 @@ class Licence_details:
                 else:
 
                     val1 = re.findall(
-                        r"\s(\d+)\-?\.?\s?([A-Za-z]+)?\.?\-?\s?(\w+)?\.?\-?\s?(\w+)?\s?([ŽA-Za-z]+)?\.?\-?\s?(\d+)?\s?([A-Za-z]+)?\-?\.?\s?(\d+)?\s?(\w+)?\s?\.?\,?(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\s\s?\w+",
+                        r"\s(\d+)\-?\.?\s?([A-Za-z]+)?\.?\-?\s?(\w+)?\.?\-?\s?(\w+)?\s?([ŽA-Za-z]+)?\.?\-?\s?(\d+)?\s?([A-Za-z]+)?\-?\.?\s?(\d+)?\s?(\w+)?\s?\.?\,?\s?(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\s\s?\w+",
                         value)
 
                     val = ""
@@ -202,9 +202,11 @@ class Licence_details:
                         val)
                     print("else data", data)
                     self.code=data[0]
+            state_code=''
+            state_code=self.code
             state_val=''
             ignore_val = re.findall(
-                r'\b(\s\d+\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([ŽA-Za-z]+)?\s?(\d+)?[#.,/]?\s?([ŽA-Za-z]+)\s?[#.,/]?\s?(\w*)?\.?\s?(!?AŻ|NU|\.?NL|N\.|NJI|SU|NA|Na|NW|NI|AJ|NO)\s?\w+)',
+                r'\b(\s\d+\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([ŽA-Za-z]+)?\s?(\d+)?[#.,/]?\s?([ŽA-Za-z]+)\s?[#.,/]?\s?(\w*)?\.?\s?(!?AŻ|NU|\.?NL|N\.|NJI|SU|NA|Na|NW|NIIN|NI|AJ|NO)\s?\w+)',
                 text_value)
 
                 # r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?AŻ|NU |\.?NL|N\.|NJI | SU | NA | Na | NW |NI|AJ| NO)\s?\w+)',
@@ -232,6 +234,7 @@ class Licence_details:
             elif not status:
                 content = self.rotate_image(path,points[0])
                 texts = self.get_texts_from_bytes(content)
+                self.code=state_val
                 status, points = self.get_state_coordinates(texts,state_val)
             if status:
                 data_box, text_height = self.generate_data_box(points[0],points[1],points[2],points[3],state_val)
@@ -239,7 +242,7 @@ class Licence_details:
 
             final_output[1] = final_output[1].replace(".","")
             final_output[1]=avoid.address_replace(final_output[1])
-
+            self.code=state_code
             street=re.findall(r'(!?\w?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+)',final_output[1])[0][0]
             data = re.findall(
                 r'[A-Za-z]+\s?[.,]?\s\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|AŻ|NU|\.?\s?NL|N\.|NJI|SU|NA|Na|NW|NI|AJ|NO|CO|CT|DE|DC|FM|FL|GA|GU'
@@ -251,8 +254,11 @@ class Licence_details:
             state, zipcode, city = self.c.get_address_zipcode(full_address, self.code)
             actual_city=''
             city = city.replace("1oWA", "IOWA")
+            full_address = full_address.replace("1oWA", "IOWA")
             city = city.replace(",", "")
             city = city.replace(".", "")
+            # full_address = full_address.replace(",", "")
+            # full_address = full_address.replace(".", "")
             for i in range(len(self.cities['city'])):
                 if city.lower()==self.cities['city'][i].lower():
                     actual_city = self.cities['city'][i]
@@ -265,7 +271,7 @@ class Licence_details:
             else:
                 city = actual_city
             city=city.replace('.','')
-            city = city.replace(",", "")
+            # city = city.replace(",", "")
             city = city.replace(".", "")
             full_address = self.c.find_between_r(full_address, street, city)
             full_address = street + full_address
@@ -287,7 +293,7 @@ class Licence_details:
                 # print("CITY",city.lower,nj_city.lower())
                 # if city.lower() == nj_city.lower():
                 #     state='NJ'
-            if zipcode=='' or re.search(r'\b\d{6,9}\b', zipcode):
+            if zipcode=='':
                 gmaps = googlemaps.Client(key=self.api_key)
                 json_val = gmaps.geocode(full_address + " " + actual_city + " " + state)
                 if json_val!=[]:
@@ -326,15 +332,18 @@ class Licence_details:
 
     def get_name(self,text_value,street,date,state,text):
 
+        actual_name=''
         text_value = text_value.replace('.', " ")
+        text_value = text_value.replace('Ž', "Z")
         value,avoid_signature = avoid.name_replace(text_value,date,state,text)
         if avoid_signature in value:
             value=value.replace(avoid_signature,"")
+
         if re.search(r'\s\s', value):
             value = value.replace(re.findall(r'\s\s', value)[0], " ")
         name_value=[]
         val = re.compile(
-            r'\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s([A-Za-z]+)?\s?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?' + street + r')\b',
+            r'\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?(\d+)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s?([A-Za-z]+)?(\-)?\s([A-Za-z]+)?\s?[,.]?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?(!?' + street + r')\b',
             re.IGNORECASE)
         name_reg_val = val.findall(value)
         for item in name_reg_val:
@@ -356,6 +365,12 @@ class Licence_details:
         else:
             if re.search(r'\s\s', actual_name):
                 actual_name = actual_name.replace(re.findall(r'\s\s', actual_name)[0], " ")
+            checked = []
+            name = actual_name.split()
+            for e in name:
+                if e not in checked:
+                    checked.append(e)
+            actual_name=" ".join(map(str,checked))
             print("in name", actual_name)
             name_reg = re.findall(
                 r'[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\s\s?[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s[A-Za-z]+\s?\-\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s?\-\s?[A-Za-z]+\s[A-Za-z]{2,}\s?\w?|[A-Za-z]+\s?\-\s?\s?[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?\s?[A-Za-z]?\s?\s[A-Za-z]+|[A-Za-z]{2,}\s?\s?\s[A-Za-z]{1,}\s?\s[A-Za-z]{2,}|[A-Za-z]{2,}\s?\s[A-Za-z]{1,}\s?[A-Za-z]?|[A-Za-z]+',
@@ -778,10 +793,42 @@ class Licence_details:
 
     def get_state_coordinates(self, texts, state):
         self.description = texts[0]
-        """
-        state_name = re.findall(r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5})', str(self.description.description))
-        print(state_name)
-        """
+        self.description.description=str(self.description.description).replace('END','')
+        self.description.description=str(self.description.description).replace('End','')
+        self.description.description = str(self.description.description).replace('NONE/', '')
+        self.description.description = str(self.description.description).replace('None/', '')
+        self.description.description=str(self.description.description).replace('None','')
+        self.description.description=str(self.description.description).replace('NONE','')
+        if re.search(r'\s\s', self.description.description):
+            self.description.description = self.description.description.replace(re.findall(r'\s\s', self.description.description)[0], "")
+        state_val = ''
+        # state_name = re.findall(r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5})', str(self.description.description))
+        # print(state_name)
+
+        ignore_val = re.findall(
+            r'\b(\s?(\d+)?\s?([ŽA-Za-z]+)?\s?(\d+)?[#.,/]?\s?([ŽA-Za-z]+)\s?[#.,/]?\s?(\w*)?\.?\.?\s?(!?AŻ|NU|NL|N\.|NJI|SU|NA|Na|NW|NIIN|NI|AJ|NO)\s?\w+)',
+            str(self.description.description))
+
+        # r'\b(\s\d+\s([A-Za-z]+)?\s([A-Za-z]+)?\s?\s([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)\s?[#.,/]?\s?(\w*)?\s?(!?AŻ|NU |\.?NL|N\.|NJI | SU | NA | Na | NW |NI|AJ| NO)\s?\w+)',
+        # text_value)
+
+        if ignore_val != []:
+            if re.search(
+                    r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\b',
+                    str(self.description.description)):
+                state_val = re.findall(
+                    r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)',
+                    state)
+                if state_val!=[]:
+                    state_val = state_val[0]
+                else:
+                    if re.search(ignore_val[0][::-1][0], str(self.description.description)):
+                        state_val = ignore_val[0][::-1][0]
+            else:
+                if re.search(ignore_val[0][::-1][0], str(self.description.description)):
+                    state_val = ignore_val[0][::-1][0]
+            state = state_val
+
         for text in texts[1:]:
             self.text_val.append(text.description)
             vertices = [(vertex.x, vertex.y)
@@ -819,8 +866,8 @@ class Licence_details:
         text_height = (first_point[1] - third_point[1])
         height = round(text_height * 4.5)
         if re.search('(!?MD)',state_val):
-            third_pt_y = third_point[1] + round((8 * (third_point[1] - last_point[1])))
-            third_pt_x = third_point[0] + round((8 * (third_point[0] - last_point[0])))
+            third_pt_y = third_point[1] + round((9 * (third_point[1] - last_point[1])))
+            third_pt_x = third_point[0] + round((9 * (third_point[0] - last_point[0])))
             print('TP', third_pt_x, third_pt_y)
             last_pt_y = last_point[1] + round((10.5 * (last_point[1] - third_point[1])))
             last_pt_x = last_point[0] + round((10.5 * (last_point[0] - third_point[0])))
@@ -829,24 +876,24 @@ class Licence_details:
             first_pt_x = first_point[0] + round((10.5 * (first_point[0] - second_point[0])))
             first_pt_y += height
             print('FP', first_pt_x, first_pt_y)
-            second_pt_y = second_point[1] + round((8 * (second_point[1] - first_point[1])))
-            second_pt_x = second_point[0] + round((8 * (second_point[0] - first_point[0])))
+            second_pt_y = second_point[1] + round((9 * (second_point[1] - first_point[1])))
+            second_pt_x = second_point[0] + round((9 * (second_point[0] - first_point[0])))
             second_pt_y += height
             print('TP', second_pt_x, second_pt_y)
             data_box = self.get_data_in_box([(first_pt_x, first_pt_y), (third_pt_x, third_pt_y)])
         else:
-            third_pt_y = third_point[1] + round((8.5 * (third_point[1] - last_point[1])))
-            third_pt_x = third_point[0] + round((8.5 * (third_point[0] - last_point[0])))
+            third_pt_y = third_point[1] + round((9.5 * (third_point[1] - last_point[1])))
+            third_pt_x = third_point[0] + round((9.5 * (third_point[0] - last_point[0])))
             print('TP', third_pt_x, third_pt_y)
-            last_pt_y = last_point[1] + round((9 * (last_point[1] - third_point[1])))
-            last_pt_x = last_point[0] + round((9 * (last_point[0] - third_point[0])))
+            last_pt_y = last_point[1] + round((9.5 * (last_point[1] - third_point[1])))
+            last_pt_x = last_point[0] + round((9.5 * (last_point[0] - third_point[0])))
             print('LP', last_pt_x, last_pt_y)
-            first_pt_y = first_point[1] + round((9 * (first_point[1] - second_point[1])))
-            first_pt_x = first_point[0] + round((9 * (first_point[0] - second_point[0])))
+            first_pt_y = first_point[1] + round((9.5 * (first_point[1] - second_point[1])))
+            first_pt_x = first_point[0] + round((9.5 * (first_point[0] - second_point[0])))
             first_pt_y += height
             print('FP', first_pt_x, first_pt_y)
-            second_pt_y = second_point[1] + round((8.5 * (second_point[1] - first_point[1])))
-            second_pt_x = second_point[0] + round((8.5 * (second_point[0] - first_point[0])))
+            second_pt_y = second_point[1] + round((9.5 * (second_point[1] - first_point[1])))
+            second_pt_x = second_point[0] + round((9.5 * (second_point[0] - first_point[0])))
             second_pt_y += height
             print('TP', second_pt_x, second_pt_y)
             data_box = self.get_data_in_box([(first_pt_x, first_pt_y), (third_pt_x, third_pt_y)])
@@ -995,7 +1042,7 @@ class Licence_details:
                     get_licence_id=' '
                     expiry_date, dob, issue_date, date_val = self.get_date(text, get_licence_id)
                 # name=''
-                if street!='' and zipcode!='':
+                if street!='':
                     name = self.get_name(value_name,street,date_val,state,text)
                 else:
                     name=''

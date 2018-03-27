@@ -18,6 +18,32 @@ Ignore value 			{val_ignore}
 -->
 
 <structures>
+	<paystub_types>
+		<type id="ADP">
+			<lookup_text>Earnings Statement</lookup_text>
+		</type>
+		<type id="Insperity">
+			<lookup_text>Insperity</lookup_text>
+		</type>
+		<type id="Irvington">
+			<lookup_text>IRVINGTON UFSD</lookup_text>
+		</type>
+		<type id="Johnson">
+			<lookup_text>JOHNSON</lookup_text>
+			<lookup_text>JOHNSON &amp; JOHNSON</lookup_text>
+		</type>
+		<type id="Military">
+			<lookup_text>CIVILIAN LEAVE AND EARNINGS STATEMENT</lookup_text>
+			<lookup_text>Smart Leave and Earnings Statement</lookup_text>
+		</type>
+		<type id="Morgan Stanley">
+			<lookup_text>Morgan Stanley</lookup_text>
+		</type>
+		<type id="IBM">
+			<lookup_text>National Payroll Services</lookup_text>
+		</type>
+	</paystub_types>
+
 	<paystub id="Generic">
 		<block_headers>
 			<type id="earnings">
@@ -110,8 +136,9 @@ Ignore value 			{val_ignore}
 				<val>rate</val>
 				<val>shift rate</val>
 			</type>
-			<type id="hours">
+			<type id="hour">
 				<val>hours</val>
+				<val>hours/units</val>
 				<val>hrs</val>
 			</type>
 		</col_headers>
@@ -147,9 +174,27 @@ Ignore value 			{val_ignore}
 			</type>
 		</vertical_col_sequence>
 		<data_val>
-			<type id="Horizontal">
+			<type id="Hybrid">
+				<val type="date">end date</val>
+				<val type="date">begin date</val>
 				<val type="date">period end</val>
-				<val>net pay</val>
+				<val type="date">pay date</val>
+				<val type="date">pay period</val>
+				<val type="text">employee name</val>
+				<val type="text">employee</val>
+				<val type="text">name</val>
+				<val type="id_text">employee #</val>
+				<val type="id_text">employee id</val>
+				<val type="text">job title</val>
+				<val type="text">position</val>
+				<val type="text">position title</val>
+				<val type="text">pay frequency</val>
+				<val type="text">employer name</val>
+				<val type="amount">net pay</val>
+				<val type="date">period ending</val>
+				<val type="date">period beginning</val>
+				<val type="date">advice date</val>
+				<val type="date">period beg/end</val>
 			</type>
 		</data_val>
 		<data_dict>
@@ -227,7 +272,7 @@ Ignore value 			{val_ignore}
 			<type id="rate">
 				<val>rate</val>
 			</type>
-			<type id="hours">
+			<type id="hour">
 				<val>hours/units</val>
 				<val>hours</val>
 				<val>hrs/units</val>
@@ -264,16 +309,7 @@ Ignore value 			{val_ignore}
 			<type val="True">Is Star Pre-Tax</type>
 		</rules>
 		<vertical_col_sequence></vertical_col_sequence>
-		<data_val>
-			<type id="Horizontal">
-				<val type="date">period ending</val>
-				<val type="date">period beginning</val>
-				<val type="date">pay date</val>
-				<val type="date">advice date</val>
-				<val type="date">period beg/end</val>
-				<val type="date">net pay</val>
-			</type>
-		</data_val>
+		<data_val></data_val>
 		<data_dict>
 			<val col="tax_total_auto">total taxes</val>
 			<val col="post_deduction_total_auto">total deductions</val>
@@ -310,7 +346,7 @@ Ignore value 			{val_ignore}
 			</type>
 			<type id="other_earnings"></type>
 			<type id="rate"></type>
-			<type id="hours"></type>
+			<type id="hour"></type>
 		</col_headers>
 		<col_sequence></col_sequence>
 		<rules>
@@ -367,7 +403,7 @@ Ignore value 			{val_ignore}
 			<type id="rate">
 				<val>rate</val>
 			</type>
-			<type id="hours">
+			<type id="hour">
 				<val>hrs/units</val>
 			</type>
 		</col_headers>
@@ -430,7 +466,7 @@ Ignore value 			{val_ignore}
 			<type id="rate">
 				<val>rate</val>
 			</type>
-			<type id="hours">
+			<type id="hour">
 				<val>units</val>
 			</type>
 		</col_headers>
@@ -489,7 +525,7 @@ Ignore value 			{val_ignore}
 			<type id="rate">
 				<val>rate</val>
 			</type>
-			<type id="hours">
+			<type id="hour">
 				<val>hours</val>
 			</type>
 		</col_headers>
@@ -544,7 +580,7 @@ Ignore value 			{val_ignore}
 			<type id="rate">
 				<val>rate</val>
 			</type>
-			<type id="hours">
+			<type id="hour">
 				<val>ytd hr</val>
 				<val>hrs</val>
 			</type>
@@ -604,7 +640,7 @@ Ignore value 			{val_ignore}
 			</type>
 			<type id="other_earnings"></type>
 			<type id="rate"></type>
-			<type id="hours">
+			<type id="hour">
 				<val>hours/days</val>
 			</type>
 		</col_headers>
@@ -620,7 +656,7 @@ Ignore value 			{val_ignore}
 			</type>
 		</col_sequence>
 		<rules>
-			<type val="Compressed">Text Compression Level</type>
+			<type val="True">Highly Compressed Text</type>
 		</rules>
 		<vertical_col_sequence></vertical_col_sequence>
 		<data_val>

@@ -225,32 +225,31 @@ Changelog
 
 """
 
-
 class paystub_gcv:
     def __init__(self):
-        self.result = {}
-        self.text_val = []
-        self.keys = []
-        self.values = []
+        self.result={}
+        self.text_val=[]
+        self.keys=[]
+        self.values=[]
         self.description = []
 
-    def init_structure(self, all_headers):
+    def init_structure(self,all_headers):
         self.earning_headers = all_headers['block_headers']['earnings']
         self.normal_deduction_headers = all_headers['block_headers']['normal_deductions']
         self.pre_deduction_headers = all_headers['block_headers']['pre_deductions']
         self.post_deduction_headers = all_headers['block_headers']['post_deductions']
         self.deduction_headers = self.normal_deduction_headers + self.pre_deduction_headers + self.post_deduction_headers
-
+        
         self.tax_headers = all_headers['block_headers']['taxes']
         self.other_headers = all_headers['block_headers']['other']
-
-        # define column headers
+        
+        #define column headers
         self.current_col_flags = all_headers['col_headers']['current']
         self.ytd_col_flags = all_headers['col_headers']['ytd']
         self.other_col_flags = all_headers['col_headers']['other_earnings']
         self.rate_col_flags = all_headers['col_headers']['rate']
         self.hour_col_flags = all_headers['col_headers']['hour']
-        self.column_header_flags = self.current_col_flags + self.ytd_col_flags + self.other_col_flags + self.rate_col_flags + self.hour_col_flags
+        self.column_header_flags = self.current_col_flags+self.ytd_col_flags+self.other_col_flags+self.rate_col_flags+self.hour_col_flags
 
         self.column_sequences = all_headers['col_sequence']
         self.rules = all_headers['rules']
@@ -259,21 +258,21 @@ class paystub_gcv:
         self.data_val = all_headers['data_val']
         self.data_dict = all_headers['data_dict']
 
-    def is_float(self, s):
+    def is_float(self,s):
         try:
             if s[-3] == ',':
                 k = s.rfind(",")
-                s = s[:k] + "." + s[k + 1:]
+                s = s[:k] + "." + s[k+1:]
         except:
             pass
-        s = s.replace('B', '8')
-        s = s.replace('S', '5')
-        s = s.replace(',', '')
-        # s = s.replace('$','')
-        s = s.replace('-', '')
-        s = s.replace('–', '')
-        s = s.replace(' ', '.')
-        s = s.replace('.', '', s.count('.') - 1)
+        s = s.replace('B','8')
+        s = s.replace('S','5')
+        s = s.replace(',','')
+        #s = s.replace('$','')
+        s = s.replace('-','')
+        s = s.replace('–','')
+        s = s.replace(' ','.')
+        s = s.replace('.','',s.count('.')-1)
         try:
             int(s)
             return False
@@ -284,22 +283,22 @@ class paystub_gcv:
             except ValueError:
                 return False
 
-    def is_float_or_int(self, s):
+    def is_float_or_int(self,s):
         try:
             if s[-3] == ',':
                 k = s.rfind(",")
-                s = s[:k] + "." + s[k + 1:]
+                s = s[:k] + "." + s[k+1:]
         except:
             pass
-        s = s.replace('B', '8')
-        s = s.replace('S', '5')
-        s = s.replace(',', '')
-        # s = s.replace('$','')
-        # s = s.replace('s','')
-        s = s.replace('-', '')
-        s = s.replace('–', '')
-        s = s.replace(' ', '.')
-        s = s.replace('.', '', s.count('.') - 1)
+        s = s.replace('B','8')
+        s = s.replace('S','5')
+        s = s.replace(',','')
+        #s = s.replace('$','')
+        #s = s.replace('s','')
+        s = s.replace('-','')
+        s = s.replace('–','')
+        s = s.replace(' ','.')
+        s = s.replace('.','',s.count('.')-1)
         try:
             int(s)
             return True
@@ -310,31 +309,31 @@ class paystub_gcv:
             except ValueError:
                 return False
 
-    def final_float(self, s, c_type='General'):
-        s = s.replace('B', '8')
-        s = s.replace('S', '5')
-        s = s.replace('s', '')
-        s = s.replace(',', '')
-        # s = s.replace('$','')
-        s = s.replace('-', '')
-        s = s.replace('–', '')
-        s = s.replace(' ', '')
+    def final_float(self,s,c_type='General'):
+        s = s.replace('B','8')
+        s = s.replace('S','5')
+        s = s.replace('s','')
+        s = s.replace(',','')
+        #s = s.replace('$','')
+        s = s.replace('-','')
+        s = s.replace('–','')
+        s = s.replace(' ','')
         if c_type != 'Rate':
-            s = s.replace('.', '')
-            s = s[:-2] + '.' + s[-2:]
+            s = s.replace('.','')
+            s = s[:-2]+'.'+s[-2:]
         return s
-
-    def is_pay_component(self, s):
-        if s.lower() in ['yes', 'no']:
+    
+    def is_pay_component(self,s):
+        if s.lower() in ['yes','no']:
             return False
-        s = s.replace(',', '')
-        s = s.replace(':', '')
-        s = s.replace('/', '')
-        s = s.replace('-', '')
-        s = s.replace('–', '')
-        s = s.replace(' ', '')
-        s = s.replace('.', '')
-        s = s.replace('*', '')
+        s = s.replace(',','')
+        s = s.replace(':','')
+        s = s.replace('/','')
+        s = s.replace('-','')
+        s = s.replace('–','')
+        s = s.replace(' ','')
+        s = s.replace('.','')
+        s = s.replace('*','')
         try:
             int(s)
             return False
@@ -344,16 +343,16 @@ class paystub_gcv:
             else:
                 return True
 
-    def rectify_data(self, pa_points):
+    def rectify_data(self,pa_points):
         state_lines = []
         line_list = []
         line_heights = []
         desc = self.description.description
         print(desc)
 
-        # sort all words as per y-axis of its first element
+        #sort all words as per y-axis of its first element
         res = sorted(self.result, key=lambda x: x[1][0][1])
-        # initialise all values for reading first word of document
+        #initialise all values for reading first word of document
         prev_y_start = -100
         prev_y_end = -100
         prev_y_mid = -100
@@ -367,17 +366,17 @@ class paystub_gcv:
             1B: If NO, add the word to current line
         """
         for key, values in enumerate(res):
-            if values[1][0][1] < prev_y_mid and abs(prev_y_start - values[1][0][1]) <= mod_ht:
-                line_list[-1].append([values[0], values[1]])
+            if values[1][0][1] < prev_y_mid and abs(prev_y_start-values[1][0][1]) <= mod_ht:
+                line_list[-1].append([values[0],values[1]])
             else:
-                line_list.append([[values[0], values[1]]])
+                line_list.append([[values[0],values[1]]])
                 prev_y_start = values[1][0][1]
                 prev_y_end = values[1][2][1]
-                prev_y_mid = int(((prev_y_start + prev_y_end) / 2 + prev_y_end) / 2)
-                line_heights.append(abs(prev_y_start - prev_y_end))
-                mod_ht = max(line_heights, key=line_heights.count)
+                prev_y_mid = int(((prev_y_start + prev_y_end) / 2 + prev_y_end)/2)
+                line_heights.append(abs(prev_y_start-prev_y_end))
+                mod_ht = max(line_heights,key=line_heights.count)
             if values in pa_points:
-                state_lines.append([values, len(line_list) - 1])
+                state_lines.append([values,len(line_list)-1])
         """
         ALgorithm to sort each line as per its x-axis co-ordinate and also to merge words as per document
         1. For each line do steps 2 to 6:
@@ -406,38 +405,35 @@ class paystub_gcv:
         else:
             height_wise_multiplier = 1.5
             space_wise_multiplier = 2.75
-
-        for k, line in enumerate(line_list):
+        
+        for k,line in enumerate(line_list):
             line_list[k] = sorted(line, key=lambda x: x[1][0][0])
             line = line_list[k]
             pop_elements = []
             word_end = 0
             space_width = 0
             if len(space_lists) > 5:
-                general_space_width = int(sum(space_lists[-5:]) / 5)
+                general_space_width = int(sum(space_lists[-5:])/5)
             else:
                 general_space_width = 100
 
-            for w_index, word in enumerate(line):
+            for w_index,word in enumerate(line):
                 print(word)
-                if word[0] in ('$', '|', 'USD', '(', ')', '=', '>', ':'):
+                if word[0] in ('$','|','USD','(',')','=','>',':'):
                     pop_elements.append(w_index)
                     continue
-                # if new word is very close to the previous word
+                #if new word is very close to the previous word
                 if abs(word_end - word[1][0][0]) <= space_width:
-                    # check word without space
+                    #check word without space
                     d = word_val + word[0]
                     d1 = word_val + ' ' + word[0]
                     if self.is_float_or_int(word_val):
-                        if not self.is_float_or_int(word[0]) and word[0] not in (
-                        ',', '.', '/', '-', '–', '%'):
+                        if not self.is_float_or_int(word[0]) and word[0] not in (',','.','/','-','–','%'):
                             line_list[k][w_index] = word
-                            if general_space_width < (
-                                    abs(word[1][0][1] - word[1][2][1]) * height_wise_multiplier):
+                            if general_space_width < (abs(word[1][0][1] - word[1][2][1]) * height_wise_multiplier):
                                 space_width = general_space_width
                             else:
-                                space_width = abs(
-                                    word[1][0][1] - word[1][2][1]) * height_wise_multiplier
+                                space_width = abs(word[1][0][1] - word[1][2][1]) * height_wise_multiplier
                             word_end = word[1][2][0]
                             word_val = word[0]
                             prev_index = w_index
@@ -445,28 +441,23 @@ class paystub_gcv:
                             continue
                         if word_val[-1] == '.' and len(word[0]) == 2:
                             space_width = 0
-                        # if there is a flost value without any decimal point in between
-                        if '.' not in word_val and word[0] not in (
-                        ',', '.', '/', '-', '–', '%') and len(word[0]) == 2:
-                            d = word_val + '.' + word[0]
+                        #if there is a flost value without any decimal point in between
+                        if '.' not in word_val and word[0] not in (',','.','/','-','–','%') and len(word[0]) == 2:
+                            d = word_val+'.'+word[0]
                             decimal_value = True
                     if d in desc or decimal_value:
                         decimal_value = False
                         line_list[k][prev_index][0] = d
-                        line_list[k][prev_index][1] = [check_word[1][0], word[1][1], word[1][2],
-                                                       check_word[1][3]]
-                        # remove current word from line list
+                        line_list[k][prev_index][1] = [check_word[1][0],word[1][1],word[1][2],check_word[1][3]]
+                        #remove current word from line list
                         pop_elements.append(w_index)
 
-                        # if word belongs to column header, no further word should be added in it.
-                        col_word = difflib.get_close_matches(d.lower(), self.column_header_flags,
-                                                             cutoff=0.85)
+                        #if word belongs to column header, no further word should be added in it.
+                        col_word = difflib.get_close_matches(d.lower(),self.column_header_flags,cutoff=0.85)
                         if col_word:
-                            # if its next word is not a part of this entire word
+                            #if its next word is not a part of this entire word
                             try:
-                                if not difflib.get_close_matches(
-                                        d.lower() + line[w_index + 1][0].lower(),
-                                        self.column_header_flags, cutoff=0.85):
+                                if not difflib.get_close_matches(d.lower()+line[w_index+1][0].lower(),self.column_header_flags,cutoff=0.85):
                                     space_width = 0
                             except:
                                 space_width = 0
@@ -480,23 +471,18 @@ class paystub_gcv:
                         continue
                     if d1 in desc:
                         line_list[k][prev_index][0] = d1
-                        line_list[k][prev_index][1] = [check_word[1][0], word[1][1], word[1][2],
-                                                       check_word[1][3]]
-                        # remove current word from line list
+                        line_list[k][prev_index][1] = [check_word[1][0],word[1][1],word[1][2],check_word[1][3]]
+                        #remove current word from line list
                         pop_elements.append(w_index)
-                        # if this word is a column header word we should stop adding further words
-                        col_word = difflib.get_close_matches(d1.lower(), self.column_header_flags,
-                                                             cutoff=0.85)
+                        #if this word is a column header word we should stop adding further words
+                        col_word = difflib.get_close_matches(d1.lower(),self.column_header_flags,cutoff=0.85)
                         if col_word:
                             try:
-                                # if its next word is not a part of this entire word
-                                if not difflib.get_close_matches(
-                                        d1.lower() + line[w_index + 1][0].lower(),
-                                        self.column_header_flags, cutoff=0.85):
+                                #if its next word is not a part of this entire word
+                                if not difflib.get_close_matches(d1.lower()+line[w_index+1][0].lower(),self.column_header_flags,cutoff=0.85):
                                     space_width = 0
                                 else:
-                                    space_width = abs(
-                                        word_end - word[1][0][0]) * space_wise_multiplier
+                                    space_width = abs(word_end - word[1][0][0]) * space_wise_multiplier
                                     space_lists.append(space_width)
                             except:
                                 space_width = abs(word_end - word[1][0][0]) * space_wise_multiplier
@@ -508,8 +494,7 @@ class paystub_gcv:
                         word_end = word[1][2][0]
                         continue
                     line_list[k][w_index] = word
-                    if general_space_width < (
-                            abs(word[1][0][1] - word[1][2][1]) * height_wise_multiplier):
+                    if general_space_width < (abs(word[1][0][1] - word[1][2][1]) * height_wise_multiplier):
                         space_width = general_space_width
                     else:
                         space_width = abs(word[1][0][1] - word[1][2][1]) * height_wise_multiplier
@@ -517,10 +502,9 @@ class paystub_gcv:
                     word_val = word[0]
                     prev_index = w_index
                     check_word = word
-                else:
+                else:            
                     line_list[k][w_index] = word
-                    if general_space_width < (
-                            abs(word[1][0][1] - word[1][2][1]) * height_wise_multiplier):
+                    if general_space_width < (abs(word[1][0][1] - word[1][2][1]) * height_wise_multiplier):
                         space_width = general_space_width
                     else:
                         space_width = abs(word[1][0][1] - word[1][2][1]) * height_wise_multiplier
@@ -530,87 +514,83 @@ class paystub_gcv:
                     check_word = word
             for i in reversed(pop_elements):
                 line_list[k].pop(i)
-        return line_list, state_lines
+        return line_list,state_lines
 
     """
     We assume that horizontal tables would be of three lines, first line for payment components
     second and third line for current and YTD or vice-versa
     """
-
-    def read_horizontal_table(self, lines, l_index, word, probable_list, columns, data_blocks):
+    def read_horizontal_table(self,lines,l_index,word,probable_list,columns,data_blocks):
         line = lines[l_index]
         w_index = line.index(word)
         final_seq = ''
         for seq in probable_list:
             print(seq)
             col_headers = []
-            col_headers.append([word, w_index])
-            word_mean = (word[1][0][0] + word[1][1][0]) / 2
+            col_headers.append([word,w_index])
+            word_mean = (word[1][0][0] + word[1][1][0])/2
             print(word_mean)
             try:
                 temp_l_index = l_index
-                temp_l_index = temp_l_index + 1
+                temp_l_index = temp_l_index+1
                 temp_line = lines[temp_l_index]
                 print(temp_line)
                 match_found = match_not_found = 0
-                for s in range(1, len(seq)):
-                    mean_diff = min(enumerate(temp_line),
-                                    key=lambda x: abs(word_mean - x[1][1][0][0]))
+                for s in range(1,len(seq)):
+                    mean_diff = min(enumerate(temp_line),key=lambda x: abs(word_mean - x[1][1][0][0]))
                     try:
                         if self.is_float_or_int(mean_diff[1][0]):
                             temp_w_index = temp_line.index(mean_diff[1])
-                            print(temp_line[temp_w_index - 1][0])
-                            if difflib.get_close_matches(temp_line[temp_w_index - 1][0].lower(),
-                                                         [seq[s][0]], cutoff=0.80):
-                                col_headers.append([temp_line[temp_w_index - 1], temp_w_index - 1])
+                            print(temp_line[temp_w_index-1][0])
+                            if difflib.get_close_matches(temp_line[temp_w_index-1][0].lower(),[seq[s][0]],cutoff=0.80):
+                                col_headers.append([temp_line[temp_w_index-1],temp_w_index-1])
                         else:
-                            if difflib.get_close_matches(mean_diff[1][0].lower(), [seq[s][0]],
-                                                         cutoff=0.80):
-                                col_headers.append([mean_diff[1], temp_w_index])
-                        temp_l_index = temp_l_index + 1
+                            if difflib.get_close_matches(mean_diff[1][0].lower(),[seq[s][0]],cutoff=0.80):
+                                col_headers.append([mean_diff[1],temp_w_index])
+                        temp_l_index = temp_l_index+1
                         temp_line = lines[temp_l_index]
                     except:
                         pass
                 if len(col_headers) == len(seq):
-                    print('We found a sequence', seq)
+                    print('We found a sequence',seq)
                     final_seq = seq
                     break
             except Exception as e:
                 print(e)
-        # If sequence is found look for values and their respective component
+        #If sequence is found look for values and their respective component
         if final_seq:
             paytype_line = lines[l_index]
             print(paytype_line)
-            # find current and YTD line based on given types,
+            #find current and YTD line based on given types, 
             #   default is 1st Current, 2nd YTD
             try:
                 if final_seq[1][1]['col_type'] == 'Current':
-                    curr_line = lines[l_index + 1]
-                    ytd_line = lines[l_index + 2]
+                    curr_line = lines[l_index+1]
+                    ytd_line = lines[l_index+2]
                 elif final_seq[1][1]['col_type'] == 'YTD':
-                    ytd_line = lines[l_index + 1]
-                    curr_line = lines[l_index + 2]
+                    ytd_line = lines[l_index+1]
+                    curr_line = lines[l_index+2]
             except Exception as e:
-                print('first try', e)
-                curr_line = lines[l_index + 1]
-                ytd_line = lines[l_index + 2]
-
-            # assign block name based on given block name,
+                print('first try',e)
+                curr_line = lines[l_index+1]
+                ytd_line = lines[l_index+2]
+            
+            #assign block name based on given block name,
             #   default is 'Summary_table'
             try:
                 block_name = final_seq[0][1]['block_name']
             except Exception as e:
-                print('second try', e)
+                print('second try',e)
                 block_name = 'Summary_table'
 
             temp_data_blocks = []
             l2_index = col_headers[1][1]
             l3_index = col_headers[2][1]
-            tab_width = (paytype_line[w_index + 1][1][0][0] - paytype_line[w_index][1][1][0]) * 1.5
-            # for each word in paytype line, look for its respective values
+            tab_width = (paytype_line[w_index+1][1][0][0] - paytype_line[w_index][1][1][0]) * 1.5
+            #for each word in paytype line, look for its respective values
             paytype_end = False
             try:
-                for p_index in range(w_index, len(paytype_line)):
+                for p_index in range(w_index,len(paytype_line)):
                     p_word = paytype_line[p_index]
                     print(p_word)
                     try:
@@ -619,90 +599,75 @@ class paystub_gcv:
                         last_word = p_word
                     except:
                         last_word = p_word
-                    mean_diff = min(enumerate(curr_line),
-                                    key=lambda x: p_word[1][1][0] - x[1][1][0][0] if p_word[1][1][
-                                                                                         0] -
-                                                                                     x[1][1][0][
-                                                                                         0] >= 0 else float(
-                                        'inf'))
-                    if self.is_float_or_int(mean_diff[1][0]) and p_word[1][0][0] < \
-                            mean_diff[1][1][1][0]:
-                        temp_data_blocks.append(
-                            [p_word[0], self.final_float(mean_diff[1][0]), 'Current', block_name])
+                    mean_diff = min(enumerate(curr_line),key=lambda x: p_word[1][1][0] - x[1][1][0][0] if p_word[1][1][0] - x[1][1][0][0] >= 0 else float('inf'))
+                    if self.is_float_or_int(mean_diff[1][0]) and p_word[1][0][0] < mean_diff[1][1][1][0]:
+                        temp_data_blocks.append([p_word[0],self.final_float(mean_diff[1][0]),'Current',block_name])
                     elif paytype_end:
                         print('We need to end this table')
                         break
-                    mean_diff = min(enumerate(ytd_line),
-                                    key=lambda x: p_word[1][1][0] - x[1][1][0][0] if p_word[1][1][
-                                                                                         0] -
-                                                                                     x[1][1][0][
-                                                                                         0] >= 0 else float(
-                                        'inf'))
-                    if self.is_float_or_int(mean_diff[1][0]) and p_word[1][0][0] < \
-                            mean_diff[1][1][1][0]:
-                        temp_data_blocks.append(
-                            [p_word[0], self.final_float(mean_diff[1][0]), 'YTD', block_name])
+                    mean_diff = min(enumerate(ytd_line),key=lambda x: p_word[1][1][0] - x[1][1][0][0] if p_word[1][1][0] - x[1][1][0][0] >= 0 else float('inf'))
+                    if self.is_float_or_int(mean_diff[1][0]) and p_word[1][0][0] < mean_diff[1][1][1][0]:
+                        temp_data_blocks.append([p_word[0],self.final_float(mean_diff[1][0]),'YTD',block_name])
             except Exception as e:
                 print(e)
 
             try:
-                # nullify all pay components in first line, also current and ytd col
-                update_lines = [lines[l_index], lines[l_index + 1], lines[l_index + 2]]
-                for p_index in range(w_index, len(paytype_line)):
+                #nullify all pay components in first line, also current and ytd col
+                update_lines = [lines[l_index],lines[l_index+1],lines[l_index+2]]
+                for p_index in range(w_index,len(paytype_line)):
                     if paytype_line[p_index] == last_word:
                         update_lines[0][p_index][0] = 'None'
                         table_end_x = update_lines[0][p_index][1][1][0]
                         break
                     update_lines[0][p_index][0] = 'None'
-
+                
                 update_lines[1][l2_index][0] = 'None'
                 update_lines[2][l3_index][0] = 'None'
                 table_start_x = paytype_line[w_index][1][0][0]
             except Exception as e:
-                print('third try', e)
+                print('third try',e)
+            
 
-            # delete all columns that comes in range of this horizontal table
+            #delete all columns that comes in range of this horizontal table
             #   i.e whose mean is between table start-x and table end-x
-            try:
+            try: 
                 pop_cols = []
-                for i, x in enumerate(columns):
+                for i,x in enumerate(columns):
                     if x[3] > table_start_x and x[3] < table_end_x:
-                        print('deleting', x)
+                        print('deleting',x)
                         pop_cols.append(i)
                 for i in reversed(pop_cols):
                     columns.pop(i)
             except Exception as e:
-                print('Fourth try', e)
+                print('Fourth try',e)
             print(temp_data_blocks)
             data_blocks.extend(temp_data_blocks)
             return True, columns, data_blocks, update_lines
-
+        
         return False, columns, data_blocks, None
 
-    def find_column_sequence(self, line, word, probable_list, columns, blocks):
+    def find_column_sequence(self,line,word,probable_list,columns,blocks):
         w_index = line.index(word)
         final_seq = ''
-        # for each sequence in probable sequence list, look for matching sequence
+        #for each sequence in probable sequence list, look for matching sequence
         for seq in probable_list:
             print(seq)
-            seq_word = difflib.get_close_matches(word[0], [s[0].lower() for s in seq], cutoff=0.80)
+            seq_word = difflib.get_close_matches(word[0],[s[0].lower() for s in seq],cutoff=0.80)
             s_index = [s[0] for s in seq].index(seq_word[0])
-            print(seq_word, s_index)
+            print(seq_word,s_index)
             try:
                 temp_w_index = w_index
                 match_found = match_not_found = 0
                 temp_columns = []
-                # for each word in sequence, check if it matches word in line
-                for s in range(s_index, len(seq)):
+                #for each word in sequence, check if it matches word in line
+                for s in range(s_index,len(seq)):
                     temp_word = line[temp_w_index]
-                    if difflib.get_close_matches(seq[s][0], [temp_word[0].lower()], cutoff=0.75):
+                    if difflib.get_close_matches(seq[s][0],[temp_word[0].lower()],cutoff=0.75):
                         match_found = match_found + 1
                         try:
-                            if line[temp_w_index + 1][1][0][0] > temp_word[1][1][0]:
-                                if not difflib.get_close_matches(
-                                        temp_word[0].lower() + line[temp_w_index + 1][0].lower(),
-                                        [t[0] for t in seq[s]], cutoff=0.80):
-                                    end_x = line[temp_w_index + 1][1][0][0]
+                            if line[temp_w_index+1][1][0][0] > temp_word[1][1][0]:
+                                if not difflib.get_close_matches(temp_word[0].lower()+line[temp_w_index+1][0].lower(),[t[0] for t in seq[s]],cutoff=0.80):
+                                    end_x = line[temp_w_index+1][1][0][0]
                                     temp_w_index = temp_w_index + 1
                                 else:
                                     end_x = 0
@@ -711,19 +676,13 @@ class paystub_gcv:
                         except:
                             end_x = 0
                         try:
-                            temp_columns.append([temp_word[1][0][0], temp_word[1][0][1], end_x,
-                                                 (temp_word[1][0][0] + temp_word[1][1][0]) / 2,
-                                                 None, temp_word[0], seq[s][1]['col_type'],
-                                                 abs(temp_word[1][0][1] - temp_word[1][3][1])])
+                            temp_columns.append([temp_word[1][0][0],temp_word[1][0][1],end_x,(temp_word[1][0][0]+temp_word[1][1][0])/2,None,temp_word[0],seq[s][1]['col_type'],abs(temp_word[1][0][1]-temp_word[1][3][1])])
                         except:
-                            temp_columns.append([temp_word[1][0][0], temp_word[1][0][1], end_x,
-                                                 (temp_word[1][0][0] + temp_word[1][1][0]) / 2,
-                                                 None, temp_word[0], None,
-                                                 abs(temp_word[1][0][1] - temp_word[1][3][1])])
+                            temp_columns.append([temp_word[1][0][0],temp_word[1][0][1],end_x,(temp_word[1][0][0]+temp_word[1][1][0])/2,None,temp_word[0],None,abs(temp_word[1][0][1]-temp_word[1][3][1])])
                     else:
                         match_not_found = match_not_found + 1
                     temp_w_index = temp_w_index + 1
-                seq_confidence = match_found / len(seq)
+                seq_confidence = match_found/len(seq)
                 if seq_confidence > 0.65:
                     final_seq = seq
                     print('Yes we have found a sequence in this line')
@@ -732,76 +691,70 @@ class paystub_gcv:
                 pass
         if final_seq:
             b_index = False
-
-            # check for block name in sequence if sequence confidence is above 75
+            
+            #check for block name in sequence if sequence confidence is above 75
             if seq_confidence > 75:
                 for i in final_seq:
                     try:
                         block_name = i[1]['block_name']
-                        print(block_name, blocks)
-                        # if block name is provided in structure, search for block with this name
-                        block_found = difflib.get_close_matches(block_name, [x[0] for x in blocks if
-                                                                             x[5] == True],
-                                                                cutoff=0.85)
+                        print(block_name,blocks)
+                        #if block name is provided in structure, search for block with this name
+                        block_found = difflib.get_close_matches(block_name,[x[0] for x in blocks if x[5] == True],cutoff=0.85)
                         if block_found:
-                            print('Found block by name ', block_found[0])
-                            block_id = [x for x in blocks if
-                                        x[5] == True and x[0] == block_found[0]]
+                            print('Found block by name ',block_found[0])
+                            block_id = [x for x in blocks if x[5] == True and x[0] == block_found[0]]
                             b_index = blocks.index(block_id[0])
-                        # if no such block found, create a new block
+                        #if no such block found, create a new block
                         else:
-                            blocks.append([block_name, temp_columns[0][0], temp_columns[0][1],
-                                           temp_columns[0][3], temp_columns[0][7], True])
+                            blocks.append([block_name,temp_columns[0][0],temp_columns[0][1],temp_columns[0][3],temp_columns[0][7],True])
                             b_index = len(blocks) - 1
                         break
                     except Exception as e:
                         print(e)
 
-            # if block is not finalised, look for block w.r.to mean distance
+            #if block is not finalised, look for block w.r.to mean distance
             if not b_index:
-                # find closest block
-                seq_mean = (temp_columns[0][0] + temp_columns[-1][0]) / 2
+                #find closest block
+                seq_mean = (temp_columns[0][0] + temp_columns[-1][0])/2
                 seq_y = temp_columns[0][1]
                 try:
-                    y_diff = enumerate(
-                        [x for x in blocks if x[5] == True and abs(x[2] - seq_y) < (3 * x[4])])
-                    mean_diff = min(y_diff, key=lambda x: abs(seq_mean - ((x[1][3] * 2) - x[1][1])))
-                    print('Block for this sequence is', mean_diff)
+                    y_diff = enumerate([x for x in blocks if x[5] == True and abs(x[2] - seq_y) < (3 * x[4])])
+                    mean_diff = min(y_diff,key=lambda x: abs(seq_mean - ((x[1][3] * 2) - x[1][1])))
+                    print('Block for this sequence is',mean_diff)
                     b_index = blocks.index(mean_diff[1])
                 except Exception as e:
                     print(e)
 
-            # delete previous columns, blocking columns and assign b_index to
+            #delete previous columns, blocking columns and assign b_index to 
             try:
-                # delete all columns which belonged to this block
+                #delete all columns which belonged to this block
                 pop_cols = []
-                for i, x in enumerate(columns):
+                for i,x in enumerate(columns):
                     if x[4] == b_index:
-                        print('deleting', x)
+                        print('deleting',x)
                         pop_cols.append(i)
                 for i in reversed(pop_cols):
                     columns.pop(i)
 
-                # delete columns which are being blocked by these new columns
-                for i, t in enumerate(temp_columns):
+                #delete columns which are being blocked by these new columns
+                for i,t in enumerate(temp_columns):
                     temp_columns[i][4] = b_index
                     try:
-                        mean_diff = min(enumerate(columns), key=lambda x: abs(x[1][3] - t[3]))
+                        mean_diff = min(enumerate(columns), key=lambda x:abs(x[1][3] - t[3]))
                         mean_width = mean_diff[1][7] * 1.5
-                        if abs(mean_diff[1][3] - t[3]) < mean_width or abs(
-                                mean_diff[1][0] - word[1][0][0]) < mean_width:
-                            print('we are blocking this column', columns[mean_diff[0]])
-                            columns.pop(mean_diff[0])
+                        if abs(mean_diff[1][3]-t[3]) < mean_width or abs(mean_diff[1][0]-word[1][0][0]) < mean_width:
+                            print('we are blocking this column',columns[mean_diff[0]])
+                            columns.pop(mean_diff[0])                            
                     except:
                         pass
-                print('Adding new columns in column list', temp_columns)
+                print('Adding new columns in column list',temp_columns)
                 columns.extend(temp_columns)
                 return True, columns, blocks, final_seq
             except Exception as e:
                 print(e)
         return False, columns, blocks, final_seq
 
-    def check_rule(self, rule_name):
+    def check_rule(self,rule_name):
         try:
             for sublist in self.rules:
                 if sublist[0] == rule_name:
@@ -812,32 +765,28 @@ class paystub_gcv:
         except:
             return False
 
-    def check_type(self, word, type):
+    def check_type(self,word,type):
         if type['type'] == 'date':
-            val = re.findall(
-                r'(([1-9]|0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?(19|20|21|22)\d\d)',
-                word)
+            val = re.findall(r'(([1-9]|0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?(19|20|21|22)\d\d)', word)
             if val:
                 print('date found')
                 return word
             return False
         if type['type'] == 'amount':
-            val = re.findall(
-                r'((0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?(19|20|21|22)\d\d)',
-                word)
+            val = re.findall(r'((0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?(19|20|21|22)\d\d)', word)
             if not val:
                 return self.is_float(word)
             return False
         return word
 
-    def get_payslip_amounts(self, lines):
+    def get_payslip_amounts(self,lines):
         block_header_flags = self.earning_headers + self.deduction_headers + self.tax_headers + self.other_headers
+        
+        #define general paytype headers
+        general_paytype_headers = ['type','description','pay type']
 
-        # define general paytype headers
-        general_paytype_headers = ['type', 'description', 'pay type']
-
-        extra_paytype_headers = ['rate', 'hours', 'hours/units', 'pay rate', 'hours/days']
-
+        extra_paytype_headers = ['rate','hours','hours/units','pay rate','hours/days']
+        
         blocks = []
         columns = []
 
@@ -848,8 +797,8 @@ class paystub_gcv:
         is_pre_header_defined = self.check_rule('Is TaxType Header Defined')
         prev_component = ''
 
-        # block list = [word,start-x,start-y,mean-x,word_height,status]
-        # column_list = [start-x,start-y,end-x,mean-x,block_id,None,Type,Word Height]
+        #block list = [word,start-x,start-y,mean-x,word_height,status]
+        #column_list = [start-x,start-y,end-x,mean-x,block_id,None,Type,Word Height]
 
         """
         Algorithm to identify blocks of data
@@ -881,108 +830,90 @@ class paystub_gcv:
             7B: Else, store the word as prev word value.
         8. Return data blocks.
         """
-        for l_index, line in enumerate(lines):
+        for l_index,line in enumerate(lines):
             g_pt_header = False
             current_flag = False
-            for w_index, word in enumerate(line):
-                mean_x = (word[1][0][0] + word[1][1][0]) / 2
-                word_height = abs(word[1][0][1] - word[1][3][1])
+            for w_index,word in enumerate(line): 
+                mean_x = (word[1][0][0]+word[1][1][0])/2
+                word_height = abs(word[1][0][1]-word[1][3][1])
 
                 try:
-                    # check if word belongs to a hybrid data value pair
-                    seq_word = difflib.get_close_matches(word[0].lower(),
-                                                         [j[0] for j in self.data_val['Hybrid']],
-                                                         cutoff=0.80)
+                    #check if word belongs to a hybrid data value pair
+                    seq_word = difflib.get_close_matches(word[0].lower(),[j[0] for j in self.data_val['Hybrid']],cutoff=0.80)
                     if seq_word:
-                        print('Hybrid word is ', seq_word)
+                        print('Hybrid word is ',seq_word)
                         try:
-                            horizontal_word = line[w_index + 1]
+                            horizontal_word = line[w_index+1]
                         except:
                             horizontal_word = []
                         try:
-                            vertical_word = min(enumerate(lines[l_index + 1]),
-                                                key=lambda x: word[1][1][0] - x[1][1][0][0] if
-                                                word[1][1][0] - x[1][1][0][0] >= 0 and x[1][1][1][
-                                                    0] - word[1][0][0] > 0 else float('inf'))
-                            # if word is too below on y-axis, reject it
+                            vertical_word = min(enumerate(lines[l_index+1]), key=lambda x: word[1][1][0] - x[1][1][0][0] if word[1][1][0] - x[1][1][0][0] >= 0 and x[1][1][1][0] - word[1][0][0] > 0 else float('inf'))
+                            #if word is too below on y-axis, reject it
                             if abs(vertical_word[1][0][1] - word[1][3][1]) > (2 * word_height):
                                 vertical_word = []
                             else:
                                 vertical_word = vertical_word[1]
                         except:
                             vertical_word = []
-                        print('Values are ', horizontal_word, vertical_word)
+                        print('Values are ',horizontal_word,vertical_word)
 
                         if horizontal_word or vertical_word:
                             for j in self.data_val['Hybrid']:
                                 if j[0] == seq_word[0]:
                                     h_type = j[1]
                                     break
-                            print('type to look for is ', h_type)
+                            print('type to look for is ',h_type)
                             h_word = v_word = False
                             if horizontal_word:
-                                if horizontal_word[0].lower() not in [j[0] for j in
-                                                                      self.data_val['Hybrid']]:
-                                    h_word = self.check_type(horizontal_word[0], h_type)
+                                if horizontal_word[0].lower() not in [j[0] for j in self.data_val['Hybrid']]:
+                                    h_word = self.check_type(horizontal_word[0],h_type)
                             if vertical_word:
-                                if vertical_word[0].lower() not in [j[0] for j in
-                                                                    self.data_val['Hybrid']]:
-                                    v_word = self.check_type(vertical_word[0], h_type)
+                                if vertical_word[0].lower() not in [j[0] for j in self.data_val['Hybrid']]:
+                                    v_word = self.check_type(vertical_word[0],h_type)
                             if h_word and v_word:
-                                # check difference w.r.to spacing
-                                if abs(mean_x - (horizontal_word[1][0][0] + horizontal_word[1][1][
-                                    0]) / 2) < (5 * word_height):
+                                #check difference w.r.to spacing
+                                if abs(mean_x - (horizontal_word[1][0][0]+horizontal_word[1][1][0])/2) < (5 * word_height):
                                     v_word = False
                                 else:
                                     h_word = False
-                                pass
+                                pass                                
                             if h_word:
-                                print('final output', h_word)
-                                data_blocks.append([word[0], h_word, 'Current', 'General'])
+                                print('final output',h_word)
+                                data_blocks.append([word[0],h_word,'Current','General'])
                             elif v_word:
-                                print('final output', v_word)
-                                data_blocks.append([word[0], v_word, 'Current', 'General'])
+                                print('final output',v_word)
+                                data_blocks.append([word[0],v_word,'Current','General'])
                             else:
                                 print('No value found')
                 except:
                     pass
 
-                # check if word belongs to a horizontal data value pair
+                #check if word belongs to a horizontal data value pair
                 try:
-                    seq_word = difflib.get_close_matches(word[0].lower(), [j[0] for j in
-                                                                           self.data_val[
-                                                                               'Horizontal']],
-                                                         cutoff=0.80)
+                    seq_word = difflib.get_close_matches(word[0].lower(),[j[0] for j in self.data_val['Horizontal']],cutoff=0.80)
                     if seq_word:
-                        print(word[0], line[w_index + 1][0])
-                        data_blocks.append([word[0], line[w_index + 1][0], 'Current', 'General'])
+                        print(word[0],line[w_index+1][0])
+                        data_blocks.append([word[0],line[w_index+1][0],'Current','General'])
                 except:
                     pass
 
-                # check if word belongs to a vertical data value pair
+                #check if word belongs to a vertical data value pair
                 try:
-                    seq_word = difflib.get_close_matches(word[0].lower(),
-                                                         [j[0] for j in self.data_val['Vertical']],
-                                                         cutoff=0.80)
+                    seq_word = difflib.get_close_matches(word[0].lower(),[j[0] for j in self.data_val['Vertical']],cutoff=0.80)
                     if seq_word:
-                        possible_word = min(enumerate(lines[l_index + 1]),
-                                            key=lambda x: word[1][1][0] - x[1][1][0][0] if
-                                            word[1][1][0] - x[1][1][0][0] >= 0 else float('inf'))
+                        possible_word = min(enumerate(lines[l_index+1]), key=lambda x: word[1][1][0] - x[1][1][0][0] if word[1][1][0] - x[1][1][0][0] >= 0 else float('inf'))
                         if possible_word[1][1][1][0] > word[1][0][0]:
                             val = self.is_float(possible_word[1][0])
                             if val:
-                                data_blocks.append(
-                                    [word[0], self.final_float(val), 'Current', 'General'])
+                                data_blocks.append([word[0],self.final_float(val),'Current','General'])
                 except Exception as e:
                     pass
 
-                # check if word belongs to a horizontal table
+                #check if word belongs to a horizontal table
                 try:
-                    seq_word = difflib.get_close_matches(word[0].lower(), [j[0] for i in
-                                                                           self.vertical_column_sequences
-                                                                           for j in i], cutoff=0.80)
+                    seq_word = difflib.get_close_matches(word[0].lower(),[j[0] for i in self.vertical_column_sequences for j in i],cutoff=0.80)
                     if seq_word:
-                        print('We have got a start of some horizontal table', seq_word)
+                        print('We have got a start of some horizontal table',seq_word)
                         probable_list = []
                         for s in seq_word:
                             print(self.vertical_column_sequences)
@@ -990,34 +921,31 @@ class paystub_gcv:
                                 if s in [j[0] for j in i]:
                                     if i not in probable_list:
                                         probable_list.append(i)
-                        status, columns, data_blocks, update_lines = self.read_horizontal_table(
-                            lines, l_index, word, probable_list, columns, data_blocks)
+                        status, columns, data_blocks, update_lines = self.read_horizontal_table(lines,l_index,word,probable_list,columns,data_blocks)
                         if status:
                             print('Horizontal Table has been read properly')
                             lines[l_index] = update_lines[0]
-                            lines[l_index + 1] = update_lines[1]
-                            lines[l_index + 2] = update_lines[2]
+                            lines[l_index+1] = update_lines[1]
+                            lines[l_index+2] = update_lines[2]
                             continue
                         else:
                             print('No Sequence found, we will continue looking for normal columns')
                 except:
                     pass
 
-                # check if word belongs to block headers
-                b = difflib.get_close_matches(word[0].lower(), block_header_flags, cutoff=0.90)
+                #check if word belongs to block headers
+                b = difflib.get_close_matches(word[0].lower(),block_header_flags,cutoff=0.90)
                 if b:
-                    print('\nI am in B', word[0])
-                    blocks.append(
-                        [word[0], word[1][0][0], word[1][0][1], mean_x, word_height, True])
+                    print('\nI am in B',word[0])
+                    blocks.append([word[0],word[1][0][0],word[1][0][1],mean_x,word_height,True])
                     print(blocks[-1])
                     block_flag = True
-                    # check if there is any column upto 3 lines above which this block can be a part of
-                    # that column should have its mean-x after block's mean-x
+                    #check if there is any column upto 3 lines above which this block can be a part of
+                    #that column should have its mean-x after block's mean-x
                     try:
                         for i in range(len(columns)):
                             if columns[i][4] == None:
-                                if abs(columns[i][1] - word[1][0][1]) < (3 * columns[i][7]) and (
-                                        columns[i][3] - mean_x) > 0:
+                                if abs(columns[i][1] - word[1][0][1]) < (3 * columns[i][7]) and (columns[i][3] - mean_x) > 0:
                                     columns[i][4] = len(blocks) - 1
                                     block_flag = False
                     except:
@@ -1025,52 +953,48 @@ class paystub_gcv:
 
                     if block_flag:
                         print('It might block someone')
-                        # check if block is blocking some other block by using its mean and start x co-ordinates
+                        #check if block is blocking some other block by using its mean and start x co-ordinates
                         try:
-                            mean_diff = min(enumerate([x for x in blocks[0:-1] if x[5] == True]),
-                                            key=lambda x: abs(x[1][3] - mean_x))
+                            mean_diff = min(enumerate([x for x in blocks[0:-1] if x[5] == True]), key=lambda x:abs(x[1][3] - mean_x))
                             mean_width = mean_diff[1][4] * 1.5
                             print(mean_diff)
                             b_index = blocks.index(mean_diff[1])
                             change_block = False
-                            # b_index is index of closest block
-                            # check if its mean difference or start-x difference is less than certain value
-                            if abs(mean_diff[1][3] - mean_x) < mean_width or abs(
-                                    mean_diff[1][1] - word[1][0][0]) < mean_width:
+                            #b_index is index of closest block
+                            #check if its mean difference or start-x difference is less than certain value
+                            if abs(mean_diff[1][3]-mean_x) < mean_width or abs(mean_diff[1][1]-word[1][0][0]) < mean_width:
                                 change_block = True
-                            # else check if block  mean-x is coming between
+                            #else check if block  mean-x is coming between 
                             # closest block' mean and its respective 'Current' type column's start-x
                             else:
-                                for i, x in enumerate(columns):
-                                    if x[4] == b_index and x[6] == 'Current' and blocks[-1][3] > \
-                                            blocks[b_index][3] and blocks[-1][3] < x[0]:
+                                for i,x in enumerate(columns):
+                                    if x[4] == b_index and x[6] == 'Current' and blocks[-1][3] > blocks[b_index][3] and blocks[-1][3] < x[0]:
                                         change_block = True
                             if change_block:
                                 print('we are changing blocks')
-                                # assign previous block's columns to new block iff
-                                # all blocks doesnt have headers
+                                #assign previous block's columns to new block iff
+                                #all blocks doesnt have headers
                                 if not block_with_headers:
                                     for i in range(len(columns)):
                                         if columns[i][4] == b_index:
                                             columns[i][4] = len(blocks) - 1
                                 blocks[b_index][5] = False
-                                print(blocks, columns)
+                                print(blocks,columns)
                         except:
                             pass
 
-                # check if word belongs to general paytypes header
-                g = difflib.get_close_matches(word[0].lower(), general_paytype_headers, cutoff=0.80)
+                #check if word belongs to general paytypes header    
+                g = difflib.get_close_matches(word[0].lower(),general_paytype_headers,cutoff=0.80)
                 if g:
                     g_pt_header = True
-
-                # check if word belongs to column headers
-                c = difflib.get_close_matches(word[0].lower(), self.column_header_flags,
-                                              cutoff=0.80)
+                
+                #check if word belongs to column headers
+                c = difflib.get_close_matches(word[0].lower(),self.column_header_flags,cutoff=0.80)
                 if c:
                     mw_factor = 1
-                    print('\nI am in C', word, c)
-
-                    # check if this column is already added in column list, if yes go to next word
+                    print('\nI am in C',word,c)
+                    
+                    #check if this column is already added in column list, if yes go to next word
                     goto_next_word = False
                     for i in columns:
                         if i[0] == word[1][0][0] and i[1] == word[1][0][1]:
@@ -1079,37 +1003,30 @@ class paystub_gcv:
                     if goto_next_word:
                         print('This column is already added by sequence')
                         continue
-
-                    # check if it belongs to any pre-defined sequence
+                    
+                    #check if it belongs to any pre-defined sequence
                     try:
-                        seq_word = difflib.get_close_matches(word[0],
-                                                             [j[0] for i in self.column_sequences
-                                                              for j in i], cutoff=0.80)
+                        seq_word = difflib.get_close_matches(word[0],[j[0] for i in self.column_sequences for j in i],cutoff=0.80)
                         if seq_word:
-                            print('We have got a start of some sequence(s)', seq_word)
+                            print('We have got a start of some sequence(s)',seq_word)
                             probable_list = []
                             for s in seq_word:
                                 for i in self.column_sequences:
                                     if s in [j[0] for j in i]:
                                         if i not in probable_list:
                                             probable_list.append(i)
-                            status, columns, blocks, final_seq = self.find_column_sequence(line,
-                                                                                           word,
-                                                                                           probable_list,
-                                                                                           columns,
-                                                                                           blocks)
+                            status, columns, blocks, final_seq = self.find_column_sequence(line,word,probable_list,columns,blocks)
                             if status:
                                 # comment this for a while
-                                # self.column_sequences.remove(final_seq)
-                                # print('we have deleted col seq')
+                                #self.column_sequences.remove(final_seq)
+                                #print('we have deleted col seq')
                                 continue
                             else:
-                                print(
-                                    'No Sequence found, we will continue looking for normal columns')
+                                print('No Sequence found, we will continue looking for normal columns')
                     except Exception as e:
                         print(e)
 
-                    # check if is of type current or ytd
+                    #check if is of type current or ytd
                     if c[0] in self.current_col_flags:
                         col_type = 'Current'
                         check_flag = self.current_col_flags
@@ -1134,200 +1051,142 @@ class paystub_gcv:
                                 g_pt_header = False
                             else:
                                 col_type = 'YTD'
-                        # must deactivate Current or YTD column just above this, increase mw_factor
+                        #must deactivate Current or YTD column just above this, increase mw_factor
                         mw_factor = 6
 
+
                     try:
-                        if line[w_index + 1][1][0][0] > word[1][1][0]:
-                            if not difflib.get_close_matches(word[0] + line[w_index + 1][0],
-                                                             check_flag, cutoff=0.80):
-                                end_x = line[w_index + 1][1][0][0]
+                        if line[w_index+1][1][0][0] > word[1][1][0]:
+                            if not difflib.get_close_matches(word[0]+line[w_index+1][0],check_flag,cutoff=0.80):
+                                 end_x = line[w_index+1][1][0][0]
                             else:
                                 end_x = 0
                         else:
                             end_x = 0
                     except:
                         end_x = 0
-                    columns.append(
-                        [word[1][0][0], word[1][0][1], end_x, mean_x, None, word[0], col_type,
-                         word_height])
-
-                    # check if it is blocking some other column headers, if yes deactivate that column
+                    columns.append([word[1][0][0],word[1][0][1],end_x,mean_x,None,word[0],col_type,word_height])
+                    
+                    
+                    #check if it is blocking some other column headers, if yes deactivate that column
                     try:
-                        mean_diff = min(enumerate(columns[0:-1]),
-                                        key=lambda x: abs(x[1][3] - mean_x) if abs(
-                                            x[1][1] - word[1][0][1]) >= x[1][7] else float('inf'))
+                        mean_diff = min(enumerate(columns[0:-1]), key=lambda x:abs(x[1][3] - mean_x) if abs(x[1][1] - word[1][0][1]) >= x[1][7] else float('inf'))
                         mean_width = mean_diff[1][7] * 1.5 * mw_factor
-                        if abs(mean_diff[1][3] - mean_x) < mean_width or abs(
-                                mean_diff[1][0] - word[1][0][0]) < mean_width:
-                            # columns[mean_diff[0]][6] = False
+                        if abs(mean_diff[1][3]-mean_x) < mean_width or abs(mean_diff[1][0]-word[1][0][0]) < mean_width:
+                            #columns[mean_diff[0]][6] = False
                             columns.pop(mean_diff[0])
-                            print('We are blocking this column', mean_diff)
+                            print('We are blocking this column',mean_diff)
                     except:
                         pass
-
-                    # check the block where this column belongs to,
-                    # look for upto 3 lines of document above this column as per column height
+                    
+                    #check the block where this column belongs to, 
+                    #look for upto 3 lines of document above this column as per column height
                     try:
-                        y_diff = enumerate([x for x in blocks if
-                                            x[5] == True and abs(x[2] - word[1][0][1]) < (
-                                                        3 * x[4])])
+                        y_diff = enumerate([x for x in blocks if x[5] == True and abs(x[2] - word[1][0][1]) < (3 * x[4])])
                         try:
-                            mean_diff = min(y_diff,
-                                            key=lambda x: word[1][0][0] - x[1][1] if word[1][0][0] -
-                                                                                     x[1][
-                                                                                         1] > 0 else float(
-                                                'inf'))
+                            mean_diff = min(y_diff,key=lambda x: word[1][0][0] - x[1][1] if word[1][0][0] - x[1][1] > 0 else float('inf'))
                         except:
-                            mean_diff = min(y_diff,
-                                            key=lambda x: x[1][1] - word[1][0][0] if x[1][1] -
-                                                                                     word[1][0][
-                                                                                         0] >= 0 else float(
-                                                'inf'))
+                            mean_diff = min(y_diff,key=lambda x: x[1][1] - word[1][0][0] if x[1][1] - word[1][0][0] >= 0 else float('inf'))
                         print('Block where this column belongs to is', mean_diff)
                         b_index = blocks.index(mean_diff[1])
                         columns[-1][4] = b_index
-                        print(blocks, columns)
-
-                        # DELETE COLUMNS IF THERE ARE MORE THAN ONE FOR SAME BLOCK SAME TYPE
+                        print(blocks,columns)
+                        
+                        #DELETE COLUMNS IF THERE ARE MORE THAN ONE FOR SAME BLOCK SAME TYPE
                         del_columns = []
-                        num_cols = sum(
-                            1 for x in columns if x[4] == b_index and x[6] == columns[-1][6])
+                        num_cols = sum(1 for x in columns if x[4] == b_index and x[6] == columns[-1][6])
                         if num_cols > 1:
                             print('We might have to delete some column')
-                            c_block = enumerate(
-                                [x for x in columns if x[4] == b_index and x[6] == columns[-1][6]])
+                            c_block = enumerate([x for x in columns if x[4] == b_index and x[6] == columns[-1][6]])
                             try:
-                                mean_diff = min(c_block,
-                                                key=lambda x: x[1][0] - blocks[b_index][1] if x[1][
-                                                                                                  1] >
-                                                                                              blocks[
-                                                                                                  b_index][
-                                                                                                  2] else float(
-                                                    'inf'))
-                                if not mean_diff[1][1] > (
-                                        blocks[b_index][2] + blocks[b_index][4] / 2):
+                                mean_diff = min(c_block,key=lambda x: x[1][0] - blocks[b_index][1] if x[1][1] > blocks[b_index][2] else float('inf'))
+                                if not mean_diff[1][1] > (blocks[b_index][2] + blocks[b_index][4]/2):
                                     raise Exception('Go to exception')
                             except:
                                 print('we are in except')
-                                c_block = enumerate([x for x in columns if
-                                                     x[4] == b_index and x[6] == columns[-1][6]])
-                                mean_diff = min(c_block,
-                                                key=lambda x: x[1][0] - blocks[b_index][1] if x[1][
-                                                                                                  0] !=
-                                                                                              blocks[
-                                                                                                  b_index][
-                                                                                                  1] else float(
-                                                    'inf'))
-                            print(mean_diff, mean_diff[1][0], mean_diff[1][1], b_index,
-                                  columns[-1][6])
+                                c_block = enumerate([x for x in columns if x[4] == b_index and x[6] == columns[-1][6]])
+                                mean_diff = min(c_block,key=lambda x: x[1][0] - blocks[b_index][1] if x[1][0] != blocks[b_index][1] else float('inf'))
+                            print(mean_diff,mean_diff[1][0],mean_diff[1][1],b_index,columns[-1][6])
                             pop_cols = []
-                            for i, x in enumerate(columns):
-                                if x[4] == mean_diff[1][4] and x[6] == mean_diff[1][6] and (
-                                        x[0] != mean_diff[1][0] or x[1] != mean_diff[1][1]) and x[
-                                    5] != mean_diff[1][5]:
-                                    print('deleting', x)
+                            for i,x in enumerate(columns):
+                                if x[4] == mean_diff[1][4] and x[6] == mean_diff[1][6] and (x[0] != mean_diff[1][0] or x[1] != mean_diff[1][1]) and x[5] != mean_diff[1][5]:
+                                    print('deleting',x)
                                     pop_cols.append(i)
                             for i in reversed(pop_cols):
                                 columns.pop(i)
-                            print(blocks, columns)
+                            print(blocks,columns)
                     except Exception as e:
                         print(e)
-                        # No blocks have been created yet.
-                        # pass
+                        #No blocks have been created yet.
+                        #pass
                     prev_word = c[0]
                     prev_word_details = word
                     continue
-                    # check the paytype where this column belongs to
+                    #check the paytype where this column belongs to
 
-                # if columns are created, start looking for float values
+                #if columns are created, start looking for float values
                 if columns:
                     val = self.is_float(word[0])
                     if val:
                         try:
-                            next_word = line[w_index + 1][0]
+                            next_word = line[w_index+1][0]
                             if next_word == '*':
-                                val = '*' + str(val)
+                                val = '*'+str(val)
                         except:
                             pass
                         for i, e in reversed(list(enumerate(columns))):
-                            if word[1][1][0] > columns[i][3] and (
-                                    word[1][1][0] <= columns[i][2] or columns[i][2] == 0):
-                                # if block of this column is deactivated, no need to read values
+                            if word[1][1][0] > columns[i][3] and (word[1][1][0] <= columns[i][2] or columns[i][2] == 0):
+                                #if block of this column is deactivated, no need to read values
                                 try:
                                     if not blocks[columns[i][4]][5]:
                                         break
                                 except:
                                     pass
                                 if columns[i][2] == 0:
-                                    if abs(columns[i][3] - word[1][0][0]) <= (
-                                            3 * columns[i][7] * 1.5):
+                                    if abs(columns[i][3] - word[1][0][0]) <= (3 * columns[i][7] * 1.5):
                                         columns[i][2] = word[1][1][0] + (3 * columns[i][7] * 1.5)
                                     try:
-                                        print('-----**-----', prev_word, val, columns[i][6],
-                                              blocks[columns[i][4]])
-                                        data_blocks.append(
-                                            [prev_word, self.final_float(val, columns[i][6]),
-                                             columns[i][6], blocks[columns[i][4]][0]])
+                                        print('-----**-----',prev_word,val,columns[i][6],blocks[columns[i][4]])
+                                        data_blocks.append([prev_word,self.final_float(val,columns[i][6]),columns[i][6],blocks[columns[i][4]][0]])
                                     except:
-                                        print('-----**-----', prev_word, val, columns[i][6])
-                                        data_blocks.append(
-                                            [prev_word, self.final_float(val, columns[i][6]),
-                                             columns[i][6], 'Undefined'])
+                                        print('-----**-----',prev_word,val,columns[i][6])
+                                        data_blocks.append([prev_word,self.final_float(val,columns[i][6]),columns[i][6],'Undefined'])
                                 else:
                                     try:
-                                        print('-----**-----', prev_word, val, columns[i][6],
-                                              blocks[columns[i][4]])
-                                        data_blocks.append(
-                                            [prev_word, self.final_float(val, columns[i][6]),
-                                             columns[i][6], blocks[columns[i][4]][0]])
+                                        print('-----**-----',prev_word,val,columns[i][6],blocks[columns[i][4]])
+                                        data_blocks.append([prev_word,self.final_float(val,columns[i][6]),columns[i][6],blocks[columns[i][4]][0]])
                                     except:
-                                        print('-----**-----', prev_word, val, columns[i][6])
-                                        data_blocks.append(
-                                            [prev_word, self.final_float(val, columns[i][6]),
-                                             columns[i][6], 'Undefined'])
+                                        print('-----**-----',prev_word,val,columns[i][6])
+                                        data_blocks.append([prev_word,self.final_float(val,columns[i][6]),columns[i][6],'Undefined'])
 
-                                # identify type of deduction if there is any defined
+                                #identify type of deduction if there is any defined
                                 if prev_word == prev_component:
                                     if identified_block:
-                                        # assign identified block to this data block
+                                        #assign identified block to this data block
                                         data_blocks[-1][3] = identified_block
                                     break
                                 else:
                                     prev_component = prev_word
                                     identified_block = False
-                                    dh = difflib.get_close_matches(data_blocks[-1][3].lower(),
-                                                                   self.deduction_headers,
-                                                                   cutoff=0.90)
+                                    dh = difflib.get_close_matches(data_blocks[-1][3].lower(),self.deduction_headers,cutoff=0.90)
                                     if dh:
-                                        nh = difflib.get_close_matches(data_blocks[-1][3].lower(),
-                                                                       self.normal_deduction_headers,
-                                                                       cutoff=0.90)
+                                        nh = difflib.get_close_matches(data_blocks[-1][3].lower(),self.normal_deduction_headers,cutoff=0.90)
                                         if nh:
-                                            # code to find 'Total' pay component
-                                            if difflib.get_close_matches(data_blocks[-1][0].lower(),
-                                                                         ['total', 'total ' +
-                                                                                   data_blocks[-1][
-                                                                                       3].lower(),
-                                                                          data_blocks[-1][
-                                                                              3].lower()],
-                                                                         cutoff=0.80):
+                                            #code to find 'Total' pay component
+                                            if difflib.get_close_matches(data_blocks[-1][0].lower(),['total','total '+data_blocks[-1][3].lower(),data_blocks[-1][3].lower()],cutoff=0.80):
                                                 data_blocks[-1][0] = 'Total'
                                                 prev_component = 'Total'
                                             elif "total" in data_blocks[-1][0].lower():
                                                 data_blocks[-1][0] = 'Total'
                                                 prev_component = 'Total'
 
-                                            # code for identifying pre and post based on star or header
+                                            #code for identifying pre and post based on star or header
                                             if is_star_pre:
-                                                # if star pre tax apply this rule
-                                                if data_blocks[-1][0].find('*') != -1 or \
-                                                        data_blocks[-1][1].find('*') != -1:
+                                                #if star pre tax apply this rule
+                                                if data_blocks[-1][0].find('*') != -1 or data_blocks[-1][1].find('*') != -1:
                                                     identified_block = 'Pre Tax Deductions'
-                                                    data_blocks[-1][0] = data_blocks[-1][0].replace(
-                                                        '*', '')
-                                                    data_blocks[-1][1] = data_blocks[-1][0].replace(
-                                                        '*', '')
+                                                    data_blocks[-1][0] = data_blocks[-1][0].replace('*','')
+                                                    data_blocks[-1][1] = data_blocks[-1][0].replace('*','')
                                                 else:
                                                     identified_block = 'Post Tax Deductions'
                                                 data_blocks[-1][3] = identified_block
@@ -1335,13 +1194,11 @@ class paystub_gcv:
                                             elif is_pre_header_defined:
                                                 try:
                                                     pc_index = line.index(prev_word_details)
-                                                    for i in range(pc_index + 1, len(line)):
-                                                        if line[i][0].lower() in ['yes', 'b',
-                                                                                  'pre']:
+                                                    for i in range(pc_index+1,len(line)):
+                                                        if line[i][0].lower() in ['yes','b','pre']:
                                                             identified_block = 'Pre Tax Deductions'
                                                             break
-                                                        elif line[i][0].lower() in ['no', 'a',
-                                                                                    'post']:
+                                                        elif line[i][0].lower() in ['no','a','post']:
                                                             identified_block = 'Post Tax Deductions'
                                                             break
                                                     if identified_block:
@@ -1350,15 +1207,13 @@ class paystub_gcv:
                                                 except:
                                                     pass
                                         else:
-                                            if difflib.get_close_matches(data_blocks[-1][3].lower(),
-                                                                         self.pre_deduction_headers,
-                                                                         cutoff=0.90):
+                                            if difflib.get_close_matches(data_blocks[-1][3].lower(),self.pre_deduction_headers,cutoff=0.90):
                                                 identified_block = 'Pre Tax Deductions'
                                             else:
                                                 identified_block = 'Post Tax Deductions'
                                             data_blocks[-1][3] = identified_block
                                             break
-                                        # code for identifying pre and post based on name if found
+                                        #code for identifying pre and post based on name if found
                                         if data_blocks[-1][0].lower().find('pre') != -1:
                                             identified_block = 'Pre Tax Deductions'
                                         else:
@@ -1370,18 +1225,18 @@ class paystub_gcv:
                         if self.is_pay_component(word[0]):
                             prev_word = word[0]
                             prev_word_details = word
-                            # check if it is blocking some column headers, if yes deactivate that column
+                            #check if it is blocking some column headers, if yes deactivate that column
                             try:
-                                # if component contains any digit, do not block columns
+                                #if component contains any digit, do not block columns
                                 if bool(re.search(r'\d', prev_word)):
-                                    # continue to next word
+                                    #continue to next word
                                     continue
                                 pop_cols = []
-                                for i, x in enumerate(columns):
+                                for i,x in enumerate(columns):
                                     if x[3] > word[1][0][0] and x[3] < word[1][1][0]:
                                         pop_cols.append(i)
                                 for i in reversed(pop_cols):
-                                    print('word ', word[0], ' is blocking this column ', columns[i])
+                                    print('word ',word[0],' is blocking this column ',columns[i])
                                     columns.pop(i)
                             except:
                                 pass
@@ -1389,39 +1244,36 @@ class paystub_gcv:
         print(columns)
         return data_blocks
 
-    def read_data_dict(self, val_name):
+    def read_data_dict(self,val_name):
         print(val_name)
         data_def = {
-            'post_deduction_total_auto': ['Post Tax Deductions', 'Total'],
-            'pre_deduction_total_auto': ['Pre Tax Deductions', 'Total'],
-            'tax_total_auto': ['Taxes', 'Total']
-        }
+            'post_deduction_total_auto':['Post Tax Deductions','Total'],
+            'pre_deduction_total_auto':['Pre Tax Deductions','Total'],
+            'tax_total_auto':['Taxes','Total']
+            }
         try:
             return data_def[val_name]
         except:
             return False
 
-    def create_blocks(self, data_blocks):
+    def create_blocks(self,data_blocks):
         print(data_blocks)
 
-        net_columns = ['net pay', 'total net', 'net earnings']
-        gross_columns = ['gross pay', 'total gross', 'gross earnings', 'gross',
-                         'total gross earnings']
-        other_columns = ['checking ', 'net check', 'checkng', 'Chck1',
-                         'savings', 'direct deposit', 'dir dip check',
-                         'your federal taxable wages this period', 'federal taxable wages']
-        final_data = {'Net Pay': [], 'Gross Pay': [], 'Earnings': [], 'Pre Tax Deductions': [],
-                      'Post Tax Deductions': [], 'Taxes': [], 'Others': []}
-
+        net_columns = ['net pay','total net','net earnings']
+        gross_columns = ['gross pay','total gross','gross earnings','gross','total gross earnings']
+        other_columns = ['checking ','net check','checkng','Chck1',
+                        'savings','direct deposit','dir dip check',
+                        'your federal taxable wages this period','federal taxable wages']
+        final_data = {'Net Pay':[],'Gross Pay':[],'Earnings':[],'Pre Tax Deductions':[],'Post Tax Deductions':[],'Taxes':[],'Others':[]}
+        
         prev_word = ''
         prev_block = ''
         temp_rate = temp_hour = ''
         temp_rate_val = temp_hour_val = 0.00
-
-        for i, db in enumerate(data_blocks):
-            # finalize block name based on column name or block name
-            pc = difflib.get_close_matches(db[0].lower(),
-                                           net_columns + gross_columns + other_columns, cutoff=0.85)
+        
+        for i,db in enumerate(data_blocks):
+            #finalize block name based on column name or block name
+            pc = difflib.get_close_matches(db[0].lower(),net_columns+gross_columns+other_columns,cutoff=0.85)
             if pc:
                 if pc[0] in net_columns:
                     block_name = 'Net Pay'
@@ -1430,12 +1282,9 @@ class paystub_gcv:
                 else:
                     block_name = 'Others'
             else:
-                bn = difflib.get_close_matches(db[3].lower(),
-                                               self.earning_headers + self.tax_headers + [
-                                                   'pre tax deductions', 'post tax deductions'],
-                                               cutoff=0.80)
+                bn = difflib.get_close_matches(db[3].lower(),self.earning_headers+self.tax_headers+['pre tax deductions','post tax deductions'],cutoff=0.80)
                 if bn:
-                    if bn[0] in ['pre tax deductions', 'post tax deductions']:
+                    if bn[0] in ['pre tax deductions','post tax deductions']:
                         block_name = db[3]
                     elif bn[0] in self.earning_headers:
                         block_name = 'Earnings'
@@ -1443,11 +1292,9 @@ class paystub_gcv:
                         block_name = 'Taxes'
                 else:
                     block_name = 'Others'
-
+            
             if block_name == 'Others':
-                summary_word = difflib.get_close_matches(db[0].lower(),
-                                                         [s[0].lower() for s in self.data_dict],
-                                                         cutoff=0.85)
+                summary_word = difflib.get_close_matches(db[0].lower(),[s[0].lower() for s in self.data_dict],cutoff=0.85)
                 if summary_word:
                     s_index = [s[0] for s in self.data_dict].index(summary_word[0])
                     [bn, cn] = self.read_data_dict(self.data_dict[s_index][1]['col'])
@@ -1456,14 +1303,12 @@ class paystub_gcv:
                 else:
                     block_name = 'Others'
 
-            # finalize column name based on column name and block name
-            if difflib.get_close_matches(db[0].lower(),
-                                         ['total', 'total ' + db[3].lower(), db[3].lower()],
-                                         cutoff=0.80):
+            #finalize column name based on column name and block name
+            if difflib.get_close_matches(db[0].lower(),['total','total '+db[3].lower(),db[3].lower()],cutoff=0.80):
                 db[0] = 'Total'
             elif "total" in db[0].lower():
                 db[0] = 'Total'
-
+            
             if db[2] == 'Rate':
                 temp_rate = db[0]
                 temp_rate_val = db[1]
@@ -1471,7 +1316,7 @@ class paystub_gcv:
                 temp_hour = db[0]
                 temp_hour_val = db[1]
             elif db[2] == 'Current':
-                final_data[block_name].append([db[0], db[1], '', '', ''])
+                final_data[block_name].append([db[0],db[1],'','',''])
                 prev_word = db[0]
                 prev_block = block_name
                 if prev_word == temp_rate:
@@ -1486,9 +1331,9 @@ class paystub_gcv:
                     prev_word = ''
                     prev_block = ''
                 else:
-                    final_data[block_name].append([db[0], '', db[1], '', ''])
+                    final_data[block_name].append([db[0],'',db[1],'',''])
         for x in final_data:
-            if x in ['Pre Tax Deductions', 'Post Tax Deductions', 'Taxes', 'Earnings']:
+            if x in ['Pre Tax Deductions','Post Tax Deductions','Taxes','Earnings']:
                 cal_cur = 0
                 cal_ytd = 0
                 for dt in final_data[x]:
@@ -1504,9 +1349,7 @@ class paystub_gcv:
                             cal_ytd = cal_ytd + float(dt[2])
                         except:
                             pass
-                final_data[x].append(
-                    ['Total_Calculated', "{:.2f}".format(cal_cur), "{:.2f}".format(cal_ytd), '',
-                     ''])
+                final_data[x].append(['Total_Calculated',"{:.2f}".format(cal_cur),"{:.2f}".format(cal_ytd),'','']) 
         if len(final_data['Net Pay']) > 1:
             pop_elements = []
             for i in final_data['Net Pay']:
@@ -1530,29 +1373,29 @@ class paystub_gcv:
         elif len(final_data['Gross Pay']) == 0:
             try:
                 for lt in final_data['Earnings']:
-                    print(lt, lt[0])
+                    print(lt,lt[0])
                     if lt[0] == 'Total':
                         print('here')
-                        final_data['Gross Pay'] = [['Gross Pay', lt[1], lt[2], '', '']]
+                        final_data['Gross Pay'] = [['Gross Pay',lt[1],lt[2],'','']]
                         break
             except:
                 pass
         return final_data
 
-    def get_text(self, path, img=False):
+    def get_text(self,path,img=False):
         client = vision.ImageAnnotatorClient()
         ext = path.split('.')[-1]
         if not img:
             img = Image.open(path)
         try:
-            if hasattr(img, '_getexif'):  # only present in JPEGs
-                for orientation in ExifTags.TAGS.keys():
-                    if ExifTags.TAGS[orientation] == 'Orientation':
-                        break
-                e = img._getexif()  # returns None if no EXIF data
+            if hasattr(img, '_getexif'): # only present in JPEGs
+                for orientation in ExifTags.TAGS.keys(): 
+                    if ExifTags.TAGS[orientation]=='Orientation':
+                        break 
+                e = img._getexif()       # returns None if no EXIF data
                 if e is not None:
-                    exif = dict(e.items())
-                    orientation = exif[orientation]
+                    exif=dict(e.items())
+                    orientation = exif[orientation] 
 
                     if orientation == 3:
                         print('transpose 3')
@@ -1569,52 +1412,53 @@ class paystub_gcv:
         b = io.BytesIO()
         if ext.lower() in ('png'):
             save_ext = 'PNG'
-        elif ext.lower() in ('jpg', 'jpeg'):
+        elif ext.lower() in ('jpg','jpeg'):
             save_ext = 'JPEG'
         img.save(b, save_ext)
         content = b.getvalue()
 
         image = types.Image(content=content)
-
-        # if 'Pay Stub' in doc_type:
-        # response = client.text_detection(image=image)
-        # else:
+        
+        #if 'Pay Stub' in doc_type:
+        #response = client.text_detection(image=image)
+        #else:
         response = client.document_text_detection(image=image)
-        # texts = response.full_text_annotation
+        #texts = response.full_text_annotation
         # response = client.text_detection(image=image)
         texts = response.text_annotations
         self.description = texts[0]
         slanted_list = []
         for text in texts[1:]:
+
             self.text_val.append(text.description)
             vertices = [(vertex.x, vertex.y)
                         for vertex in text.bounding_poly.vertices]
             self.keys.append(text.description)
             self.values.append(vertices)
-            slanted_list.append(abs(vertices[2][1] - vertices[3][1]))
-        self.result = zip(self.keys, self.values)
+            slanted_list.append(abs(vertices[2][1]-vertices[3][1]))
+        self.result=zip(self.keys, self.values)
         data = " ".join(map(str, self.text_val))
-        return data, slanted_list
+        return data,slanted_list
 
-    def get_paystub_type(self, paystub_types):
+    def get_paystub_type(self,paystub_types):
         lookups = [j for x in paystub_types for j in paystub_types[x]]
         if not lookups:
             return 'Generic'
         lookup_string = lookups[0]
-        for i in range(1, len(lookups)):
-            lookup_string = lookup_string + '|' + lookups[i]
-        val = re.compile(r'\b(!?' + lookup_string + r')\b', re.IGNORECASE)
+        for i in range(1,len(lookups)):
+            lookup_string = lookup_string+'|'+lookups[i]
+        val = re.compile(r'\b(!?'+lookup_string+r')\b', re.IGNORECASE)
         lookup_found = val.findall(self.description.description)
         if lookup_found:
             for pt in paystub_types:
-                if difflib.get_close_matches(lookup_found[0].lower(),
-                                             [x.lower() for x in paystub_types[pt]], cutoff=0.90):
-                    print('Paystub Type Found', pt)
+                if difflib.get_close_matches(lookup_found[0].lower(),[x.lower() for x in paystub_types[pt]],cutoff=0.90):
+                    print('Paystub Type Found',pt)
                     return pt
         print('No type found, using Generic')
         return 'Generic'
 
     def get_structure(self, root, all_headers, paystub_type):
+
 
         global paystub_structure
         for item in root.findall('./paystub'):
@@ -1624,32 +1468,32 @@ class paystub_gcv:
                 print(type(paystub_structure))
                 break
         for table in paystub_structure.findall('./'):
-            if table.tag in ['block_headers', 'col_headers']:
-                # fresh list gets created for block and col headers
+            if table.tag in ['block_headers','col_headers']:
+                #fresh list gets created for block and col headers
                 if table.tag == 'block_headers':
                     all_headers['block_headers'] = {
-                        'earnings': [], 'normal_deductions': [], 'pre_deductions': [],
-                        'post_deductions': [], 'taxes': [], 'other': [], 'none': []}
+                            'earnings':[],'normal_deductions':[],'pre_deductions':[],
+                            'post_deductions':[],'taxes':[],'other':[],'none':[]}
                 elif table.tag == 'col_headers':
                     all_headers['col_headers'] = {
-                        'current': [], 'ytd': [], 'other_earnings': [],
-                        'rate': [], 'hour': [], 'none': []}
+                            'current':[],'ytd':[],'other_earnings':[],
+                            'rate':[],'hour':[],'none':[]}
                 for val_type in table.findall('./'):
                     type_id = val_type.attrib.get('id')
                     for vals in val_type.findall('./'):
                         all_headers[table.tag][type_id].append(vals.text)
-            elif table.tag in ['col_sequence', 'vertical_col_sequence']:
-                # fresh list gets created for col sequences
+            elif table.tag in ['col_sequence','vertical_col_sequence']:
+                #fresh list gets created for col sequences
                 all_headers[table.tag] = []
                 for val_type in table.findall('./'):
                     all_headers[table.tag].append([])
                     for vals in val_type.findall('./'):
                         try:
-                            all_headers[table.tag][-1].append([vals.text, vals.attrib])
+                            all_headers[table.tag][-1].append([vals.text,vals.attrib])
                         except:
-                            all_headers[table.tag][-1].append([vals.text, None])
+                            all_headers[table.tag][-1].append([vals.text,None])
             elif table.tag in ['data_val']:
-                # data values are added in previous list
+                #data values are added in previous list
                 if not table.tag in all_headers:
                     all_headers[table.tag] = {}
                 for val_type in table.findall('./'):
@@ -1658,29 +1502,28 @@ class paystub_gcv:
                         all_headers[table.tag][type_id] = []
                     for vals in val_type.findall('./'):
                         try:
-                            all_headers[table.tag][type_id].append([vals.text, vals.attrib])
+                            all_headers[table.tag][type_id].append([vals.text,vals.attrib])
                         except:
-                            all_headers[table.tag][type_id].append([vals.text, None])
+                            all_headers[table.tag][type_id].append([vals.text,None])
             elif table.tag in ['data_dict']:
                 all_headers[table.tag] = []
                 for val_type in table.findall('./'):
-                    all_headers[table.tag].append([val_type.text, val_type.attrib])
+                    all_headers[table.tag].append([val_type.text,val_type.attrib])
             else:
                 all_headers['rules'] = []
                 for val_type in table.findall('./'):
-                    all_headers['rules'].append([val_type.text, val_type.attrib])
+                    all_headers['rules'].append([val_type.text,val_type.attrib])
         return all_headers
 
-    def remove_dotted_band(self, path):
+    def remove_dotted_band(self,path):
         img = cv2.imread(sys.argv[1], 0)
         _, blackAndWhite = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY_INV)
-        nlabels, labels, stats, centroids = cv2.connectedComponentsWithStats(blackAndWhite, 4,
-                                                                             cv2.CV_32S)
-        sizes = stats[1:, -1]  # get CC_STAT_AREA component
+        nlabels, labels, stats, centroids = cv2.connectedComponentsWithStats(blackAndWhite, 4, cv2.CV_32S)
+        sizes = stats[1:, -1] #get CC_STAT_AREA component
         img2 = np.zeros((labels.shape), np.uint8)
 
         for i in range(0, nlabels - 1):
-            if sizes[i] >= 8:  # filter small dotted regions
+            if sizes[i] >= 8:   #filter small dotted regions
                 img2[labels == i + 1] = 255
 
         res = cv2.bitwise_not(img2)
@@ -1688,45 +1531,47 @@ class paystub_gcv:
         pilImage = Image.fromarray(res)
         return pilImage
 
-    def rotate_image(self, path, rotation_deg):
+    def rotate_image(self,path,rotation_deg):
         ext = path.split('.')[-1]
-        print('Rotating image by degress', rotation_deg)
+        print('Rotating image by degress',rotation_deg)
         image = Image.open(path).convert('L')
         image = image.rotate(rotation_deg)
         return image
 
-    def check_gross_net(self, final_data):
+    def check_gross_net(self,final_data):
         return
 
-    def paystub_details(self, path):
-        # get text data from GCV
+    def paystub_details(self,path):
+        #get text data from GCV
         text_output_data, sl = self.get_text(path)
-        # print(sl)
-        # print('Average is ',float(sum(sl)/len(sl)))
+        #print(sl)
+        #print('Average is ',float(sum(sl)/len(sl)))
 
-        # get state code
+
+        #get state code
         pa = paystub_address()
-        pa_status, pa_points = pa.get_state_coordinates(self.description, self.result)
+        pa_status, pa_points = pa.get_state_coordinates(self.description,self.result)
         if not pa_status and not pa_points:
             print('We could not find state in this paystub')
         elif not pa_status:
             print('we are here')
-            rot_img = self.rotate_image(path, pa_points[0])
-            text_output_data, sl = self.get_text(path, rot_img)
-            pa_status, pa_points = pa.get_state_coordinates(self.description, self.result)
+            rot_img = self.rotate_image(path,pa_points[0])
+            text_output_data, sl = self.get_text(path,rot_img)
+            pa_status, pa_points = pa.get_state_coordinates(self.description,self.result)
 
-        # parse tree and get root element
-        tree = ElementTree.parse('../all_documents/all.xml')
+        #parse tree and get root element
+        tree = ElementTree.parse('all.xml')
         root = tree.getroot()
         paystub_structs = []
         for item in root.findall('./paystub'):
             paystub_structs.append(item.attrib.get('id'))
 
-        # get all headers from Generic structure
-        all_headers = {}
-        all_headers = self.get_structure(root, all_headers, 'Generic')
 
-        # read all structure types and their lookup texts
+        #get all headers from Generic structure
+        all_headers = {}
+        all_headers = self.get_structure(root,all_headers,'Generic')
+
+        #read all structure types and their lookup texts
         paystub_types = {}
         for item in root.findall('./paystub_types/'):
             type_id = item.attrib.get('id')
@@ -1734,29 +1579,33 @@ class paystub_gcv:
             for lookups in item.findall('./'):
                 paystub_types[type_id].append(lookups.text)
 
-        # get paystub type based on text
+        #get paystub type based on text
         paystub_type = self.get_paystub_type(paystub_types)
         if paystub_type != 'Generic':
-            all_headers = self.get_structure(root, all_headers, paystub_type)
+            all_headers = self.get_structure(root,all_headers,paystub_type)
 
-        # initilize structure to read paystub
+
+        #initilize structure to read paystub
         self.init_structure(all_headers)
 
-        # convert raw data into line-wise structured data
-        lines, state_lines = self.rectify_data(pa_points)
-
+        #convert raw data into line-wise structured data
+        lines,state_lines = self.rectify_data(pa_points)
+        
         for line in lines:
             print(line)
+        
 
         address_details = []
         if state_lines:
-            address_details = pa.get_address_lines(lines, state_lines)
+            address_details = pa.get_address_lines(lines,state_lines)
         print(address_details)
 
-        # get data blocks
+        
+        
+        #get data blocks
         data_blocks = self.get_payslip_amounts(lines)
 
-        # get output data from data blocks
+        #get output data from data blocks
         final_data = self.create_blocks(data_blocks)
         final_data['addresses'] = address_details
         print(final_data)
@@ -1764,7 +1613,7 @@ class paystub_gcv:
         """
         if paystub_type == 'ADP':
             pass
-
+    
             clear_image = self.remove_dotted_band(path)
             self.result={}
             self.text_val=[]
@@ -1774,43 +1623,40 @@ class paystub_gcv:
             text_output_data = self.get_text(path,clear_image)
         """
 
-        return final_data, text_output_data
-
+        return final_data,text_output_data
 
 class paystub_address:
     def __init__(self):
-        self.result = {}
+        self.result={}
         self.description = []
 
-    def get_data_in_box(self, bounding, lines):
+    def get_data_in_box(self,bounding,lines):
         bounding_x1, bounding_y1 = bounding[0]
         bounding_x2, bounding_y2 = bounding[1]
         min_overlap = 40
         output_values = []
-        for l_index, line in enumerate(lines):
-            for key, values in enumerate(line):
-                # Get bounding box by taking minimum of x and y, maximum of x and y.
-                # this will solve problem of rotated texts as well.
-                min_x = min(values[1], key=lambda x: x[0])[0]
-                min_y = min(values[1], key=lambda x: x[1])[1]
-                max_x = max(values[1], key=lambda x: x[0])[0]
-                max_y = max(values[1], key=lambda x: x[1])[1]
+        for l_index,line in enumerate(lines):
+            for key,values in enumerate(line):
+                #Get bounding box by taking minimum of x and y, maximum of x and y.
+                #this will solve problem of rotated texts as well.
+                min_x = min(values[1], key = lambda x: x[0])[0]
+                min_y = min(values[1], key = lambda x: x[1])[1]
+                max_x = max(values[1], key = lambda x: x[0])[0]
+                max_y = max(values[1], key = lambda x: x[1])[1]
                 text_area = (max_x - min_x) * (max_y - min_y)
                 x_overlap = max(0, min(bounding_x2, max_x) - max(bounding_x1, min_x))
                 y_overlap = max(0, min(bounding_y2, max_y) - max(bounding_y1, min_y))
                 overlapArea = x_overlap * y_overlap
-                if overlapArea > 0 and (overlapArea / text_area) * 100 >= min_overlap:
-                    output_values.append([values[0], values[1], l_index])
+                if overlapArea > 0 and (overlapArea/text_area)*100 >= min_overlap:
+                    output_values.append([values[0],values[1],l_index])
         return output_values
 
-    def get_state_coordinates(self, description, result):
+    def get_state_coordinates(self,description,result):
         self.description = description.description
-
+        
         self.result = copy.deepcopy(result)
 
-        state_name = re.findall(
-            r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5})',
-            str(self.description))
+        state_name = re.findall(r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5})', str(self.description))
         print(state_name)
         state = state_name
         all_points = []
@@ -1831,8 +1677,8 @@ class paystub_address:
                     state_found = False
                 else:
                     state_search_try += 1
-            if difflib.get_close_matches(values[0], [state[len(all_points)][0]], cutoff=0.90):
-                print('we got state name', state)
+            if difflib.get_close_matches(values[0],[state[len(all_points)][0]],cutoff=0.90):
+                print('we got state name',state)
                 print(values)
                 state_found = True
                 rotated_image = False
@@ -1850,16 +1696,15 @@ class paystub_address:
             return True, all_points
         return False, []
 
-    def get_address_lines(self, lines, state_lines):
+    def get_address_lines(self,lines,state_lines):
         all_addresses = []
         for sl in state_lines:
-            print('State Line is:', sl)
+            print('State Line is:',sl)
             state_name = sl[0][0]
             sc_vertices = vertices = sl[0][1]
             on_left = 8
             on_right = 5
-            state_word = [x for x in lines[sl[1]] if
-                          state_name + ',' in x[0] or state_name + ' ' in x[0]]
+            state_word = [x for x in lines[sl[1]] if state_name+',' in x[0] or state_name+' ' in x[0]]
             if state_word:
                 vertices = state_word[0][1]
                 on_left = 2
@@ -1869,39 +1714,38 @@ class paystub_address:
             text_height = (vertices[0][1] - vertices[2][1])
             height = round(text_height * 4)
 
-            third_pt_y = vertices[2][1] + (on_right * (sc_vertices[2][1] - sc_vertices[3][1]))
-            third_pt_x = vertices[2][0] + (on_right * (sc_vertices[2][0] - sc_vertices[3][0]))
-            print('TP', third_pt_x, third_pt_y)
+            third_pt_y = vertices[2][1] + (on_right * (sc_vertices[2][1]-sc_vertices[3][1]))
+            third_pt_x = vertices[2][0] + (on_right * (sc_vertices[2][0]-sc_vertices[3][0]))
+            print('TP',third_pt_x,third_pt_y)
             last_pt_y = vertices[3][1] + round(on_left * (sc_vertices[3][1] - sc_vertices[2][1]))
             last_pt_x = vertices[3][0] + round(on_left * (sc_vertices[3][0] - sc_vertices[2][0]))
-            print('LP', last_pt_x, last_pt_y)
+            print('LP',last_pt_x,last_pt_y)
             first_pt_y = vertices[0][1] + round(on_left * (sc_vertices[0][1] - vertices[1][1]))
             first_pt_x = vertices[0][0] + round(on_left * (sc_vertices[0][0] - vertices[1][0]))
             first_pt_y += height
-            print('FP', first_pt_x, first_pt_y)
+            print('FP',first_pt_x,first_pt_y)
             second_pt_y = vertices[1][1] + (on_right * (sc_vertices[1][1] - sc_vertices[0][1]))
             second_pt_x = vertices[1][0] + (on_right * (sc_vertices[1][0] - sc_vertices[0][0]))
             second_pt_y += height
-            print('TP', second_pt_x, second_pt_y)
-            data_box = self.get_data_in_box([(first_pt_x, first_pt_y), (third_pt_x, third_pt_y)],
-                                            lines)
-            status, details = self.extract_address(data_box, state_name)
+            print('TP',second_pt_x,second_pt_y)
+            data_box = self.get_data_in_box([(first_pt_x,first_pt_y),(third_pt_x,third_pt_y)],lines)
+            status,details = self.extract_address(data_box,state_name)
             if not status:
                 pass
             else:
                 all_addresses.append(details)
         return all_addresses
 
-    def extract_address(self, data_box, state_name):
+    def extract_address(self,data_box,state_name):
         output = {}
         if len(data_box) < 2:
             return False
 
         prev_line_number = 0
         address_lines = []
-        prev_start_x = 0
-        a_height = 0
-        # convert data of multiple lines into joined words form in each line
+        prev_start_x=0
+        a_height=0
+        #convert data of multiple lines into joined words form in each line
         for db in reversed(data_box):
             if db[2] != prev_line_number:
                 address_lines.append([db])
@@ -1915,46 +1759,43 @@ class paystub_address:
                     address_lines[-1][-1][1][3] = db[1][3]
                     prev_start_x = db[1][0][0]
                 else:
-                    address_lines[-1].insert(0, db)
+                    address_lines[-1].insert(0,db)
                     prev_start_x = db[1][0][0]
         print(address_lines)
-
+        
         start_x = False
         address_found = False
-        for i, db in enumerate(address_lines):
+        for i,db in enumerate(address_lines):
             if not start_x:
-                # look for word having state name, this should be the last line of our address
-                for j, al in enumerate(db):
+                #look for word having state name, this should be the last line of our address
+                for j,al in enumerate(db):
                     if state_name in al[0]:
                         output['address'] = [al[0]]
                         start_x = al[1][0][0]
-                        print('found start_x', start_x)
-                        print('height is ', a_height)
+                        print('found start_x',start_x)
+                        print('height is ',a_height)
                         end_x = al[1][2][0]
                         break
                 continue
 
-            min_diff = min(enumerate(db), key=lambda x: abs(x[1][1][0][0] - start_x))
-            print(min_diff, start_x)
+            min_diff = min(enumerate(db),key = lambda x: abs(x[1][1][0][0] - start_x))
+            print(min_diff,start_x)
             if abs(min_diff[1][1][0][0] - start_x) < a_height:
                 if not address_found:
-                    match_check = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\d+',
-                                             min_diff[1][0])
+                    match_check = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\d+',min_diff[1][0])
                     if match_check:
                         print('address line 2 finalized')
-                        output['address'].insert(0, min_diff[1][0])
+                        output['address'].insert(0,min_diff[1][0])
                         address_found = True
-                    # check if third line is also address line
+                    #check if third line is also address line
                     else:
-                        try:
-                            min_diff_1 = min(enumerate(db[i + 1]),
-                                             key=lambda x: abs(x[1][1][0][0] - start_x))
-                            match_check_1 = re.findall(
-                                r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\d+', min_diff_1[1][0])
+                        try:                            
+                            min_diff_1 = min(enumerate(db[i+1]),key = lambda x: abs(x[1][1][0][0] - start_x))
+                            match_check_1 = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\d+',min_diff_1[1][0])
                             if match_check_1 and abs(min_diff_1[1][1][0][0] - start_x) < a_height:
                                 print('there are 3 address lines')
-                                output['address'].insert(0, min_diff_1[1][0])
-                                output['address'].insert(0, min_diff[1][0])
+                                output['address'].insert(0,min_diff_1[1][0])
+                                output['address'].insert(0,min_diff[1][0])
                                 address_found = True
                         except:
                             pass
@@ -1962,7 +1803,32 @@ class paystub_address:
                     output['name'] = [min_diff[1][0]]
                     break
             else:
-                # now there is no chance for getting address, check if we can get name
+                #now there is no chance for getting address, check if we can get name
                 address_found = True
         print(output)
-        return True, output
+        return True,output
+
+def main():
+    pt = paystub_gcv()
+    image_path = r"C:\Users\ankitaa\Desktop\idocufy\Valid Paystubs\Cooper Health Template 2 082717.jpg"
+    ext = image_path.split('.')[-1]
+    if ext == 'pdf':
+        split_path = os.path.split(os.path.abspath(image_path))
+        print(split_path)
+        filename = split_path[1].split('.')[0] + '.jpg'
+        print(filename)
+        out_path = os.path.join(split_path[0],filename)
+        image_path = image_path.replace(' ','\ ')
+        out_path = out_path.replace(' ','\ ')
+        process = subprocess.call('convert -density 300 -trim ' +image_path+ ' -quality 100 '+out_path,shell=True)
+        image_path = out_path.replace('\ ',' ')
+        print(image_path)
+    print(image_path)
+    x,y = pt.paystub_details(image_path)
+    #print(x,y)    
+
+"""
+To run this program manually.
+"""
+if __name__ == "__main__":
+    main()

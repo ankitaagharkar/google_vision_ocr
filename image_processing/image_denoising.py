@@ -97,10 +97,12 @@ class Denoising:
                 # img=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                 img1=''
                 if flag==False:
+                    print(path)
                     img = Image.open(path)
                     img = np.array(img.copy())
-                    img1 = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                    img1 = cv2.GaussianBlur(img1.copy(), (1, 1), 0)
+                    # img1 = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                    img1 = cv2.GaussianBlur(img.copy(), (1, 1), 0)
+
                     # img1 = cv2.fastNlMeansDenoising(img1.copy(), None, 10, 7, 21)
                     # width, height = img.size
                     # img.save("../images/static/" + filename)
@@ -109,7 +111,7 @@ class Denoising:
                     img=np.array(img1.copy())
                     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                     image=cv2.GaussianBlur(img.copy(),(1,1),0)
-                    image = cv2.fastNlMeansDenoising(image.copy(), None, 10, 7, 21)
+                    # image = cv2.fastNlMeansDenoising(image.copy(), None, 10, 7, 21)
                     # image=cv2.dilate(image,(1,2),0)
                     # image=cv2.fastNlMeansDenoisingColored(img,None,15,21,9,25)
                     maxIntensity = 255.0  # depends on dtype of image data
@@ -126,11 +128,10 @@ class Denoising:
                 # pImg = np.hstack((img, img1))
 
             elif 'SSN' in doc_type:
-                img = cv2.imread(path)
-                height, width, _ = img.shape
-                print(height, width)
+                img = Image.open(path).convert('L')
+                img = np.array(img.copy())
+                # print("im method", path)
 
-                print("im method", path)
                 pImg=cv2.GaussianBlur(img,(3,3),0)
                 # pImg=cv2.fastNlMeansDenoisingColored(image,None,13,13,7,21)
 
