@@ -3,8 +3,13 @@ import re
 
 def replace(actual_name):
     actual_name1 = actual_name.replace('DONAR', "")
+    actual_name1 = actual_name.replace('DRIVER', "")
+    actual_name1 = actual_name.replace('LICENSE', "")
     actual_name1 = actual_name1.replace('FOR', "")
     actual_name1 = actual_name1.replace('SIGNATURE', "")
+    actual_name1 = actual_name1.replace('ESTABČISHED', "")
+    actual_name1 = actual_name1.replace('ESTABLISHED', "")
+    actual_name1 = actual_name1.replace('Established', "")
     actual_name1 = actual_name1.replace('Iss', "")
     actual_name1 = actual_name1.replace('iss', "")
     actual_name1 = actual_name1.replace('Doe', "")
@@ -223,7 +228,7 @@ def replace(actual_name):
     # actual_name1 = actual_name1.replace('Is ', "")
     actual_name1 = actual_name1.replace('un ', "")
 
-    actual_name1 = re.sub(r"\b(!?es |iss |er |or |EN |EXP|HGT|Is |Earnings|Donor |AP |=|,|@|#|%|^|CGA| ER |CONG|EENHANCED|am|Mal| OL |GIN|CASS C |D |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE |DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF |LN | ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|ISS|SExr|Payroll|Attn|GEXP|class|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
+    actual_name1 = re.sub(r"\b(!?es |iss |er |or |EN |EXP|HGT|Is |Earnings|Donor |AP |=|,|@|#|%|^|CGA| ER |CONG|EENHANCED|am|Mal| OL |GIN|CASS C |D |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE |DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF | LN | ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|ISS|SExr|Payroll|Attn|GEXP|class|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
         "",actual_name1)
     # actual_name1 = re.sub(
     #     r"\s(=?EXP|HGT|Earnings|Donor|AP |=|,|@|#|%|^|ER |CGA|CONG|EENHANCED|am|Mal| OL |GIN|CASS|C |D | AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE|USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP|IS | TO |THE |ORDER|No |Payro| OC | OF |LN |EN |ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class|DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)\b",
@@ -238,7 +243,7 @@ def address_replace(value):
     value = value.replace(' | ', ' ')
     value = value.replace('BLACKWOOO', 'BLACKWOOD')
     if re.search(
-            r'(\s\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?NLNo))\b',
+            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?NLNo))\b',
             value):
         value = value.replace('NLNo', 'NJ ')
     if re.search('(!?AŽ|AŻ)', value):
@@ -246,19 +251,24 @@ def address_replace(value):
     if 'NU ' in value:
         value = value.replace('NU ', 'NJ ')
     elif re.search(
-            r'(\s\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?\.?NL))\b',
+            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?|[A-Za-z]\s?(!?M))\b',
             value):
+        value = value.replace('M.', ' NJ ')
+    elif re.search(
+            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?|[A-Za-z]\s?(!?\.?NL))\b',
+            value):
+        value = value.replace('.NL', ' NJ ')
         value = value.replace('NL', 'NJ ')
-        value = value.replace('.NL', 'NJ ')
+
     if re.search(
-            r'(\s\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?N\.))\b',
+            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?N\.))\b',
             value):
         value = value.replace('N. ', 'NJ ')
 
     if ' NJI ' in value:
         value = value.replace('NJI ', 'NJ ')
     if re.search(
-            r'(\s\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!? NO))\b',
+            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!? NO))\b',
             value):
         value = value.replace('NO', 'NJ ')
     if ' SU ' in value:
@@ -266,11 +276,11 @@ def address_replace(value):
     if '$' in value:
         value = value.replace('$', '6')
     if re.search(
-            r'(\s\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?MAJ))\b',
+            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?MAJ))\b',
             value):
         value = value.replace('MAJ', ' NJ ')
     if re.search(
-            r'(\s\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?AJ))\b',
+            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?AJ))\b',
             value):
         value = value.replace('AJ', ' NJ ')
 
@@ -281,7 +291,7 @@ def address_replace(value):
     if ' NW ' in value:
         value = value.replace('NW', 'NJ ')
     if re.search(
-            r'(\s\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\,?\.?\s?(!?NI|NIIN))\b',
+            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\,?\.?\s?(!?NI|NIIN))\b',
             value):
 
         value = value.replace('NIIN', 'NJ ')
@@ -294,16 +304,20 @@ def address_replace(value):
 def name_replace(text_value,date,zip_code,text_val):
     text_value = text_value.replace(' ExP ', " ")
     text_value = text_value.replace(' DANONE ', " ")
+    text_value = text_value.replace('DRIVER', " ")
+    text_value = text_value.replace('LICENSE', " ")
     text_value = text_value.replace('KMAL ', " ")
-    text_value = text_value.replace('ORGAN ', " ")
-    text_value = text_value.replace(' DONAR ', " ")
+    text_value = text_value.replace('ORGAN DONOR', " ")
+
     text_value = text_value.replace(' EX ', " ")
     text_value = text_value.replace(' ! ', " ")
-    text_value = text_value.replace('LN ', " ")
+    text_value = text_value.replace(' LN ', " ")
     text_value = text_value.replace('FN ', " ")
     text_value = text_value.replace(' CLAss D ', " ")
     text_value = text_value.replace(' EXF ', " ")
     text_value = text_value.replace(' 2 ', " ",1)
+    text_value = text_value.replace(' 2', " ",1)
+    text_value = text_value.replace('2', " ",1)
     # text_value = text_value.replace('2 ', " ",1)
     text_value = text_value.replace(' CLAss ', " ")
     text_value = text_value.replace(' Imal ', " ")
@@ -317,9 +331,9 @@ def name_replace(text_value,date,zip_code,text_val):
         text_value = text_value.replace('LOL', "")
     else:
         text_value = text_value.replace(' LOL ', "")
-    text_value = text_value.replace(' ENO ', " ")
-    text_value = text_value.replace(' Da ', " ")
-    text_value = text_value.replace(' toe ', " ")
+    text_value = text_value.replace(' ENO ', "")
+    text_value = text_value.replace(' Da ', "")
+    text_value = text_value.replace(' toe ', "")
     text_value = text_value.replace(' EXP ', " ")
     text_value = text_value.replace(' D08 ', " ")
     # text_value = text_value.replace(' D08 ', " ")
@@ -367,7 +381,6 @@ def name_replace(text_value,date,zip_code,text_val):
     text_value = text_value.replace(' Class D ', " ")
     text_value = text_value.replace(' Ex ', " ")
     text_value = text_value.replace(' ex ', " ")
-    name_val, value = '', ''
     text_value = text_value.replace(' a ', "")
 
     val = date.split(",")
