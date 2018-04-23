@@ -29,20 +29,44 @@ class Common:
                 seen.add(item)
                 self.result.append(item)
         return self.result
-    def get_address_zipcode(self,full_address,zipcode):
+    def get_address_zipcode(self,full_address,zipcode, extra=False):
         try:
-            if re.search('\w+\s\d+',zipcode):
-                zipcode = zipcode.replace(' ', "")
-                zipcode = zipcode[0:2] + " " + zipcode[2:]
-                code = zipcode.split()
-                city = ' '.join(map(str, full_address.split(code[0], 1)[0].split()[-2:]))
-                return code[0], code[1], city
+            if not extra:
+                if re.search('\w+\s\d+',zipcode):
+                    if not re.search(r'[A-Za-z]{4,}',zipcode):
+                        zipcode = zipcode.replace(' ', "")
+                        zipcode = zipcode[0:2] + " " + zipcode[2:]
+                        code = zipcode.split()
+                        city = ' '.join(map(str, full_address.split(" "+code[0], 1)[0].split()[-2:]))
+                        return code[0], code[1], city
+                    else:
+                        code = zipcode.split()
+                        city = ' '.join(map(str, full_address.split(" " + code[0], 1)[0].split()[-2:]))
+                        return code[0], code[1], city
+                else:
+                    code=[]
+                    code.append(zipcode)
+                    city = ' '.join(map(str, full_address.split(code[0], 1)[0].split()[-2:]))
+                    code.append("")
+                    return code[0], code[1], city
             else:
-                code=[]
-                code.append(zipcode)
-                city = ' '.join(map(str, full_address.split(code[0], 1)[0].split()[-2:]))
-                code.append("")
-                return code[0], code[1], city
+                # if re.search('\w+\s\d+', zipC):
+                state = [zipco for zipco in zipcode if zipco.isalpha() and len(zipco) == 2][0]
+                full_address_as_list = full_address.split()
+                indexOfState = full_address_as_list.index(state)
+                try:
+                    fullZipCode = full_address_as_list[indexOfState+1:]
+                    fullZipCode = ''.join(map(str, fullZipCode))
+                except Exception as e:
+                    print(e)
+                    fullZipCode = ''
+                try:
+                    city = full_address_as_list[indexOfState - 1]
+                except Exception as e:
+                    print(e)
+                    city = ''
+                return state, fullZipCode, city
+
 
         except Exception as e:
             print(e)

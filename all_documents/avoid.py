@@ -3,9 +3,10 @@ import re
 
 def replace(actual_name):
     actual_name1 = actual_name.replace('DONAR', "")
-    actual_name1 = actual_name.replace('DRIVER', "")
-    actual_name1 = actual_name.replace('LICENSE', "")
+    actual_name1 = actual_name1.replace('DRIVER', "")
+    actual_name1 = actual_name1.replace('LICENSE', "")
     actual_name1 = actual_name1.replace('FOR', "")
+
     actual_name1 = actual_name1.replace('SIGNATURE', "")
     actual_name1 = actual_name1.replace('ESTABČISHED', "")
     actual_name1 = actual_name1.replace('ESTABLISHED', "")
@@ -239,9 +240,11 @@ def address_replace(value):
     value = value.replace('BLACKWG00', 'BLACKWOOD')
     value = value.replace('BLACKW000', 'BLACKWOOD')
 
+
     value = value.replace('FILE', '')
     value = value.replace(' | ', ' ')
     value = value.replace('BLACKWOOO', 'BLACKWOOD')
+    value = value.replace('BLACKWOOQ', 'BLACKWOOD')
     if re.search(
             r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?NLNo))\b',
             value):
@@ -251,14 +254,15 @@ def address_replace(value):
     if 'NU ' in value:
         value = value.replace('NU ', 'NJ ')
     elif re.search(
-            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?|[A-Za-z]\s?(!?M))\b',
-            value):
-        value = value.replace('M.', ' NJ ')
-    elif re.search(
             r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?|[A-Za-z]\s?(!?\.?NL))\b',
             value):
         value = value.replace('.NL', ' NJ ')
         value = value.replace('NL', 'NJ ')
+    elif re.search(
+            r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?|[A-Za-z]\s?(!?M))\b',
+            value):
+        value = value.replace('M.', ' NJ ')
+
 
     if re.search(
             r'(\s?\d+\s([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?(\d+)?\s?([A-Za-z]+)?\s?[#.,/]?\s?(\w*)?\s?\.?\s?(!?N\.))\b',
@@ -305,6 +309,8 @@ def name_replace(text_value,date,zip_code,text_val):
     text_value = text_value.replace(' ExP ', " ")
     text_value = text_value.replace(' DANONE ', " ")
     text_value = text_value.replace('DRIVER', " ")
+    text_value = text_value.replace('EXPRES', " ")
+    text_value = text_value.replace('Expres', " ")
     text_value = text_value.replace('LICENSE', " ")
     text_value = text_value.replace('KMAL ', " ")
     text_value = text_value.replace('ORGAN DONOR', " ")
@@ -388,16 +394,17 @@ def name_replace(text_value,date,zip_code,text_val):
     for i in range(len(val)):
         text_value = text_value.replace(val[i], "")
     if re.search(r'(!?GA|PA)', zip_code):
-        avoid_signature = ' '.join(map(str, text_val.split(re.findall(r"(!?Expires:|EXP|Expires|Exp|Expiros|EXPIRES|EXPIROS|EER)", text_val)[0], 1)[1].split()[
-                                                              0:1]))
-        for i in range(len(val)):
-            avoid_signature = avoid_signature.replace(val[i], "")
+        if re.search(r"(!?Expires:|EXP|Expires|Exp|Expiros|EXPIRES|EXPIROS|EER)", text_val):
+            avoid_signature = ' '.join(map(str, text_val.split(re.findall(r"(!?Expires:|EXP|Expires|Exp|Expiros|EXPIRES|EXPIROS|EER)", text_val)[0], 1)[1].split()[
+                                                                  0:1]))
+            for i in range(len(val)):
+                avoid_signature = avoid_signature.replace(val[i], "")
     # if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)', zip_code):
     #     if re.search(r'\b\s?(!?8|2)\s?(\d+)?\b', text_value):
     #         text_value = text_value.replace(' 8', ' ')
     #         # text_value = text_value.split('2', 1)[1]
     value = text_value.replace(":", "")
-    print("in replace",value)
+    # print("in replace",value)
     return value,avoid_signature
 
 def paystub_replace(actual_name):

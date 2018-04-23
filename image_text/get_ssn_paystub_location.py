@@ -57,8 +57,8 @@ class get_all_sp_location:
         value_json_keys=list(value_json.keys())
         print("value_json",value_json)
         # key_compare=['pay_period_start_date','pay_period_end_date','pay_date','employee_address','employer_address','employee_name','employer_name']
-        self.get_text(path)
-        for key, value in enumerate(self.result):
+
+        for key, value in enumerate(result):
             a = a + 1
             b = b + 1
             c = c + 1

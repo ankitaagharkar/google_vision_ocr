@@ -83,10 +83,17 @@ class text_score:
                             elif value[0] in data['middle_name']:
                                 self.others.update({value[0]: value[1]})
 
-                            elif value[0] in data['address']:
+
+                            elif any(char in data['address'] for char in value[0]):
+
                                 self.address_val.update({value[0]: value[1]})
 
-                            elif value[0] in data['license_id']:
+                            if value[0] in data['address']:
+                                self.address_val.update({value[0]: value[1]})
+
+                            elif any(char in data['license_id'] for char in value[0]):
+                                self.license_id_dict.update({value[0]: value[1]})
+                            if value[0] in data['license_id']:
                                 self.license_id_dict.update({value[0]: value[1]})
 
                             else:

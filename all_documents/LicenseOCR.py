@@ -63,7 +63,9 @@ class LicenseOCR:
                         for vertex in text.bounding_poly.vertices]
             height_list.append(abs(vertices[0][1] - vertices[3][1]))
             slanted_list.append(abs(vertices[0][1] - vertices[1][1]))
-            if vertices[0][1] > vertices[2][1]:
+            if vertices[0][1] > vertices[2][1] and vertices[1][1] > vertices[3][1]:
+                rotated_list.append(180)
+            elif vertices[0][1] > vertices[2][1]:
                 rotated_list.append(270)
             elif vertices[1][1] > vertices[3][1]:
                 rotated_list.append(90)
@@ -114,71 +116,95 @@ class LicenseOCR:
 
         global state_name
         self.description.description = self.description.description.replace(" EN ", "")
+        self.description.description = self.description.description.replace("END", "")
+        self.description.description = self.description.description.replace("End", "")
+        self.description.description = self.description.description.replace("NONE", "")
+        self.description.description = self.description.description.replace("None", "")
         self.description.description = self.description.description.replace(" FN ", "")
         self.description.description = self.description.description.replace(" LN ", "")
-        text_value = str(self.description.description)
+        if re.search(r'(!?New|NEW|JERSEY|Jersey)', self.description.description):
+            self.description.description = self.description.description.replace(' DE ', '', 1)
+            self.description.description = self.description.description.replace(' NE ', '', 1)
+            self.description.description = self.description.description.replace(' ID ', '', 1)
+            self.description.description = self.description.description.replace(' IN ', '', 1)
+        text_value=str(self.description.description)
         if re.search(r'(!?New|NEW|JERSEY|Jersey)', self.description.description):
             self.description.description= self.description.description.replace('DE','',1)
         if 'M. 088173441' in self.description.description:
             state_name='M'
+        if 'NJQ8104-2010' in self.description.description:
+            state_name='NJQ8104'
         else:
             val = re.findall(
-                r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5})',
+                r'\b(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}(?:\s?\-\s?\d{4})|\d{5}(?:\s?\.\s?\d{4})|\d{5})',
                 self.description.description)
             if not val:
-                val1 = re.findall(r'\s\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\s',
+                val1 = re.findall(r'\s\b(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\s',
                     self.description.description)
+                val1_empty = True
+                if val1!=[]:
+                    val1_empty = False
+                    print(val1)
+                    if len(val1) >= 2:
+                        poppedElements = []
+                        for (index, i) in enumerate(val1):
+                            val2 = ' '.join(map(str, self.description.description.split(i, 1)[0].split()[-1:]))
+                            print(val2)
+                            if re.search(r'\d+', val2) or 'DRIVER LICENSE'.lower()==val2.lower():
+                                # val1.remove(i)
+                                poppedElements.append(index)
+                        for i in reversed(poppedElements):
+                            val1.pop(i)
+                        if len(val1) > 1:
+                            val2 = ' '.join(map(str, self.description.description.split(val1[-1], 1)[0].split()[0:2]))
+                            print(val2)
+                            if not re.search(r'\d+\s?[A-Za-z]+\s[A-Za-z]+', val2):
+                                val1.pop()
+                                # val1.remove(i)
+                                # poppedElements.append(val1.index(i))
+                        elif len(val1) == 0:
+                            val1_empty = True
+                        else:
+                            state_name=val1[0]
+                    else:
+                        state_name=val1[0]
+                if val1_empty:
+                # state_name = re.findall(
+                #     r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5})',
+                #     str(self.description.description))
+                # if not state_name:
+                #     state_name = re.findall(
+                #         r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|I|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s',
+                #         str(self.description.description))
+                #     if not state_name:
+                    ignore_val = re.findall(
+                        r'\b(\s\d+\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([ŽA-Za-z]+)?\s?(\d+)?[#.,/]?\s?([ŽA-Za-z]+)\s?[#.,/]?\s?(\w*)?\.?\s?(!?AŻ|NU|\.?NL|N\.|NJI|SU|NA|Na|NW|NIIN|NI|AJ|NO)\s?\s?\s?\w+)',
+                        self.description.description)
 
-                print(val1)
-                if len(val1) >= 2:
-                    for i in val1:
-                        val2 = ' '.join(map(str, self.description.description.split(i, 1)[0].split()[-2:]))
-                        print(val2)
-                        if re.search(r'\d+', val2):
-                            val1.remove(i)
-                    if len(val1) > 1:
-                        val2 = ' '.join(map(str, self.description.description.split(i, 1)[0].split()[0:2]))
-                        print(val2)
-                        if not re.search(r'\d+\s?[A-Za-z]+\s[A-Za-z]+', val2):
-                            val1.remove(i)
-                state_name=val1[0]
-            else:
-                state_name=val[0][0]
-            if not state_name:
-            # state_name = re.findall(
-            #     r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}\d{1,4}|\d{5}(?:\s?\-\s?\d{1,4})|\d{5}(?:\s?\-?\s?[A-Za-z]+\d{1,4})|\d{5}(?:\s?\.\s?\d{4})|\d{5})',
-            #     str(self.description.description))
-            # if not state_name:
-            #     state_name = re.findall(
-            #         r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|I|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s',
-            #         str(self.description.description))
-            #     if not state_name:
-                ignore_val = re.findall(
-                    r'\b(\s\d+\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?\s?([A-Za-z]+)?\s?(\d+)?\s?([ŽA-Za-z]+)?\s?(\d+)?[#.,/]?\s?([ŽA-Za-z]+)\s?[#.,/]?\s?(\w*)?\.?\s?(!?AŻ|NU|\.?NL|N\.|NJI|SU|NA|Na|NW|NIIN|NI|AJ|NO)\s?\w+)',
-                    text_value)
+                    if ignore_val != []:
+                        if re.search(
+                                r'[A-Za-z]+\s?\.?\s?(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\b',
+                                self.description.description):
+                            state_val = re.findall(
+                                r'\b(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)',
+                                text_value)
+                            state_name = state_val[0]
 
-                if ignore_val != []:
-                    if re.search(
-                            r'[A-Za-z]+\s?\.?\s?(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\b',
-                            text_value):
-                        state_val = re.findall(
-                            r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)',
-                            text_value)
-                        state_name = state_val[0]
+                        else:
+                            if re.search(ignore_val[0][::-1][0], text_value):
+                                state_name = ignore_val[0][::-1][0]
 
                     else:
-                        if re.search(ignore_val[0][::-1][0], text_value):
-                            state_name = ignore_val[0][::-1][0]
-
-                else:
-                    state_val = re.findall(
-                        r'\b(!?AL|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)',
-                        text_value)
-                    state_name = state_val[0]
+                        state_val = re.findall(
+                            r'\b(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)',
+                            text_value)
+                        state_name = state_val[0]
+            else:
+                state_name = val[0][0]
         # else:
         #     state_name = [state_name[0][0]]
 
-        print('State name is ', state_name)
+        # print('State name is ', state_name)
         state = state_name
         all_points = []
         if not state:
@@ -187,7 +213,7 @@ class LicenseOCR:
         result = copy.deepcopy(self.result)
         for key, values in enumerate(result):
             if difflib.get_close_matches(values[0], [state], cutoff=0.90):
-                print(values)
+                # print(values)
                 all_points.append(values)
 
 
@@ -296,9 +322,12 @@ class LicenseOCR:
 
     def process_image(self, ext):
         # read image from bytes in PIL
+
         pilImage = Image.open(io.BytesIO(self.image_content))
-        # img = cv2.boxFilter(np.array(pilImage), 0, (3, 3))
-        # processedImage = cv2.GaussianBlur(np.array(pilImage), (1, 1), 0)
+        processedImage = cv2.GaussianBlur(np.array(pilImage), (1, 1), 0)
+
+        # processedImage = cv2.boxFilter(np.array(pilImage), 0, (1, 1))
+        # processedImage = cv2.GaussianBlur(np.array(pilImage), (3, 1), 0)
         # convert PIL image to cv2 and do processing
         # img=np.array(pilImage.copy())
         #
@@ -317,7 +346,7 @@ class LicenseOCR:
         # #
         # #
         # # #convert cv2 image to PIL
-        # pilImage = Image.fromarray(processedImage)
+        pilImage = Image.fromarray(processedImage)
 
         # convert PIL image to byte contents
         b = io.BytesIO()
@@ -325,12 +354,14 @@ class LicenseOCR:
             save_ext = 'PNG'
         elif ext.lower() in ('jpg', 'jpeg'):
             save_ext = 'JPEG'
+        elif ext.lower() in ('bmp'):
+            save_ext = 'bmp'
         pilImage.save(b, save_ext)
         return b.getvalue()
 
     def process_after_image(self, ext):
         # read image from bytes in PIL
-        pilImage = Image.open(io.BytesIO(self.image_content)).convert('L')
+        pilImage = Image.open(io.BytesIO(self.image_content))
 
         img = cv2.boxFilter(np.array(pilImage), 0, (3, 3))
         processedImage = cv2.GaussianBlur(img.copy(), (1, 1), 0)
@@ -429,6 +460,19 @@ class LicenseOCR:
                 for i in range(4):
                     p[1][i] = (height - p[1][i][1], p[1][i][0])
                 new_points.append(p)
+        elif mode_rotate == 180:
+            for v in text_result:
+                # print(v)
+                for i in range(4):
+                    v[1][i] = (width - v[1][i][0], height - v[1][i][1])
+                # print(v)
+                height_list.append(abs(v[1][0][1] - v[1][3][1]))
+                slanted_list.append(abs(v[1][0][1] - v[1][1][1]))
+                new_result.append(v)
+            for p in points:
+                for i in range(4):
+                    p[1][i] = (width - p[1][i][0], height - p[1][i][1])
+                new_points.append(p)
         self.result = new_result
         return height_list, slanted_list, points
 
@@ -456,7 +500,7 @@ class LicenseOCR:
         hl, sl, rl = self.get_word_coordinates(texts)
         mode_slant = max(set(sl), key=sl.count)
         mode_rotate = max(set(rl), key=rl.count)
-        print('Mode Slant ', mode_slant)
+        # print('Mode Slant ', mode_slant)
 
         """
         Create an object of get details class, and retrieve dates and its confidence.
@@ -467,7 +511,7 @@ class LicenseOCR:
 
         if not state_status:
             #if state not found, go for image processing
-            print('Processing Image')
+            # print('Processing Image')
             self.image_content = self.process_after_image(ext)
             image_updated = True
 
@@ -500,7 +544,7 @@ class LicenseOCR:
 
         if mode_rotate != 0:
             # code for rotating image by given degrees.
-            print('Rotating image by ', mode_rotate, ' degrees')
+            # print('Rotating image by ', mode_rotate, ' degrees')
             hl, sl, points = self.change_coordinates(mode_rotate, points)
 
         text_result = copy.deepcopy(self.result)

@@ -22,6 +22,7 @@ Ignore value 			{val_ignore}
 		<type id="ADP">
 			<lookup_text>Earnings Statement</lookup_text>
 			<lookup_text>AMTRAK</lookup_text>
+			<lookup_text>Sysco</lookup_text>
 		</type>
 		<type id="Insperity">
 			<lookup_text>Insperity</lookup_text>
@@ -45,6 +46,10 @@ Ignore value 			{val_ignore}
 		</type>
 		<type id="KPMG">
 			<lookup_text>KPMG</lookup_text>
+			<lookup_text>RUTGERS</lookup_text>
+		</type>
+		<type id="Bottling">
+			<lookup_text>Bottling Group</lookup_text>
 		</type>
 	</paystub_types>
 
@@ -92,6 +97,7 @@ Ignore value 			{val_ignore}
 				<val>tax deductions</val>
 				<val>associate taxes</val>
 				<val>taxes withheld</val>
+				<val>employee taxes</val>
 			</type>
 			<type id="other">
 				<val>information</val>
@@ -100,6 +106,7 @@ Ignore value 			{val_ignore}
 				<val>accruals/others</val>
 				<val>summary</val>
 				<val>net pay distribution</val>
+				<val>net pay allocations</val>
 				<val>pay distribution</val>
 				<val>direct deposit distribution</val>
 				<val>direct deposit information</val>
@@ -108,6 +115,7 @@ Ignore value 			{val_ignore}
 				<val>employer paid benefits</val>
 				<val>leave</val>
 				<val>benefits paid by government for you</val>
+				<val>taxable wages</val>
 			</type>
 		</block_headers>
 		<col_headers>
@@ -162,8 +170,22 @@ Ignore value 			{val_ignore}
 				<val col_type="None">current</val>
 				<val col_type="None">ytd</val>
 			</type>
+			<type>
+				<val col_type="None">description</val>
+				<val col_type="None">dates</val>
+				<val col_type="Hour">hours</val>
+				<val col_type="Rate">rate</val>
+				<val col_type="Current">amount</val>
+				<val col_type="YTD">ytd</val>
+			</type>
+			<type>
+				<val col_type="None">description</val>
+				<val col_type="Current">amount</val>
+				<val col_type="YTD">ytd</val>
+			</type>
 		</col_sequence>
 		<rules>
+			<type val="True">Is TaxType Header Defined</type>
 		</rules>
 		<vertical_col_sequence>
 			<type>
@@ -176,34 +198,51 @@ Ignore value 			{val_ignore}
 				<val>current</val>
 				<val>ytd</val>
 			</type>
+			<type>
+				<val col_type="None">total gross</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">ytd</val>
+			</type>
 		</vertical_col_sequence>
 		<data_val>
 			<type id="Hybrid">
 				<val type="date">end date</val>
 				<val type="date">begin date</val>
 				<val type="date">period end</val>
+				<val type="date">period end date</val>
+				<val type="date">period start</val>
+				<val type="date">period start date</val>
+				<val type="date">hire date</val>
 				<val type="date">pay date</val>
 				<val type="date">pay period</val>
+				<val type="amount">pay rate</val>
 				<val type="text">employee name</val>
 				<val type="text">employee</val>
+				<val type="text">employee address</val>
+				<val type="text">address</val>
 				<val type="text">name</val>
 				<val type="id_text">employee #</val>
 				<val type="id_text">employee id</val>
+				<val type="id_text">identification no.</val>
 				<val type="text">job title</val>
 				<val type="text">position</val>
 				<val type="text">position title</val>
 				<val type="text">pay frequency</val>
 				<val type="text">employer name</val>
+				<val type="text">employer phone</val>
 				<val type="amount">net pay</val>
 				<val type="date">period ending</val>
 				<val type="date">period beginning</val>
 				<val type="date">advice date</val>
 				<val type="date">period beg/end</val>
+				<val type="date">check date</val>
+				<val type="text">site</val>
 			</type>
 		</data_val>
 		<data_dict>
 			<val col="tax_total_auto">taxes</val>
 			<val col="post_deduction_total_auto">deds</val>
+			<val col="post_deduction_total_auto">deductions</val>
 		</data_dict>
 	</paystub>
 	<paystub id="ADP">
@@ -378,22 +417,9 @@ Ignore value 			{val_ignore}
 				<val>taxes</val>
 			</type>
 			<type id="other">
-				<val>information</val>
 				<val>others</val>
-				<val>memo information</val>
-				<val>accruals/others</val>
-				<val>summary</val>
-				<val>colleague</val>
-				<val>employer</val>
-				<val>net pay distribution</val>
 				<val>federal tax withholding election</val>
-				<val>direct deposit distribution</val>
 				<val>direct deposit information</val>
-				<val>direct deposit</val>
-				<val>organizations contribution</val>
-				<val>employer paid benefits</val>
-				<val>leave</val>
-				<val>benefits paid by government for you</val>
 			</type>
 		</block_headers>
 		<col_headers>
@@ -591,6 +617,15 @@ Ignore value 			{val_ignore}
 			<type id="hour">
 				<val>hours/days</val>
 			</type>
+			<type id="none">
+				<val>balance</val>
+				<val>pay pd</val>
+				<val>ytd</val>
+				<val>pay pd</val>
+				<val>ytd</val>
+				<val>returned</val>
+				<val>balance</val>
+			</type>
 		</col_headers>
 		<col_sequence>
 			<type>
@@ -633,6 +668,8 @@ Ignore value 			{val_ignore}
 			</type>
 			<type id="other">
 				<val>employer paid benefits</val>
+				<val>taxable wages</val>
+				<val>net pay distribution</val>
 			</type>
 			<type id="pre_deductions">
 				<val>before-tax deduction</val>
@@ -656,7 +693,7 @@ Ignore value 			{val_ignore}
 			<type id="none">
 				<val>hours</val>
 				<val>total gross</val>
-				<val>dercription</val>
+				<val>description</val>
 			</type>
 		</col_headers>
 		<col_sequence>
@@ -669,8 +706,8 @@ Ignore value 			{val_ignore}
 			</type>
 			<type>
 				<val col_type="None">dercription</val>
-				<val col_type="Current">earnings</val>
-				<val col_type="YTD">earnings</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">ytd</val>
 			</type>
 		</col_sequence>
 		<rules>
@@ -681,6 +718,80 @@ Ignore value 			{val_ignore}
 				<val col_type="None">total gross</val>
 				<val col_type="Current">current</val>
 				<val col_type="YTD">ytd</val>
+			</type>
+		</vertical_col_sequence>
+		<data_val>
+			<type/>
+		</data_val>
+	</paystub>
+	<paystub id="Bottling">
+		<block_headers>
+			<type id="earnings">
+				<val>taxable earnings</val>
+			</type>
+			<type id="post_deductions">
+				<val>post tax deduction</val>
+			</type>
+			<type id="taxes">
+				<val>employee tax deductions</val>
+			</type>
+			<type id="other">
+				<val>imputed income &amp; stock transactions</val>
+			</type>
+			<type id="pre_deductions">
+				<val>pre tax deduction</val>
+			</type>
+		</block_headers>
+		<col_headers>
+			<type id="current">
+				<val>amount</val>
+				<val>current amount</val>
+				<val>tax</val>
+			</type>
+			<type id="ytd">
+				<val>amount</val>
+				<val>ytd amount</val>
+				<val>tax</val>
+			</type>
+			<type id="rate">
+				<val>rate</val>
+			</type>
+			<type id="hour">
+				<val>hours</val>
+			</type>
+			<type id="none">
+				<val>retro period</val>
+				<val>tax gross</val>
+			</type>
+		</col_headers>
+		<col_sequence>
+			<type>
+				<val col_type="None">retro period</val>
+				<val col_type="Rate">rate</val>
+				<val col_type="Hour">hours</val>
+				<val col_type="Current">amount</val>
+				<val col_type="None">hours</val>
+				<val col_type="YTD">amount</val>
+			</type>
+			<type>
+				<val col_type="None">retro period</val>
+				<val col_type="Current">current amount</val>
+				<val col_type="YTD">ytd amount</val>
+			</type>
+			<type>
+				<val col_type="Current">tax</val>
+				<val col_type="None">tax gross</val>
+				<val col_type="YTD">tax</val>
+				<val col_type="None">tax gross</val>
+			</type>
+		</col_sequence>
+		<rules>
+		</rules>
+		<vertical_col_sequence>
+			<type>
+				<val col_type="None">check date</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">year to date</val>
 			</type>
 		</vertical_col_sequence>
 		<data_val>

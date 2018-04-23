@@ -60,6 +60,10 @@ class LicenseAddress:
         
         max_height = mode_height * 2.5
         min_height = mode_height * 0.5
+        # if re.search(r'(!?OH|IA)',state_lines[0][0]):
+        #     new_line_multiplier = 0.5
+        # else:
+        new_line_multiplier = 0.5
 
         """
         Algorithm to bring all words in one line if it belongs to same line
@@ -70,26 +74,27 @@ class LicenseAddress:
             1B: If NO, add the word to current line
         """
         for key, values in enumerate(res):
-            print(values)
+
+            #print(values)
             #check if word size is greater than mode height of all words
             if abs(values[1][0][1] - values[1][3][1]) > max_height or abs(values[1][0][1] - values[1][3][1]) < min_height:
-                print('Rejected word ',values)
+                #print('Rejected word ',values)
                 continue
             if abs(values[1][0][1] - values[1][1][1]) > mode_slant:
-                print('Rejected word because of improper alignment',values)
+                #print('Rejected word because of improper alignment',values)
                 continue
             if values[1][0][1] < prev_y_mid and abs(prev_y_start-values[1][0][1]) <= mod_ht:
                 line_list[-1].append([values[0],values[1]])
             else:
                 line_list.append([[values[0],values[1]]])
-                prev_y_start = values[1][0][1]
-                prev_y_end = values[1][3][1]
+                prev_y_start = values[1][1][1]
+                prev_y_end = values[1][2][1]
                 #prev_y_mid = int(((prev_y_start + prev_y_end) / 2 + prev_y_end)/2)
-                prev_y_mid = prev_y_start + round((prev_y_end-prev_y_start) * 0.5)
+                prev_y_mid = prev_y_start + round((prev_y_end-prev_y_start) * new_line_multiplier)
                 line_heights.append(abs(prev_y_start-prev_y_end))
                 mod_ht = max(line_heights,key=line_heights.count)
             if values in pa_points:
-                print('we are adding state line')
+                #print('we are adding state line')
                 state_lines.append([values,len(line_list)-1])
         """
         ALgorithm to sort each line as per its x-axis co-ordinate and also to merge words as per document
@@ -180,12 +185,12 @@ class LicenseAddress:
     def get_address_lines(self,lines,state_lines):
         all_addresses = []
         for sl in state_lines:
-            print('State Line is:',sl)
+            #print('State Line is:',sl)
             state_name = sl[0][0]
             sc_vertices = vertices = sl[0][1]
             on_left = 8
             on_right = 5
-            state_word = [x for x in lines[sl[1]] if state_name+',' in x[0] or state_name+' ' in x[0]]
+            state_word = [x for x in lines[sl[1]] if state_name+',' in x[0] or state_name+' ' in x[0] or state_name+'.' in x[0]]
             if state_word:
                 vertices = state_word[0][1]
                 on_left = 2
@@ -194,43 +199,49 @@ class LicenseAddress:
                 if w_index != 0:
                     prev_word = lines[sl[1]][w_index-1]
                     if abs(abs(vertices[0][1]-vertices[3][1]) - abs(prev_word[1][0][1] - prev_word[1][3][1])) < 3:
-                        print('expanding vertices')
+                        #print('expanding vertices')
                         vertices[0] = lines[sl[1]][w_index-1][1][0]
                         vertices[3] = lines[sl[1]][w_index-1][1][3]
                         lines[sl[1]][w_index] = [prev_word[0] + ' ' + lines[sl[1]][w_index][0],vertices]
-            print(state_word)
-            print(lines[sl[1]])
+            #print(state_word)
+            #print(lines[sl[1]])
             text_height = (vertices[0][1] - vertices[3][1])
             height = round(text_height * 8)
 
             third_pt_y = vertices[2][1] + (on_right * (sc_vertices[2][1]-sc_vertices[3][1]))
             third_pt_x = vertices[2][0] + (on_right * (sc_vertices[2][0]-sc_vertices[3][0]))
-            print('TP',third_pt_x,third_pt_y)
+            # print('TP',third_pt_x,third_pt_y)
             last_pt_y = vertices[3][1] + round(on_left * (sc_vertices[3][1] - sc_vertices[2][1]))
             last_pt_x = vertices[3][0] + round(on_left * (sc_vertices[3][0] - sc_vertices[2][0]))
-            print('LP',last_pt_x,last_pt_y)
+            # print('LP',last_pt_x,last_pt_y)
             first_pt_y = vertices[0][1] + round(on_left * (sc_vertices[0][1] - sc_vertices[1][1]))
             first_pt_x = vertices[0][0] + round(on_left * (sc_vertices[0][0] - sc_vertices[1][0]))
             first_pt_y += height
-            print('FP',first_pt_x,first_pt_y)
+            # print('FP',first_pt_x,first_pt_y)
             second_pt_y = vertices[1][1] + (on_right * (sc_vertices[1][1] - sc_vertices[0][1]))
             second_pt_x = vertices[1][0] + (on_right * (sc_vertices[1][0] - sc_vertices[0][0]))
             second_pt_y += height
-            print('SP',second_pt_x,second_pt_y)
+            # print('SP',second_pt_x,second_pt_y)
+            if len(state_lines) > 1 and first_pt_y < 0:
+                continue
             data_box = self.get_data_in_box([(first_pt_x,first_pt_y),(third_pt_x,third_pt_y)],lines)
-            status,details = self.extract_address(data_box,state_name)
+            if data_box:
+                status,details = self.extract_address(data_box,state_name)
+            else:
+                continue
             if not status:
                 pass
             else:
                 all_addresses.append(details)
+        # print(all_addresses)
         return all_addresses
 
     def extract_address(self,data_box,state_name):
         output = {'name':[]}
         if len(data_box) < 2:
-            return False
+            return False,[]
 
-        prev_line_number = 0
+        prev_line_number = -1
         address_lines = []
 
         #convert data of multiple lines into joined words form in each line
@@ -249,14 +260,23 @@ class LicenseAddress:
                 else:
                     address_lines[-1].insert(0,db)
                     prev_start_x = db[1][0][0]
-        print(address_lines)
+        if not address_lines:
+            return
         
         start_x = False
         start_y = False
         address_found = False
         name_started = False
         name_line_completed = 0
-        total_name_lines = 2
+        if state_name=='PA':
+            total_name_lines = 1
+        elif state_name=='MD':
+            total_name_lines = 4
+        elif state_name=='VA':
+            total_name_lines = 3
+        else:
+            total_name_lines = 2
+
         for i,db in enumerate(address_lines):
             if not start_x:
                 #look for word having state name, this should be the last line of our address
@@ -265,20 +285,20 @@ class LicenseAddress:
                         output['address'] = [al[0]]
                         start_x = al[1][0][0]
                         start_y = al[1][0][1]
-                        print('found start_x',start_x)
-                        a_height = abs(al[1][0][1] - al[1][3][1]) * 2
+                        # print('found start_x',start_x)
+                        a_height = abs(al[1][0][1] - al[1][3][1]) * 4
                         print('height is ',a_height)
                         end_x = al[1][2][0]
                         break
                 continue
 
             min_diff = min(enumerate(db),key = lambda x: abs(x[1][1][0][0] - start_x))
-            print(min_diff,start_x)
+            #print(min_diff,start_x)
             if abs(min_diff[1][1][0][0] - start_x) < a_height:
                 if not address_found:
                     match_check = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\d+',min_diff[1][0])
                     if match_check:
-                        print('Address line 2 finalized by first regex')
+                        # print('Address line 2 finalized by first regex')
                         output['address'].insert(0,min_diff[1][0])
                         start_y = min_diff[1][1][0][1]
                         address_found = True
@@ -288,7 +308,7 @@ class LicenseAddress:
                             min_diff_1 = min(enumerate(db[i+1]),key = lambda x: abs(x[1][1][0][0] - start_x))
                             match_check_1 = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\d+',min_diff_1[1][0])
                             if match_check_1 and abs(min_diff_1[1][1][0][0] - start_x) < a_height:
-                                print('2nd and 3rd Address Lines Finalized')
+                                # print('2nd and 3rd Address Lines Finalized')
                                 output['address'].insert(0,min_diff[1][0])
                                 output['address'].insert(0,min_diff_1[1][0])
                                 start_y = min_diff_1[1][1][0][1]
@@ -306,23 +326,24 @@ class LicenseAddress:
                     match_check = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\d+',min_diff[1][0])
                     if match_check:
                         output['address'].insert(0,min_diff[1][0])
-                        print('Address line 3 finalized')
+                        #print('Address line 3 finalized')
                     else:
                         output['name'].insert(0,min_diff[1][0])
-                        print('Found a name line')
+                        #print('Found a name line')
                         name_line_completed += 1
                     name_started = True
                 elif name_line_completed < total_name_lines:
                     output['name'].insert(0,min_diff[1][0])
-                    print('Found another name line')
+                    #print('Found another name line')
                     name_line_completed += 1
                 if name_line_completed == total_name_lines:
                     break
             else:
-                print('This word is out of box range')
+                #print('This word is out of box range')
                 #now there is no chance for getting address, check if we can get name
-                address_found = True
-        print(output)
+                if i>2:
+                    address_found = True
+        #print(output)
         return True,output
 
     def fetch(self,mode_slant,mode_height,points,locr_obj):
@@ -331,12 +352,12 @@ class LicenseAddress:
 
         #convert raw data into line-wise structured data
         lines,state_lines = self.rectify_data(points,mode_slant,mode_height)
-        
-        for line in lines:
-            print(line)
+        #
+        # for line in lines:
+        #     print(line)
 
         address_details = []
         if state_lines:
             address_details = self.get_address_lines(lines,state_lines)
-        print(address_details)
+        #print(address_details)
         return address_details
