@@ -19,6 +19,10 @@ Ignore value 			{val_ignore}
 
 <structures>
 	<paystub_types>
+		<type id="Generic">
+			<lookup_text>ScotiaBank</lookup_text>
+			<lookup_text>Mercy Medical Center</lookup_text>
+		</type>
 		<type id="ADP">
 			<lookup_text>Earnings Statement</lookup_text>
 			<lookup_text>AMTRAK</lookup_text>
@@ -44,12 +48,11 @@ Ignore value 			{val_ignore}
 		<type id="IBM">
 			<lookup_text>National Payroll Services</lookup_text>
 		</type>
-		<type id="KPMG">
-			<lookup_text>KPMG</lookup_text>
-			<lookup_text>RUTGERS</lookup_text>
-		</type>
 		<type id="Bottling">
 			<lookup_text>Bottling Group</lookup_text>
+		</type>
+		<type id="Montefiore">
+			<lookup_text>Montefiore</lookup_text>
 		</type>
 	</paystub_types>
 
@@ -98,6 +101,7 @@ Ignore value 			{val_ignore}
 				<val>associate taxes</val>
 				<val>taxes withheld</val>
 				<val>employee taxes</val>
+				<val>statutory</val>
 			</type>
 			<type id="other">
 				<val>information</val>
@@ -113,16 +117,19 @@ Ignore value 			{val_ignore}
 				<val>direct deposit</val>
 				<val>organizations contribution</val>
 				<val>employer paid benefits</val>
+				<val>company paid benefits</val>
 				<val>leave</val>
 				<val>benefits paid by government for you</val>
 				<val>taxable wages</val>
+				<val>taxable benefits</val>
+				<val>taxable benefits/other info</val>
 			</type>
 		</block_headers>
 		<col_headers>
 			<type id="current">
 				<val>current</val>
 				<val>this period</val>
-				<val>rate this period</val>
+				<val>this pay</val>
 				<val>curr amt</val>
 				<val>current month</val>
 				<val>current period</val>
@@ -152,9 +159,22 @@ Ignore value 			{val_ignore}
 				<val>hours</val>
 				<val>hours/units</val>
 				<val>hrs</val>
+				<val>hrs/unit</val>
+			</type>
+			<type id="none">
+				<val>description</val>
+				<val>taxable</val>
 			</type>
 		</col_headers>
 		<col_sequence>
+			<!--General Type-->
+			<type>
+				<val col_type="Rate">rate</val>
+				<val col_type="Hour">hours</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">ytd</val>
+			</type>
+			<!--General Type End-->
 			<type>
 				<val col_type="Rate">rate</val>
 				<val col_type="Hour">hours</val>
@@ -163,7 +183,6 @@ Ignore value 			{val_ignore}
 				<val col_type="YTD">ytd</val>
 			</type>
 			<type>
-				<val block_name="Deduction">deduction</val>
 				<val col_type="None">pre-tax</val>
 				<val col_type="Current">current</val>
 				<val col_type="YTD">ytd</val>
@@ -181,6 +200,24 @@ Ignore value 			{val_ignore}
 			<type>
 				<val col_type="None">description</val>
 				<val col_type="Current">amount</val>
+				<val col_type="YTD">amount</val>
+			</type>
+			<type>
+				<val col_type="None">description</val>
+				<val col_type="Current">amount</val>
+				<val col_type="YTD">ytd</val>
+			</type>
+			<type>
+				<val col_type="None">taxable</val>
+				<val col_type="None">taxable ytd</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">ytd</val>
+			</type>
+			<type>
+				<val col_type="None">taxable</val>
+				<val col_type="None">taxable</val>
+				<val col_type="None">ytd</val>
+				<val col_type="Current">current</val>
 				<val col_type="YTD">ytd</val>
 			</type>
 		</col_sequence>
@@ -203,40 +240,92 @@ Ignore value 			{val_ignore}
 				<val col_type="Current">current</val>
 				<val col_type="YTD">ytd</val>
 			</type>
+			<type>
+				<val col_type="None">gross earnings</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">year to date</val>
+			</type>
 		</vertical_col_sequence>
 		<data_val>
 			<type id="Hybrid">
-				<val type="date">end date</val>
+				<!-- Period Start -->
+				<val type="date">start date</val>
 				<val type="date">begin date</val>
-				<val type="date">period end</val>
-				<val type="date">period end date</val>
 				<val type="date">period start</val>
+				<val type="date">period begin</val>
+				<val type="date">period starting</val>
+				<val type="date">period beginning</val>
 				<val type="date">period start date</val>
-				<val type="date">hire date</val>
-				<val type="date">pay date</val>
+				<val type="date">period begin date</val>
+				<val type="date">period starting date</val>
+				<val type="date">period beginning date</val>
+				<val type="date">pay period start</val>
+				<val type="date">pay period begin</val>
+				<val type="date">pay start date</val>
+				<val type="date">pay begin date</val>
+				
+				<!-- Period End -->
+				<val type="date">end date</val>
+				<val type="date">period end</val>
+				<val type="date">period ending</val>
+				<val type="date">period end date</val>
+				<val type="date">period ending date</val>
+				<val type="date">pay period end</val>
+				<val type="date">pay end date</val>
+
+				<!-- Complete pay periods -->
 				<val type="date">pay period</val>
+				<val type="date">payroll period</val>
+				<val type="date">period</val>
+				<val type="date">period date</val>
+				<val type="text">pay frequency</val>
+				<val type="date">period beg/end</val>
+
+				<!-- Payment Date -->
+				<val type="date">pay date</val>
+				<val type="date">advice date</val>
+				<val type="date">check date</val>
+				<val type="date">payment date</val>
+
+				<!-- Employment Start Date -->
+				<val type="date">hire date</val>
+
 				<val type="amount">pay rate</val>
 				<val type="text">employee name</val>
 				<val type="text">employee</val>
+				<val type="text">name</val>
+
+				<!-- Address Details-->
 				<val type="text">employee address</val>
 				<val type="text">address</val>
-				<val type="text">name</val>
+				<val type="text">employer address</val>
+
+				<!-- Employee ID-->
 				<val type="id_text">employee #</val>
 				<val type="id_text">employee id</val>
-				<val type="id_text">identification no.</val>
+				<val type="id_text">personnel id</val>
+				<val type="id_text">emp no</val>
+				<val type="id_text">identification no</val>
+
 				<val type="text">job title</val>
 				<val type="text">position</val>
 				<val type="text">position title</val>
-				<val type="text">pay frequency</val>
+				
 				<val type="text">employer name</val>
+				<val type="text">company</val>
 				<val type="text">employer phone</val>
+				
+				<!-- amounts -->
 				<val type="amount">net pay</val>
-				<val type="date">period ending</val>
-				<val type="date">period beginning</val>
-				<val type="date">advice date</val>
-				<val type="date">period beg/end</val>
-				<val type="date">check date</val>
+				<val type="amount">ytd net pay</val>
+				<val type="amount">current net pay</val>
+				<val type="amount">current gross pay</val>
+				<val type="amount">ytd gross pay</val>
+
+				<!-- Location -->
 				<val type="text">site</val>
+				<val type="text">location</val>
+				<val type="text">department</val>
 			</type>
 		</data_val>
 		<data_dict>
@@ -264,8 +353,10 @@ Ignore value 			{val_ignore}
 			</type>
 			<type id="post_deductions">
 				<val>after-tax deductions</val>
+				<val>post-tax deductions</val>
 			</type>
 			<type id="taxes">
+				<val>employee taxes</val>
 				<val>taxes</val>
 				<val>tax deductions</val>
 				<val>deductions statutory</val>
@@ -296,6 +387,7 @@ Ignore value 			{val_ignore}
 			<type id="current">
 				<val>current</val>
 				<val>this period</val>
+				<val>period</val>
 				<val>curr amt</val>
 				<val>current month</val>
 				<val>current period</val>
@@ -435,6 +527,9 @@ Ignore value 			{val_ignore}
 			</type>
 			<type id="hour">
 				<val>hrs/units</val>
+			</type>
+			<type id="none">
+				<val>description</val>
 			</type>
 		</col_headers>
 		<col_sequence></col_sequence>
@@ -655,75 +750,6 @@ Ignore value 			{val_ignore}
 			<type val="True">Is Star Pre-Tax</type>
 		</rules>
 	</paystub>
-	<paystub id="KPMG">
-		<block_headers>
-			<type id="earnings">
-				<val>hours and earnings</val>
-			</type>
-			<type id="post_deductions">
-				<val>after-tax deduction</val>
-			</type>
-			<type id="taxes">
-				<val>taxes</val>
-			</type>
-			<type id="other">
-				<val>employer paid benefits</val>
-				<val>taxable wages</val>
-				<val>net pay distribution</val>
-			</type>
-			<type id="pre_deductions">
-				<val>before-tax deduction</val>
-			</type>
-		</block_headers>
-		<col_headers>
-			<type id="current">
-				<val>earnings</val>
-				<val>current</val>
-			</type>
-			<type id="ytd">
-				<val>earnings</val>
-				<val>ytd</val>
-			</type>
-			<type id="rate">
-				<val>rate</val>
-			</type>
-			<type id="hour">
-				<val>hours</val>
-			</type>
-			<type id="none">
-				<val>hours</val>
-				<val>total gross</val>
-				<val>description</val>
-			</type>
-		</col_headers>
-		<col_sequence>
-			<type>
-				<val col_type="Rate">rate</val>
-				<val col_type="Hour">hours</val>
-				<val col_type="Current">earnings</val>
-				<val col_type="None">hours</val>
-				<val col_type="YTD">earnings</val>
-			</type>
-			<type>
-				<val col_type="None">dercription</val>
-				<val col_type="Current">current</val>
-				<val col_type="YTD">ytd</val>
-			</type>
-		</col_sequence>
-		<rules>
-			<type val="True">Highly Compressed Text</type>
-		</rules>
-		<vertical_col_sequence>
-			<type>
-				<val col_type="None">total gross</val>
-				<val col_type="Current">current</val>
-				<val col_type="YTD">ytd</val>
-			</type>
-		</vertical_col_sequence>
-		<data_val>
-			<type/>
-		</data_val>
-	</paystub>
 	<paystub id="Bottling">
 		<block_headers>
 			<type id="earnings">
@@ -793,6 +819,52 @@ Ignore value 			{val_ignore}
 				<val col_type="Current">current</val>
 				<val col_type="YTD">year to date</val>
 			</type>
+		</vertical_col_sequence>
+		<data_val>
+			<type/>
+		</data_val>
+	</paystub>
+	<paystub id="Montefiore">
+		<block_headers>
+			<type id="earnings">
+				<val>earnings</val>
+			</type>
+			<type id="post_deductions">
+				<val>after-tax deduction</val>
+			</type>
+			<type id="taxes">
+				<val>taxes</val>
+			</type>
+			<type id="other">
+				<val>other information</val>
+				<val>pay summary</val>
+			</type>
+			<type id="pre_deductions">
+				<val>pre-tax deductions</val>
+			</type>
+		</block_headers>
+		<col_headers>
+			<type id="current">
+				<val>current period</val>
+			</type>
+			<type id="ytd">
+				<val>ytd</val>
+			</type>
+			<type id="rate">
+				<val>rate</val>
+			</type>
+			<type id="hour">
+				<val>hours</val>
+			</type>
+			<type id="none">
+				<val># of hours ytd</val>
+			</type>
+		</col_headers>
+		<col_sequence>
+		</col_sequence>
+		<rules>
+		</rules>
+		<vertical_col_sequence>
 		</vertical_col_sequence>
 		<data_val>
 			<type/>

@@ -9,13 +9,19 @@ import avoid
 class text_score:
     def __init__(self):
         self.keys,self.values=[],[]
-        self.dict,self.address_val, self.others={},{},{}
+        self.dict,self.address_val, self.others,self.f_name,self.l_name,self.m_name={},{},{},{},{},{}
         self.address_confidence = 0.0
         self.ssn_confidence_score=0.0
         self.ssn_name_confidence_score=0.0
         self.date_confidence_score = 0.0
         self.ssn_date_confidence_score = 0.0
         self.license_confidence_score=0.0
+        self.f_name_confidence_score=0.0
+        self.m_name_confidence_score=0.0
+        self.l_name_confidence_score=0.0
+        self.f_name_score = 0
+        self.m_name_score = 0
+        self.l_name_score = 0
         self.date_score, self.address_score, self.other_score,self.license_score, self.ssn_score,self.paystub_score,\
         self.ssn_name_score,self.ssn_date_score=0,0,0,0,0,0,0,0
         self.full_address = ''
@@ -65,39 +71,105 @@ class text_score:
         try:
 
             for key, value in enumerate(result):
-                # print(value)
+                print(value)
+                va = value[0]
+                va = va.rstrip()
+                va = va.lstrip()
                 for key1, value1 in data.items():
-                    if value[0] != '' and value1 != '':
+                    if va != '' and value1 != '':
                         # if value[0] in value1:
-                        if re.search(r'(?!' + re.escape(value[0]) + r')', value1):
+                        if re.search(r'(?!' + re.escape(va) + r')', value1):
 
-                            if value[0] in data['date_val']:
-                                    self.dict.update({value[0]: value[1]})
+                            if va in data['date_val']:
+                                    self.dict.update({va: value[1]})
 
-                            elif value[0] in data['first_name']:
-                                self.others.update({value[0]: value[1]})
+                            if any(char in data['first_name'] for char in va):
+                                self.f_name.update({va: value[1]})
 
-                            elif value[0] in data['last_name']:
-                                self.others.update({value[0]: value[1]})
+                            if va in data['first_name']:
+                                if self.f_name != {}:
+                                    self.f_name.clear()
+                                    self.f_name.update({va: value[1]})
 
-                            elif value[0] in data['middle_name']:
-                                self.others.update({value[0]: value[1]})
+                            if any(char in data['middle_name'] for char in va):
+                                self.m_name.update({va: value[1]})
 
+                            if va in data['middle_name']:
+                                if self.m_name != {}:
+                                    self.m_name.clear()
+                                    self.m_name.update({va: value[1]})
 
-                            elif any(char in data['address'] for char in value[0]):
+                            if any(char in data['last_name'] for char in va):
+                                self.l_name.update({va: value[1]})
 
-                                self.address_val.update({value[0]: value[1]})
+                            if va in data['last_name']:
+                                if self.l_name != {}:
+                                    self.l_name.clear()
+                                    self.l_name.update({va: value[1]})
 
-                            if value[0] in data['address']:
-                                self.address_val.update({value[0]: value[1]})
+                            if va in data['address']:
+                                self.address_val.update({va: value[1]})
 
-                            elif any(char in data['license_id'] for char in value[0]):
+                            elif any(char in data['address'] for char in va):
+                                self.address_val.update({va: value[1]})
+
+                            if va in data['license_id']:
+                                self.license_id_dict.update({va: value[1]})
+
+                            elif any(char in data['license_id'] for char in va):
                                 self.license_id_dict.update({value[0]: value[1]})
-                            if value[0] in data['license_id']:
-                                self.license_id_dict.update({value[0]: value[1]})
+
 
                             else:
-                                self.others.update({value[0]:value[1]})
+                                self.others.update({va:value[1]})
+
+            if len(self.f_name)>=1:
+                val1=[]
+
+                for key6, value6 in self.f_name.items():
+                    if int(value6*100)<=10:
+                        self.f_name_score=0
+                        break
+                    else:
+                        self.f_name_confidence_score = self.f_name_confidence_score + value6
+                        val1.append(value6)
+                self.f_name_score = int((self.f_name_confidence_score / len(self.f_name)) * 100)
+                if self.f_name_score > 100:
+                    self.f_name_score = 85
+            else:
+                self.f_name_score=0
+
+            if len(self.m_name) >= 1:
+                val1 = []
+
+                for key6, value6 in self.m_name.items():
+                    if int(value6*100)<=10:
+                        self.m_name_score=0
+                        break
+                    else:
+                        self.m_name_confidence_score = self.m_name_confidence_score + value6
+                        val1.append(value6)
+                self.m_name_score = int((self.m_name_confidence_score / len(self.m_name)) * 100)
+                if self.m_name_score > 100:
+                    self.m_name_score = 85
+            else:
+                self.m_name_score=0
+
+            if len(self.l_name) >= 1:
+                val1 = []
+                for key6, value6 in self.l_name.items():
+                    if int(value6*100)<=10:
+                        self.l_name_score = 0
+                        break
+                    else:
+                        self.l_name_confidence_score = self.l_name_confidence_score + value6
+                        val1.append(value6)
+                self.l_name_score = int((self.l_name_confidence_score / len(self.l_name)) * 100)
+                if self.l_name_score > 100:
+                    self.l_name_score = 85
+            else:
+                self.l_name_score=0
+
             if len(self.license_id_dict)>=1:
                 for key5, value5 in self.license_id_dict.items():
                     self.license_confidence_score = self.license_confidence_score + value5
@@ -132,28 +204,33 @@ class text_score:
                 for key3, value3 in self.address_val.items():
                     self.address_confidence = self.address_confidence + value3
                     self.val.append(value3)
-                self.address_score = int((self.address_confidence/len(self.address_val))*100)
+                self.address_score = int((min(self.val)+max(self.val))/2*100)
                     # int((self.address_confidence / len(self.address_val)) * 100)
                 # if self.address_score > 100:
                 #     self.address_score = 97
+
             for key2, value2 in self.dict.items():
                 self.date_confidence_score = self.date_confidence_score + value2
+
             for key4, value4 in self.others.items():
                 self.other_confidence = self.other_confidence + value4
 
-            ##print("total score",self.date_confidence_score,self.other_confidence)
             dict_length=len(self.dict)
             other_length=len(self.others)
-            ##print("length",dict_length,other_length)
+
             if other_length>=1 and dict_length>=1:
                 self.date_score = int((self.date_confidence_score / dict_length) * 100)
                 self.other_score = int((self.other_confidence / other_length) * 100)
+
             else:
-                self.date_score=45
-                self.other_score=65
-            return self.dict,self.date_score,self.address_score,self.license_score,self.other_score
+                self.date_score=75
+                self.other_score=79
+
+            return self.dict,self.date_score,self.address_score,self.license_score,self.other_score,self.f_name_score,self.m_name_score,self.l_name_score,data
+
         except Exception as e:
-            return self.dict, self.date_score, self.address_score, self.license_score, self.other_score
+            data=''
+            return self.dict, self.date_score, self.address_score, self.license_score, self.other_score,self.f_name_score,self.m_name_score,self.l_name_score,data
     def ssn_confidence(self,data,keys,values):
         try:
             result = dict(zip(keys, values))

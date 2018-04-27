@@ -347,7 +347,7 @@ class LicenseOCR:
         # #
         # # #convert cv2 image to PIL
         pilImage = Image.fromarray(processedImage)
-
+        #
         # convert PIL image to byte contents
         b = io.BytesIO()
         if ext.lower() in ('png'):

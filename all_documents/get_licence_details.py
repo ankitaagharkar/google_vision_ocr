@@ -1,5 +1,6 @@
 import copy
 import datetime
+import difflib
 
 import googlemaps
 import json
@@ -11,6 +12,7 @@ from Common import Common
 from dateutil.parser import parse
 
 DEBUG = False
+
 
 class Licence_details:
 
@@ -40,6 +42,8 @@ class Licence_details:
         self.failure_regex = ''
         self.c = Common()
 
+        with open('../config/name', 'r') as data_file:
+            self.name_list = json.load(data_file)
         with open('../config/city.json', 'r') as data_file:
             self.cities = json.load(data_file)
         with open('../config/filtering.json', 'r') as data:
@@ -49,6 +53,7 @@ class Licence_details:
         if DEBUG:
             print(arg)
 
+    # todo:License id details
     def get_id(self, text, zip_code):
         try:
             text = text.replace('.', "")
@@ -65,7 +70,7 @@ class Licence_details:
                     if self.state_value['data'][i]['state'] in state_regex[0]:
                         self.regex_val = self.state_value['data'][i]['license_id']
                 self.licence_id = re.findall(self.regex_val, text)
-                self.custom_print("license_id",self.licence_id)
+                self.custom_print("license_id", self.licence_id)
                 if self.licence_id == []:
                     for i in range(len(self.state_value['data'])):
                         if self.state_value['data'][i]['state'] in state_regex[0]:
@@ -125,6 +130,7 @@ class Licence_details:
             self.get_licence_id = ''
             return self.get_licence_id
 
+    # todo:address,state,city and zipcode details
     def get_address(self, details):
         global address_details, address_val, street_address
         try:
@@ -150,7 +156,9 @@ class Licence_details:
                             name.append(details[0]['address'][0])
                         value_name = ' '.join(map(str, name))
                     else:
-                        if re.search(r'\b(!?\d+\s[A-Za-z]+)', details[0]["address"][0]) or re.search(r'\b(!?[8]\s?\d+)', details[0]["address"][1]):
+                        if re.search(r'\b(!?\d+\s[A-Za-z]+)', details[0]["address"][0]) or re.search(r'\b(!?[8]\s?\d+)',
+                                                                                                     details[0][
+                                                                                                         "address"][1]):
                             if re.search(r'\b(!?([A-Za-z])?\s?(\d+)?\s?([A-Za-z]+)?)',
                                          details[0]["address"][1]):
                                 address_details = details[0]['address']
@@ -162,8 +170,6 @@ class Licence_details:
                             address_val = address_details[1]
 
                         name = details[0]['name']
-                        if not re.search('\d+\s?[A-Za-z]+', name[0]):
-                            name.pop(0)
                         value_name = ' '.join(map(str, name))
                 else:
                     address_details = details[0]['address']
@@ -179,31 +185,34 @@ class Licence_details:
 
                 name = details[0]['name']
                 value_name = ' '.join(map(str, name))
-            
+
             address = " ".join(map(str, address_details))
             address = avoid.address_replace(address)
-            
+
             address_val = avoid.address_replace(address_val)
             address_val = address_val.replace(',', '')
             address = address.replace(',', '')
             address = address.replace('.', '')
             address_val = address_val.replace('.', '')
-            #todo:to remove words before street number
+            # todo:to remove words before street number
             asp = address_val.split()
-            is_digit=re.findall(r'\b\d+\b',street_address)
-            print("is_digit",is_digit)
-            address_sp=street_address.split(is_digit[0])
-            print("address_sp",address_sp)
-            if not re.search(r'\b[A-Za-z]+\b',address_sp[0]):
-                pass
-            else:
-                street_address="".join(map(str,address_sp[1:]))
-                street_address=is_digit[0]+street_address
-                print("remove of the ",address)
+            is_val=re.findall(r'(!?([A-Za-z]+)?\s?[A-Za-z]+\s\d+\s)[A-Za-z]+', street_address)
+            if is_val:
+                is_digit = re.findall(r'\b\d+\b', is_val[0][0])
+                print("is_digit", is_digit)
+                address_sp = street_address.split(is_digit[0])
+                print("address_sp", address_sp)
+                if not re.search(r'\b[A-Za-z]+\b', address_sp[0]):
+                    pass
+                else:
+                    street_address = "".join(map(str, address_sp[1:]))
+                    street_address = is_digit[0] + street_address
+                    print("remove of the ", address)
             if re.search(r'\d+\s\d+\-?\s\d+\,?\d+', address_val):
                 address_val = address_val.replace(re.findall(r'\d+\s\d+\-?\s\d+\,?\d+', address_val)[0], '')
-            #todo:to find state,city,zipcode
-            data = re.findall(r'\b((!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}(?:\-\d{4})|\d{5}(?:\s?\.\s?\d{4})|\d{5}))',
+            # todo:to find state,city,zipcode
+            data = re.findall(
+                r'\b((!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}(?:\-\d{4})|\d{5}(?:\s?\.\s?\d{4})|\d{5}))',
                 address)
             if data != []:
                 if re.search(r'(!?[A-Za-z]{2}\s\d{5}\s\d{2,4}|[A-Za-z]{2}\s\d{5}\s?\-\s?\d{2,4})',
@@ -224,10 +233,19 @@ class Licence_details:
                 if len(asp) > 2:
                     # state, zipcode, city = self.c.get_address_zipcode(address, address_val.split()[-3])
                     state, zipcode, city = self.c.get_address_zipcode(address_val, asp, extra=True)
-                    if not re.search(r'\b(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\b',
-                        state):
+                    if re.search(r'[A-Za-z]+',zipcode):
+                        a=asp[-1]
+                        address_val=address_val.replace(a,'')
+                        asp.pop(-1)
+                        state=address_val.split()[-1]
+                        city=" ".join(address_val.split()[0:2])
+                        zipcode=''
+                        # state, zipcode, city = self.c.get_address_zipcode(address_val, asp,extra=True)
+                    if not re.search(
+                            r'\b(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\b',
+                            state):
                         state, zipcode, city = self.c.get_address_zipcode(address,
-                                                                      address_val.split()[-1])
+                                                                          address_val.split()[-1])
                 else:
                     state, zipcode, city = self.c.get_address_zipcode(address, address_val.split()[-1])
             # if zipcode == '' and city== '':
@@ -238,12 +256,12 @@ class Licence_details:
             # # else:
             #     city = address_val.split()[0:-1]
             #     city = " ".join(map(str, city))
-                # print("City", city)
+            # print("City", city)
             city = city.replace(',', '')
             address_val = address_val.replace(',', '')
             city = city.replace('.', '')
             address_val = address_val.replace('.', '')
-            if re.search(r'(!?BIOWA)',city):
+            if re.search(r'(!?BIOWA)', city):
                 city = city.replace('BIOWA', 'IOWA')
             city = city.rstrip()
             address_val = address_val.rstrip()
@@ -252,7 +270,7 @@ class Licence_details:
             actual_city.clear()
             for i in range(len(self.cities['city'])):
                 city = city.replace(',', '')
-                if city.lower() in self.cities['city'][i].lower():
+                if city.lower() == self.cities['city'][i].lower():
                     actual_city.append(self.cities['city'][i])
 
             if actual_city == []:
@@ -282,7 +300,7 @@ class Licence_details:
             full_address = full_address.replace("•", "")
             full_address = full_address.replace(" -", "")
 
-            if re.search(r'[A-Za-z]+', zipcode) or zipcode == '' or len(zipcode.split('-')[0])>=6:
+            if re.search(r'[A-Za-z]+', zipcode) or zipcode == '' or len(zipcode.split('-')[0]) >= 6:
 
                 json_val = self.gmaps.geocode(full_address + " " + city + " " + state)
                 if json_val != []:
@@ -299,8 +317,15 @@ class Licence_details:
                         # #print(json_val[0]['address_components'][i]['types'])
                         if json_val[0]['address_components'][i]['types'] == ['postal_code']:
                             google_zipcode = json_val[0]['address_components'][i]['long_name']
-                    if zipcode!=google_zipcode:
-                        zipcode=google_zipcode
+                    if zipcode.split('-')[0] != google_zipcode:
+                        if re.search(r'-',zipcode):
+                            z=zipcode.split('-')
+                            zipcode = google_zipcode
+                            zipcode=zipcode+"-"+z[1]
+                        else:
+                            zipcode=google_zipcode
+                    else:
+                        zipcode = google_zipcode
 
             zipcode = zipcode.replace('...', '')
             zipcode = zipcode.replace('.', '')
@@ -330,26 +355,31 @@ class Licence_details:
             address = state = zipcode = city = value_name = ''
             return address, state, zipcode, city, value_name
 
+    # todo:first,middle and last name details
     def get_name(self, text_value, date, state, text, license_id):
+        global x
         try:
-            text_value=text_value.lstrip()
-            text_value=text_value.rstrip()
+            text_value = text_value.lstrip()
+            text_value = text_value.rstrip()
             # text_value=text_value.replace('Expres','')
-
 
             val = date.split(" ")
             avoid_signature = ''
-            for i in range(len(val)):
-                st = parse(val[i])
-                rep=st.strftime('%d %b %Y')
-                # val[i] = val[i].replace(rep.upper(), "")
-                text_value=text_value.replace(rep.upper(),"")
-            t1=text_value.split()
-            avoid1 = ["EN", "FN", "LN", "IN", "LR", "LA"]
+            if state=='AB':
+                for i in val:
+                    st = parse(i)
+                    rep = st.strftime('%d %b %Y')
+                    # val[i] = val[i].replace(rep.upper(), "")
+                    text_value = text_value.replace(rep.upper(), "")
+            t1 = text_value.split()
+            avoid1 = ["EN", "FN", "LN", "IN", "LR", "LA",'Identification','Card','ID','#','card','ovaryland','LR.']
+            result=[]
             for i in t1:
-                if i in avoid1:
-                    t1.remove(i)
-            text_value=" ".join(map(str,t1))
+                if not i in avoid1:
+                    result.append(i)
+            if result!=[]:
+                t1=result
+            text_value = " ".join(map(str, t1))
             text_value = text_value.replace(license_id, "")
 
             text_value = text_value.replace('Driver License', "")
@@ -360,17 +390,17 @@ class Licence_details:
             text_value = text_value.replace('2', " ")
             text_value = text_value.replace('1', " ")
             if re.search(r'[A-Za-z]+\s\s[A-Za-z]+', text_value):
-                text_value = text_value.replace(re.findall(r'\s\s', text_value)[0],re.findall(r'\s', text_value)[0] ,1)
+                text_value = text_value.replace(re.findall(r'\s\s', text_value)[0], re.findall(r'\s', text_value)[0], 1)
             if re.search('[A-Za-z]+\-\s[A-Za-z]+', text_value):
-                text_value = text_value.replace(re.findall(r'\s', text_value)[0], "",)
+                text_value = text_value.replace(re.findall(r'\s', text_value)[0], "", )
             # if re.search(r'\b[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\b', text_value):
             #     text_value = text_value.replace(re.findall(r'\s', text_value)[0], "", 1)
             # else:
             #     text_value = text_value.replace('-', "",1)
             if re.search(r'\d+\-?\.?(\d+)?\s[A-Za-z]+', text_value):
                 text_value = " ".join(map(str, re.findall(r'(!?[A-Za-z]+\-?)', text_value)))
-            if re.search(r'\d{2,}\s?[A-Za-za-z]+',text_value):
-                actual_full_name=''
+            if re.search(r'\d{2,}\s?[A-Za-za-z]+', text_value):
+                actual_full_name = ''
                 return actual_full_name
             text_value = text_value.replace('.', " ")
             text_value = text_value.replace('Ž', "Z")
@@ -380,13 +410,23 @@ class Licence_details:
             if avoid_signature in value:
                 value = value.replace(avoid_signature, "")
             if 'iss' in value.lower():
-                value=value.replace(re.findall(r'(!?iss|ISS|iSS|Iss)',value)[0],"")
-            name = value.split()
+                value = value.replace(re.findall(r'(!?iss|ISS|iSS|Iss)', value)[0], "")
             name_seq, first_name, middle_name, last_name = '', '', '', ''
             for i in range(len(self.state_value['data'])):
                 if self.state_value['data'][i]['state'] in state:
                     name_seq = self.state_value['data'][i]['name_seq']
-
+            x=[]
+            if 'FN_MN_LN_SUF' == name_seq:
+                x = difflib.get_close_matches(value.split()[0].lower(), [vt.lower() for vt in self.name_list['names']],
+                                              cutoff=0.90)
+            elif 'LN_FN_MN_SUF' == name_seq:
+                if len(value.split())>1:
+                    x = difflib.get_close_matches(value.split()[1].lower(), [vt.lower() for vt in self.name_list['names']],
+                                                  cutoff=0.90)
+            if x:
+                value=" ".join(map(str, value.upper().rpartition(x[0].upper())))
+                value=value.rstrip()
+            name = value.split()
             if len(name) >= 2:
                 for i in range(len(name)):
                     if len(name[0]) == 1:
@@ -630,6 +670,7 @@ class Licence_details:
             actual_full_name = ''
             return actual_full_name
 
+    # todo:DOB,issue date and expiry date details
     def get_date(self, text, license_id):
         string_date = ''
 
@@ -654,15 +695,15 @@ class Licence_details:
                 r'|(0[1-9]|1[0-9]|2[0-9]|3[0-1])\s(JAN|FEB|MAR|APR|MAY|JUN|JULY|JUL|AUG|SEPT|SEP|OCT|NOV|DEC|Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\s(19|20|21|22)\d\d|(19|20|21|22)\d\d\s?\-(JAN|FEB|MAR|APR|MAY|JUN|JULY|JUL|AUG|SEPT|SEP|OCT|NOV|DEC|Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)\-(0[1-9]|1[0-9]|2[0-9]|3[0-1]))',
                 text)
             date_val = []
-            date_val1=[]
+            date_val1 = []
             for i in range(len(val)):
                 date_val.append(val[i][0])
             for i in range(len(date_val)):
-                if re.search(r'\d{2}\s[A-Za-z]+\s\d{4}|\d{4}\-[A-Za-z]+\-\d{2}',date_val[i]):
-                    st=parse(date_val[i])
+                if re.search(r'\d{2}\s[A-Za-z]+\s\d{4}|\d{4}\-[A-Za-z]+\-\d{2}', date_val[i]):
+                    st = parse(date_val[i])
                     date_val1.append(st.strftime('%m/%d/%Y'))
-            if date_val1!=[]:
-                date_val=date_val1
+            if date_val1 != []:
+                date_val = date_val1
             string_date_value = " ".join(map(str, date_val))
             if re.search(r'\b\s(!?G|O|8|9|6)', string_date):
                 string_date_value = string_date.replace(
@@ -691,6 +732,7 @@ class Licence_details:
                 # Todo:Proper Date Format (mm/dd/yyyy)
                 dob = dob[0:2] + '/' + dob[2:4] + '/' + dob[4:8]
                 self.date.append(dob)
+            string_date_value = " ".join(map(str, self.date))
             # Todo:to change format to (yyyy/mm/dd)
             for value in self.date:
                 if re.match(r'\b\d{2}[./-]\d{2}[./-]\d{2}\b', value):
@@ -762,10 +804,10 @@ class Licence_details:
                                            text)[0], 1)[1].split()[0:3]))
                         if re.search(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', issue_date):
                             actual_issue_date = \
-                            re.findall(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', issue_date)[0]
+                                re.findall(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', issue_date)[0]
                         elif re.search(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', issue_date):
                             actual_issue_date = \
-                            re.findall(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', issue_date)[0]
+                                re.findall(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', issue_date)[0]
                         elif re.search(r'(?!:)', issue_date):
                             actual_issue_date = ''
                     else:
@@ -779,10 +821,10 @@ class Licence_details:
                             1)[1].split()[0:3]))
                         if re.search(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', expiry_date):
                             actual_expiry_date = \
-                            re.findall(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', expiry_date)[0]
+                                re.findall(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', expiry_date)[0]
                         elif re.search(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', expiry_date):
                             actual_expiry_date = \
-                            re.findall(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', expiry_date)[0]
+                                re.findall(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', expiry_date)[0]
 
                         elif re.search(r'(=?:)', expiry_date):
                             actual_expiry_date = ''
@@ -822,10 +864,10 @@ class Licence_details:
                                                text)[0], 1)[1].split()[0:3]))
                         if re.search(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', issue_date):
                             actual_issue_date = \
-                            re.findall(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', issue_date)[0]
+                                re.findall(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', issue_date)[0]
                         elif re.search(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', issue_date):
                             actual_issue_date = \
-                            re.findall(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', issue_date)[0]
+                                re.findall(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', issue_date)[0]
                         elif re.search(r'(?!:)', issue_date):
                             actual_issue_date = ''
                     else:
@@ -840,10 +882,10 @@ class Licence_details:
                                                         0:3]))
                         if re.search(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', expiry_date):
                             actual_expiry_date = \
-                            re.findall(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', expiry_date)[0]
+                                re.findall(r'\d+[-/.]?\d+[-/.]?\d+(?=[A-Za-z])', expiry_date)[0]
                         elif re.search(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', expiry_date):
                             actual_expiry_date = \
-                            re.findall(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', expiry_date)[0]
+                                re.findall(r'(?!:)\d+[-/.]?\d+[-/.]?\d+', expiry_date)[0]
 
                         elif re.search(r'(=?:)', expiry_date):
                             actual_expiry_date = ''
@@ -878,7 +920,7 @@ class Licence_details:
 
     def get_licence_details1(self, text, details):
         try:
-
+            print(details)
             address, state, zipcode, city, value_name = self.get_address(details)
             if state != '':
                 get_licence_id = self.get_id(text, state)
@@ -903,6 +945,8 @@ class Licence_details:
         except Exception as e:
             get_licence_id = expiry_date = dob = issue_date = address = name = state = zipcode = city = date_val = ''
             return get_licence_id, expiry_date, dob, issue_date, address, name, state, zipcode, city, date_val
+
+
 
 
 class NameSequence(Enum):

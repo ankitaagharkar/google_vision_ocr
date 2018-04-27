@@ -43,12 +43,14 @@ class Scan_OCR:
         self.SSI = ["Social Security Tax","SSI Tax", "Social Security Tax", "Socail Security", "FICA", "Soc Sec"]
         self.Medicare = ["Medicare Tax", "FED Medicare Tax", "Medicare"]
         self.tax_di = ["DI", "Disability Tax"]
-        self.tax_oasdi = ["OASDI"]
+        self.tax_oasdi = ["OASDI",'Fed OASDI/EE']
+        self.suf = ['dr', 'jr', 'sr', 'II', 'III', 'IV', 'VI', 'VII', 'VIII', 'XI', '3rd', '1st', '2nd',
+                    '4th', '5th', '6th', '7th', '8th', '9th', '10th']
         self.State = ["State Income Tax", "Withholding Tax", "State Income", "SIT"]
         self.City = ["Cit Income Tax", "City Re"]
         self.tax_unemp=["Unemployment Tax","Unemployment"]
         self.pre_duction_K = ["401K", "401K$", "401(K)"]
-        self.pre_duction_medicare = ["Medical Pre Tax", "Medical", "Med125", "Med Pre Tax"]
+        self.pre_duction_medicare = ["Medical Pre Tax", "Medical", "Med125", "Med Pre Tax","Fed MED/EE"]
         self.pre_duction_vision = ["Vision Pre Tax", "Vision"]
         self.pre_duction_health = ["Hlth Sau", "Health", "Health Pre Tax"]
         self.pre_duction_dental = ["Dental Pre Tax", "Dental"]
@@ -80,11 +82,13 @@ class Scan_OCR:
         self.Paystub = get_paystub_details.Paystub_details()
         self.denoising = image_denoising.Denoising()
         self.score = confidence_score.text_score()
-
-        with open('../config/config.json') as data_file:
-            self.config = json.load(data_file)
-        with open('../config/filtering.json', 'r') as data:
-            self.state_value = json.load(data)
+        try:
+            with open('../config/config.json') as data_file:
+                self.config = json.load(data_file)
+            with open('../config/filtering.json', 'r') as data:
+                self.state_value = json.load(data)
+        except Exception as e:
+            print("we are in file",e)
 
     def custom_print(self, *arg):
         if DEBUG:
@@ -127,10 +131,10 @@ class Scan_OCR:
         try:
             filename = os.path.basename(image_path)
 
-            image_path1 = str(self.config["system_pdf_path"]) + filename
+            image_path1 =  str(self.config["system_pdf_path"]) + filename
 
             filename1 = filename.split('.', 1)[0] + ".jpg"
-            f_path = str(self.config["system_pdf_path"])+ filename1
+            f_path =  str(self.config["system_pdf_path"])+ filename1
             if 'SSN' in doc_type:
                 process = subprocess.call(
                     'convert -density 250 -trim ' + image_path1 + ' -quality 100 -append ' + f_path,
@@ -141,6 +145,7 @@ class Scan_OCR:
 
         except Exception as e:
             self.custom_print("Exception in all_details image2pdf fun.", e)
+            pass
 
     def get_image_text(self, path):
         self.text, description, result, keys, values, texts_description = self.Location.get_text(
@@ -148,10 +153,10 @@ class Scan_OCR:
         self.get_image_text.put((self.text, description, result, keys, values, texts_description))
 
     def get_license_confidences(self, data, text, result):
-        dict, date_score, address_score, license_score, other_score = self.confidence_text.license_confidence(
+        dict, date_score, address_score, license_score, other_score,f_name_score,m_name_score,l_name_score,data = self.confidence_text.license_confidence(
             data, text, result)
         self.get_license_confidence.put(
-            (dict, date_score, address_score, license_score, other_score))
+            (dict, date_score, address_score, license_score, other_score,f_name_score,m_name_score,l_name_score,data))
 
     def get_ssn_pay_location(self, value_json, image, doc_type, result=''):
         if 'SSN' in doc_type:
@@ -262,9 +267,9 @@ class Scan_OCR:
                                   args=(data, text, conf_result,))
         thread.setName("Confidence Thread")
         thread.start()
-        (date_dict, date_score, address_score, license_score,
-         other_score) = self.get_license_confidence.get()
+        (date_dict, date_score, address_score, license_score,other_score,f_name_score,m_name_score,l_name_score,adata) = self.get_license_confidence.get()
         reg = ''
+
         state_regex = re.findall(
             r"\b(!?AL|AK|AS|AZ|AŽ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MT|NE"
             r"|NV|NH|NJ|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)",
@@ -343,16 +348,16 @@ class Scan_OCR:
                         if key in response['fields'][i]['field_value_original']:
                             response['fields'][i]['location'] = str(self.location_val)
                             if self.config['field_level'] == "True":
-                                if self.config['high_accuracy'][0] <= other_score <= \
+                                if self.config['high_accuracy'][0] <= f_name_score <= \
                                         self.config['high_accuracy'][1]:
-                                    response['fields'][i]['confidence'] = other_score + 2
-                                elif self.config['medium_accuracy'][0] <= other_score <= \
+                                    response['fields'][i]['confidence'] = f_name_score
+                                elif self.config['medium_accuracy'][0] <= f_name_score <= \
                                         self.config['medium_accuracy'][1]:
-                                    response['fields'][i]['confidence'] = other_score + 2
+                                    response['fields'][i]['confidence'] = f_name_score
                                 else:
                                     response['fields'][i]['field_value_original'] = ''
                             else:
-                                response['fields'][i]['confidence'] = other_score + 2
+                                response['fields'][i]['confidence'] = f_name_score
 
             elif response['fields'][i]['name'] == "last_name":
                 self.location_val.clear()
@@ -363,16 +368,16 @@ class Scan_OCR:
                         if key in response['fields'][i]['field_value_original']:
                             response['fields'][i]['location'] = str(self.location_val)
                             if self.config['field_level'] == "True":
-                                if self.config['high_accuracy'][0] <= other_score <= \
+                                if self.config['high_accuracy'][0] <= l_name_score <= \
                                         self.config['high_accuracy'][1]:
-                                    response['fields'][i]['confidence'] = other_score + 1
-                                elif self.config['medium_accuracy'][0] <= other_score <= \
+                                    response['fields'][i]['confidence'] = l_name_score
+                                elif self.config['medium_accuracy'][0] <= l_name_score <= \
                                         self.config['medium_accuracy'][1]:
-                                    response['fields'][i]['confidence'] = other_score + 1
+                                    response['fields'][i]['confidence'] = l_name_score
                                 else:
                                     response['fields'][i]['field_value_original'] = ''
                             else:
-                                response['fields'][i]['confidence'] = other_score + 1
+                                response['fields'][i]['confidence'] = l_name_score
 
             elif response['fields'][i]['name'] == "middle_name":
                 self.location_val.clear()
@@ -383,16 +388,16 @@ class Scan_OCR:
                         if key in response['fields'][i]['field_value_original']:
                             response['fields'][i]['location'] = str(self.location_val)
                             if self.config['field_level'] == "True":
-                                if self.config['high_accuracy'][0] <= other_score <= \
+                                if self.config['high_accuracy'][0] <= m_name_score <= \
                                         self.config['high_accuracy'][1]:
-                                    response['fields'][i]['confidence'] = other_score + 3
-                                elif self.config['medium_accuracy'][0] <= other_score <= \
+                                    response['fields'][i]['confidence'] = m_name_score
+                                elif self.config['medium_accuracy'][0] <= m_name_score <= \
                                         self.config['medium_accuracy'][1]:
-                                    response['fields'][i]['confidence'] = other_score + 3
+                                    response['fields'][i]['confidence'] = m_name_score
                                 else:
                                     response['fields'][i]['field_value_original'] = ''
                             else:
-                                response['fields'][i]['confidence'] = other_score + 3
+                                response['fields'][i]['confidence'] = m_name_score
 
             elif response['fields'][i]['name'] == "issue_date":
                 self.location_val.clear()
@@ -576,8 +581,8 @@ class Scan_OCR:
 
             r = requests.post(self.config['base_url'] + '/getAllDocumentsMaster')
             resp_dict = json.loads(json.dumps(r.json()))
-            c = requests.post(self.config['base_url'] + '/getAccuracyBands')
-            confidence_band = json.loads(json.dumps(c.json()))
+            # c = requests.post(self.config['base_url'] + '/getAccuracyBands')
+            # confidence_band = json.loads(json.dumps(c.json()))
             value = resp_dict.get('records')
             json_val = dict([(value[i]['id'], value[i]['name']) for i in range(len(value))])
             if 'License' in json_val[doc_id]:
@@ -609,6 +614,7 @@ class Scan_OCR:
                         else:
                             pass
                     # if self.name_value
+                    suffix=''
                     if re.search('(!?JR|Jr|jr|jR)', name):
                         if self.name_value.index(re.findall(r'(!?JR|Jr|jr|jR)', name)[0]) == 1:
                             self.name_value[1] = self.name_value[1] + " " + self.name_value[2]
@@ -616,6 +622,12 @@ class Scan_OCR:
                         elif self.name_value.index(re.findall('(!?JR|Jr|jr|jR)', name)[0]) == 3:
                             self.name_value[2] = self.name_value[2] + " " + self.name_value[3]
                             self.name_value.pop(3)
+
+                    # for i in self.name_value:
+                    #     for vt in self.suf:
+                    #         if i.lower() == vt:
+                    #             suffix = i
+                    #             self.name_value.remove(i)
 
                 name_seq = ''
 
@@ -1207,7 +1219,6 @@ class Scan_OCR:
                                 response['fields'][i]['optional_value'] = ''
                                 response['fields'][i]['hrs'] = ''
                                 response['fields'][i]['rates'] = ''
-
                         elif 'tax_state' in response['fields'][i]['name']:
                             if len(taxes) > 0:
                                 for a in range(len(taxes)):
@@ -1837,7 +1848,7 @@ class Scan_OCR:
                         elif 'tax_total_auto' == response['fields'][i]['name']:
                             if r < len(total_taxes):
 
-                                response['fields'][i]['alias'] = total_taxes[r]
+                                response['fields'][i]['alias'] = 'Total on Document'
                                 response['fields'][i]['field_value_original'] = current_total_taxes[
                                     r]
                                 response['fields'][i]['optional_value'] = ytd_total_taxes[r]
@@ -1853,7 +1864,7 @@ class Scan_OCR:
                         elif 'regular_total_auto' == response['fields'][i]['name']:
                             if s < len(total_regular):
 
-                                response['fields'][i]['alias'] = total_regular[s]
+                                response['fields'][i]['alias'] = 'Total on Document'
                                 response['fields'][i]['field_value_original'] = \
                                     current_total_regular[s]
                                 response['fields'][i]['optional_value'] = ytd_total_regular[s]
@@ -1869,7 +1880,7 @@ class Scan_OCR:
                         elif 'pre_deduction_total_auto' == response['fields'][i]['name']:
                             if t < len(total_pre):
 
-                                response['fields'][i]['alias'] = total_pre[t]
+                                response['fields'][i]['alias'] = 'Total on Document'
                                 response['fields'][i]['field_value_original'] = current_total_pre[t]
                                 response['fields'][i]['optional_value'] = ytd_total_pre[t]
                                 response['fields'][i]['hrs'] = hrs_total_pre[t]
@@ -1884,7 +1895,7 @@ class Scan_OCR:
                         elif 'post_deduction_total_auto' == response['fields'][i]['name']:
                             if u < len(total_post):
 
-                                response['fields'][i]['alias'] = total_post[u]
+                                response['fields'][i]['alias'] = 'Total on Document'
                                 response['fields'][i]['field_value_original'] = current_total_post[
                                     u]
                                 response['fields'][i]['optional_value'] = ytd_total_post[u]
@@ -1897,6 +1908,12 @@ class Scan_OCR:
                                 response['fields'][i]['optional_value'] = ''
                                 response['fields'][i]['hrs'] = ''
                                 response['fields'][i]['rates'] = ''
+                        elif 'employee_zip' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employee_zipcode
+                            response['fields'][i]['optional_value'] = ""
+                        elif 'employer_zip' == response['fields'][i]['name']:
+                            response['fields'][i]['field_value_original'] = employer_zipcode
+                            response['fields'][i]['optional_value'] = ""
 
                         else:
                             pass
@@ -2369,10 +2386,11 @@ class Scan_OCR:
                 file_path1 = f_path
             self.scan_result['raw_data'] = self.text
             self.custom_print("Resposne.", self.scan_result)
+            print("Resposne.", self.scan_result)
             file_path = file_path1
             return self.scan_result, file_path
         except Exception as E:
-            self.custom_print("Exception in all_details main fun.", e)
+            self.custom_print("Exception in all_details main fun.", E)
 
     def rejected_image(self, path):
         filename = os.path.basename(path)

@@ -61,7 +61,7 @@ class Common:
                     print(e)
                     fullZipCode = ''
                 try:
-                    city = full_address_as_list[indexOfState - 1]
+                    city = full_address_as_list[indexOfState - 2]
                 except Exception as e:
                     print(e)
                     city = ''

@@ -316,7 +316,7 @@ class get_all_location:
                                 value1 = value1[0:2] + " " + value1[2:3] + " " + value1[3:5] + " " + value1[5:6] + " " + value1[6:8]
                             else:
                                 pass
-                        if re.search(r'\b(=?' + re.escape(value[0]) + r')\b', value1):
+                        if re.search(r'\b(=?' + re.escape(value[0].lower()) + r')\b', value1.lower()):
 
                             if value[0] in value_json['date_val']:
 
@@ -325,31 +325,31 @@ class get_all_location:
                                 img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
                                 self.dict.update({value[0]: value[1]})
 
-                            elif value[0] in value_json['address']:
+                            if value[0].lower() in value_json['address'].lower():
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img.copy(), [vrx], True, (255, 255, 0), 1)
                                 self.address_val.update({value[0]: value[1]})
 
-                            elif any(char in value_json['license_id'] for char in value[0]):
+                            if any(char in value_json['license_id'].lower() for char in value[0].lower()):
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img.copy(), [vrx], True, (0, 0, 255), 1)
                                 self.licence_id.update({value[0]: value[1]})
 
-                            elif any(char in value_json['first_name'] for char in value[0]):
+                            if any(char in value_json['first_name'].lower() for char in value[0].lower()):
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
                                 self.dict.update({value[0]: value[1]})
 
-                            elif any(char in value_json['last_name'] for char in value[0]):
+                            if any(char in value_json['last_name'].lower() for char in value[0].lower()):
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
                                 self.dict.update({value[0]: value[1]})
 
-                            elif any(char in value_json['middle_name'] for char in value[0]):
+                            if any(char in value_json['middle_name'].lower() for char in value[0].lower()):
                                 vrx = np.array(value[1], np.int32)
                                 vrx = vrx.reshape((-1, 1, 2))
                                 img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
