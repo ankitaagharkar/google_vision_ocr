@@ -198,7 +198,10 @@ class Licence_details:
             asp = address_val.split()
             is_val=re.findall(r'(!?([A-Za-z]+)?\s?[A-Za-z]+\s\d+\s)[A-Za-z]+', street_address)
             if is_val:
-                is_digit = re.findall(r'\b\d+\b', is_val[0][0])
+                if re.search(r'\d+\s?([A-Za-z]+)?\s?([A-Za-z]+)?\s?' + is_val[0][0] + '+', street_address):
+                    is_digit = re.findall(r'\b\d+\b', street_address)
+                else:
+                    is_digit = re.findall(r'\b\d+\b', is_val[0][0])
                 print("is_digit", is_digit)
                 address_sp = street_address.split(is_digit[0])
                 print("address_sp", address_sp)
@@ -270,7 +273,7 @@ class Licence_details:
             actual_city.clear()
             for i in range(len(self.cities['city'])):
                 city = city.replace(',', '')
-                if city.lower() == self.cities['city'][i].lower():
+                if city.lower() in self.cities['city'][i].lower():
                     actual_city.append(self.cities['city'][i])
 
             if actual_city == []:
@@ -391,8 +394,8 @@ class Licence_details:
             text_value = text_value.replace('1', " ")
             if re.search(r'[A-Za-z]+\s\s[A-Za-z]+', text_value):
                 text_value = text_value.replace(re.findall(r'\s\s', text_value)[0], re.findall(r'\s', text_value)[0], 1)
-            if re.search('[A-Za-z]+\-\s[A-Za-z]+', text_value):
-                text_value = text_value.replace(re.findall(r'\s', text_value)[0], "", )
+            if re.search('[A-Za-z]+\-\s[A-Za-z]+|[A-Za-z]+\s\-[A-Za-z]+', text_value):
+                text_value = text_value.replace(re.findall(r'\s', text_value)[0], "",1 )
             # if re.search(r'\b[A-Za-z]+\s?\-\s?\s?[A-Za-z]+\b', text_value):
             #     text_value = text_value.replace(re.findall(r'\s', text_value)[0], "", 1)
             # else:
@@ -411,6 +414,8 @@ class Licence_details:
                 value = value.replace(avoid_signature, "")
             if 'iss' in value.lower():
                 value = value.replace(re.findall(r'(!?iss|ISS|iSS|Iss)', value)[0], "")
+            if 'FEED' in value:
+                value=value.replace('FEED','')
             name_seq, first_name, middle_name, last_name = '', '', '', ''
             for i in range(len(self.state_value['data'])):
                 if self.state_value['data'][i]['state'] in state:

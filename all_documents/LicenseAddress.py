@@ -271,7 +271,7 @@ class LicenseAddress:
         if state_name=='PA':
             total_name_lines = 1
         elif state_name=='MD':
-            total_name_lines = 3
+            total_name_lines = 4
         elif state_name=='VA':
             total_name_lines = 3
         else:

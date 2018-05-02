@@ -117,10 +117,10 @@ class Paystub_details:
                 code = data[0][0]
                 code1 = data1[0][0]
                 street = re.findall(
-                    r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\-?\.?\w?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|(\w+)?\s?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+)',
+                    r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\w+\s?(\d+)?\-?\.?\w+?\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+)',
                     address1)[0][0]
                 street1 = re.findall(
-                    r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\-?\.?\w?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|(\w+)?\s?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+)',
+                    r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\w+\s?(\d+)?\-?\.?\w+?\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+)',
                     address2)[0][0]
                 addresses1 = self.c.find_between_r(address1, street, code)
                 addresses2 = self.c.find_between_r(address2, street1, code1)
@@ -145,9 +145,9 @@ class Paystub_details:
                     city1 = city1.replace('lowa', 'Iowa')
                     full_address1 = full_address1.replace('lowa', 'Iowa')
                 for i in range(len(self.cities['city'])):
-                    if self.cities['city'][i].lower() in city.lower():
+                    if city.lower() in self.cities['city'][i].lower():
                         actual_city1 = self.cities['city'][i].lower()
-                    if self.cities['city'][i].lower() in city1.lower():
+                    if city1.lower() in self.cities['city'][i].lower():
                         actual_city2 = self.cities['city'][i].lower()
 
                 if actual_city1 == '':
@@ -193,6 +193,8 @@ class Paystub_details:
                                         empr_address = employer_address
                                         street = employer_street
                                         street1 = employee_street
+                                        z=zipcode
+                                        z1=zipcode1
                                         empr_city = city1
                                         empl_city = city2
                                         employee_address = empr_address
@@ -201,6 +203,12 @@ class Paystub_details:
                                         employer_street = street1
                                         city1 = empl_city
                                         city2 = empr_city
+                                        zipcode=z1
+                                        zipcode1=z
+                                        s=state
+                                        s1=state1
+                                        state=s1
+                                        state1=s
                                 elif x[0] in self.employee_Address:
                                     emp_add = j[1]
                                     if emp_add.split()[0].replace(',', '').upper() in employer_address:
@@ -208,6 +216,8 @@ class Paystub_details:
                                         empr_address = employer_address
                                         street = employer_street
                                         street1 = employee_street
+                                        z = zipcode
+                                        z1 = zipcode1
                                         empr_city = city1
                                         empl_city = city2
                                         employee_address = empr_address
@@ -216,7 +226,12 @@ class Paystub_details:
                                         employer_street = street1
                                         city1 = empl_city
                                         city2 = empr_city
-
+                                        zipcode = z1
+                                        zipcode1 = z
+                                        s = state
+                                        s1 = state1
+                                        state = s1
+                                        state1 = s
             else:
                 address1 = block["addresses"][0]['address']
                 address1 = " ".join(map(str, address1))
@@ -225,7 +240,7 @@ class Paystub_details:
                     address1)
                 code = data[0][0]
                 street = re.findall(
-                    r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\-?\.?\w?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+)',
+                    r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\w+\s?(\d+)?\-?\.?\w+?\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+)',
                     address1)[0][0]
                 addresses1 = self.c.find_between_r(address1, street, code)
                 full_address = street + addresses1 + code
@@ -495,7 +510,7 @@ class Paystub_details:
                 Start_date = dt.strptime(starting_date, "%m/%d/%Y")
                 End_date = dt.strptime(ending_date, "%m/%d/%Y")
                 Pay_date = dt.strptime(paying_date, "%m/%d/%Y")
-                frequency = abs((End_date - Start_date).days)
+                frequency = abs((End_date - Start_date).days)+1
 
                 if pay_freq == '':
                     if frequency == 15 or frequency == 16:
@@ -673,9 +688,10 @@ class Paystub_details:
                 y= difflib.get_close_matches(employer_name.split()[1].lower(), [vt.lower() for vt in self.surname_list['surnames']],
                                               cutoff=0.93)
                 if not y:
-                    y = difflib.get_close_matches(employer_name.split()[2].lower(),
-                                                  [vt.lower() for vt in self.surname_list['surnames']],
-                                                  cutoff=0.93)
+                    if len(employer_name.split())>2:
+                        y = difflib.get_close_matches(employer_name.split()[2].lower(),
+                                                      [vt.lower() for vt in self.surname_list['surnames']],
+                                                      cutoff=0.93)
                 if x:
                     if y:
                         employee_name=employer_name

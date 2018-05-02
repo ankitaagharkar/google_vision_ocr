@@ -78,45 +78,45 @@ class text_score:
                 for key1, value1 in data.items():
                     if va != '' and value1 != '':
                         # if value[0] in value1:
-                        if re.search(r'(?!' + re.escape(va) + r')', value1):
+                        if re.search(r'(?!' + va.lower() + r')', value1.lower()):
 
-                            if va in data['date_val']:
+                            if va.lower() in data['date_val'].lower():
                                     self.dict.update({va: value[1]})
 
-                            if any(char in data['first_name'] for char in va):
+                            if any(char in data['first_name'].lower() for char in va.lower()):
                                 self.f_name.update({va: value[1]})
 
-                            if va in data['first_name']:
+                            if va.lower() in data['first_name'].lower():
                                 if self.f_name != {}:
-                                    self.f_name.clear()
+                                    self.f_name = {}
                                     self.f_name.update({va: value[1]})
 
-                            if any(char in data['middle_name'] for char in va):
+                            if any(char in data['middle_name'].lower() for char in va.lower()):
                                 self.m_name.update({va: value[1]})
 
-                            if va in data['middle_name']:
+                            if va.lower() in data['middle_name'].lower():
                                 if self.m_name != {}:
-                                    self.m_name.clear()
+                                    self.m_name = {}
                                     self.m_name.update({va: value[1]})
 
-                            if any(char in data['last_name'] for char in va):
+                            if any(char in data['last_name'].lower() for char in va.lower()):
                                 self.l_name.update({va: value[1]})
 
-                            if va in data['last_name']:
+                            if va.lower() in data['last_name'].lower():
                                 if self.l_name != {}:
-                                    self.l_name.clear()
+                                    self.l_name={}
                                     self.l_name.update({va: value[1]})
 
-                            if va in data['address']:
+                            if va.lower() in data['address'].lower():
                                 self.address_val.update({va: value[1]})
 
-                            elif any(char in data['address'] for char in va):
+                            elif any(char in data['address'].lower() for char in va.lower()):
                                 self.address_val.update({va: value[1]})
 
-                            if va in data['license_id']:
+                            if va.lower() in data['license_id'].lower():
                                 self.license_id_dict.update({va: value[1]})
 
-                            elif any(char in data['license_id'] for char in va):
+                            elif any(char in data['license_id'].lower() for char in va.lower()):
                                 self.license_id_dict.update({value[0]: value[1]})
 
 
@@ -124,49 +124,65 @@ class text_score:
                                 self.others.update({va:value[1]})
 
             if len(self.f_name)>=1:
-                val1=[]
-
+                x = 0
+                val1 = []
                 for key6, value6 in self.f_name.items():
-                    if int(value6*100)<=10:
-                        self.f_name_score=0
-                        break
+                    if int(value6 * 100) <= 10:
+                        if x < 4:
+                            self.f_name_score = 0
+                            self.f_name_confidence_score=0
+                            x = x + 1
+                            break
                     else:
                         self.f_name_confidence_score = self.f_name_confidence_score + value6
                         val1.append(value6)
-                self.f_name_score = int((self.f_name_confidence_score / len(self.f_name)) * 100)
-                if self.f_name_score > 100:
-                    self.f_name_score = 85
+                    x = x + 1
+                if self.f_name_confidence_score != 0:
+                    self.f_name_score = int((self.f_name_confidence_score / len(self.f_name)) * 100)
+                    if self.f_name_score > 100:
+                        self.f_name_score = 85
             else:
                 self.f_name_score=0
 
             if len(self.m_name) >= 1:
+                x = 0
                 val1 = []
-
                 for key6, value6 in self.m_name.items():
-                    if int(value6*100)<=10:
-                        self.m_name_score=0
-                        break
+                    if int(value6 * 100) <= 10:
+                        if x < 4:
+                            self.m_name_score = 0
+                            self.m_name_confidence_score = 0
+                            x = x + 1
+                            break
                     else:
                         self.m_name_confidence_score = self.m_name_confidence_score + value6
                         val1.append(value6)
-                self.m_name_score = int((self.m_name_confidence_score / len(self.m_name)) * 100)
-                if self.m_name_score > 100:
-                    self.m_name_score = 85
+                    x = x + 1
+                if self.m_name_confidence_score!=0:
+                    self.m_name_score = int((self.m_name_confidence_score / len(self.m_name)) * 100)
+                    if self.m_name_score > 100:
+                        self.m_name_score = 85
             else:
                 self.m_name_score=0
 
             if len(self.l_name) >= 1:
+                x=0
                 val1 = []
                 for key6, value6 in self.l_name.items():
                     if int(value6*100)<=10:
-                        self.l_name_score = 0
-                        break
+                        if x < 4:
+                            self.l_name_score = 0
+                            self.l_name_confidence_score=0
+                            x=x+1
+                            break
                     else:
                         self.l_name_confidence_score = self.l_name_confidence_score + value6
                         val1.append(value6)
-                self.l_name_score = int((self.l_name_confidence_score / len(self.l_name)) * 100)
-                if self.l_name_score > 100:
-                    self.l_name_score = 85
+                    x = x + 1
+                if self.l_name_confidence_score != 0:
+                    self.l_name_score = int((self.l_name_confidence_score / len(self.l_name)) * 100)
+                    if self.l_name_score > 100:
+                        self.l_name_score = 85
             else:
                 self.l_name_score=0
 

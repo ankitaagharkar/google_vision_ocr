@@ -19,14 +19,16 @@ Ignore value 			{val_ignore}
 
 <structures>
 	<paystub_types>
-		<type id="Generic">
-			<lookup_text>ScotiaBank</lookup_text>
-			<lookup_text>Mercy Medical Center</lookup_text>
-		</type>
 		<type id="ADP">
 			<lookup_text>Earnings Statement</lookup_text>
+			<lookup_text>ADP</lookup_text>
+			<lookup_text>Taxable Marital Status</lookup_text>
+			<lookup_text>CLOCK</lookup_text>
+			<lookup_text>FILE</lookup_text>
 			<lookup_text>AMTRAK</lookup_text>
 			<lookup_text>Sysco</lookup_text>
+			<lookup_text>aramark</lookup_text>
+			<lookup_text>PetSmart</lookup_text>
 		</type>
 		<type id="Insperity">
 			<lookup_text>Insperity</lookup_text>
@@ -83,6 +85,7 @@ Ignore value 			{val_ignore}
 				<val>pre tax</val>
 				<val>pre tax deductions</val>
 				<val>pre-tax deductions</val>
+				<val>pre-tax benefits</val>
 				<val>pre-tax deductions withheld</val>
 			</type>
 			<type id="post_deductions">
@@ -220,6 +223,13 @@ Ignore value 			{val_ignore}
 				<val col_type="Current">current</val>
 				<val col_type="YTD">ytd</val>
 			</type>
+			<!-- adding for mercy medical 
+			<type>
+				<val block_name="Earnings" col_type="Hour">hours/units</val>
+				<val col_type="Current">amount</val>
+				<val col_type="None">hours/units</val>
+				<val col_type="YTD">amount</val>
+			</type>-->
 		</col_sequence>
 		<rules>
 			<type val="True">Is TaxType Header Defined</type>
@@ -338,6 +348,7 @@ Ignore value 			{val_ignore}
 		<block_headers>
 			<type id="earnings">
 				<val>earnings</val>
+				<val>eamings</val>
 				<val>earnings period</val>
 				<val>taxable earnings</val>
 			</type>
@@ -345,6 +356,7 @@ Ignore value 			{val_ignore}
 				<val>deductions</val>
 				<val>other</val>
 				<val>voluntary deductions</val>
+				<val>additional deductions</val>
 				<val>other deductions</val>
 				<val>deductions other</val>
 			</type>
@@ -360,7 +372,6 @@ Ignore value 			{val_ignore}
 				<val>taxes</val>
 				<val>tax deductions</val>
 				<val>deductions statutory</val>
-				<val>tax deductions</val>
 				<val>statutory</val>
 				<val>statutory deductions</val>
 			</type>
@@ -370,17 +381,13 @@ Ignore value 			{val_ignore}
 				<val>memo information</val>
 				<val>accruals/others</val>
 				<val>summary</val>
-				<val>colleague</val>
-				<val>employer</val>
 				<val>net pay distribution</val>
+				<val>additional tax withholding information</val>
 				<val>pay distribution</val>
 				<val>direct deposit distribution</val>
 				<val>direct deposit information</val>
 				<val>direct deposit</val>
-				<val>organizations contribution</val>
 				<val>employer paid benefits</val>
-				<val>leave</val>
-				<val>benefits paid by government for you</val>
 			</type>
 		</block_headers>
 		<col_headers>
@@ -773,11 +780,13 @@ Ignore value 			{val_ignore}
 				<val>amount</val>
 				<val>current amount</val>
 				<val>tax</val>
+				<val>tах</val> <!-- crazy ascii issue-->
 			</type>
 			<type id="ytd">
 				<val>amount</val>
 				<val>ytd amount</val>
 				<val>tax</val>
+				<val>tах</val>
 			</type>
 			<type id="rate">
 				<val>rate</val>
