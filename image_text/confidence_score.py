@@ -426,7 +426,7 @@ class text_score:
                 # print(key)
                 for key1, value1 in data.items():
                     if key != '' and value1 != '':
-                        if re.search(r'\b(=?' + key + r')\b', value1):
+                        if key in value1: #re.search(r'\b(=?' + key + r')\b', value1) or
                             if key in data['passport_no']:
                                 self.passport_no_confidence_score = value
 

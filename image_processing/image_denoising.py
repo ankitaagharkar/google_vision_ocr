@@ -17,14 +17,14 @@ class Denoising:
                 img = np.array(img.copy())
                 pImg=cv2.GaussianBlur(img,(3,3),0)
             elif 'Passport' in doc_type:
-                img = Image.open(path).convert('L')
+                img = Image.open(path)
                 img = np.array(img.copy())
-                b, g, r = cv2.split(img)  # get b,g,r
+                # b, g, r = cv2.split(img)  # get b,g,r
                 # Denoising
-                # img = cv2.GaussianBlur(img, (3, 3), 0)
-                dst = cv2.fastNlMeansDenoisingColored(img, None, 5, 5, 7, 21)
-                b, g, r = cv2.split(dst)  # get b,g,r
-                pImg = cv2.merge([r, g, b])
+                img = cv2.GaussianBlur(img, (1, 1), 0)
+                pImg = cv2.fastNlMeansDenoising(img, None, 5, 5)
+                # b, g, r = cv2.split(dst)  # get b,g,r
+                # pImg = cv2.merge([r, g, b])
 
             cv2.imwrite("../images/static/" + filename, pImg)
             print("Done Image Proccessing")
