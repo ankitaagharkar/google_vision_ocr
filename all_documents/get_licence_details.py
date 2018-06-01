@@ -17,7 +17,7 @@ DEBUG = False
 class Licence_details:
 
     def __init__(self):
-        self.api_key = 'AIzaSyC7SQ-1m0M6dN9L4E2aUhTM1ihAfTXIA0k '
+        self.api_key = 'AIzaSyCao8hUleolUVnfFVI3CmBHECSbO1FZFpg'
         self.date_val = []
         self.date = []
         self.gmaps = googlemaps.Client(key=self.api_key)
@@ -44,7 +44,7 @@ class Licence_details:
 
         with open('../config/name', 'r') as data_file:
             self.name_list = json.load(data_file)
-        with open('../config/city.json', 'r') as data_file:
+        with open('../config/city.json', 'r',encoding='utf-8') as data_file:
             self.cities = json.load(data_file)
         with open('../config/filtering.json', 'r') as data:
             self.state_value = json.load(data)
@@ -132,11 +132,18 @@ class Licence_details:
 
     # todo:address,state,city and zipcode details
     def get_address(self, details):
-        global address_details, address_val, street_address
+        global address_details, address_val, street_address, google_zipcode, value_name
         try:
 
             name, actual_city = [], []
-            if 'dob' in details[0]["address"][0].lower():
+            if re.search('\s(!?NH)\s'," ".join(map(str,details[0]['address']))):
+                address_details = details[0]['address']
+                street_address = address_details[1]
+                street_address=street_address.replace('3.','')
+                address_val = address_details[2]
+                address_val=address_val.replace('-','')
+                value_name = address_details[0]
+            elif 'dob' in details[0]["address"][0].lower():
                 address_details = details[0]['address']
                 street_address = address_details[1]
                 address_val = address_details[2]
@@ -185,9 +192,12 @@ class Licence_details:
 
                 name = details[0]['name']
                 value_name = ' '.join(map(str, name))
-
-            address = " ".join(map(str, address_details))
-            address = avoid.address_replace(address)
+            if re.search('\s(!?NH)\s', " ".join(map(str, details[0]['address']))):
+                address = street_address+" "+address_val
+                address = avoid.address_replace(address)
+            else:
+                address = " ".join(map(str, address_details))
+                address = avoid.address_replace(address)
 
             address_val = avoid.address_replace(address_val)
             address_val = address_val.replace(',', '')
@@ -211,6 +221,19 @@ class Licence_details:
                     street_address = "".join(map(str, address_sp[1:]))
                     street_address = is_digit[0] + street_address
                     print("remove of the ", address)
+            else:
+                is_val = re.findall(r'(!?([A-Za-z]+)?\s?\w+\s\d+\s)',street_address)
+                if is_val:
+                    is_digit = re.findall(r'\b\d+\b', is_val[0][0])
+                    print("is_digit", is_digit)
+                    address_sp = street_address.split(is_digit[0])
+                    print("address_sp", address_sp)
+                    if not re.search(r'\b[A-Za-z]+\b', address_sp[0]):
+                        pass
+                    else:
+                        street_address = "".join(map(str, address_sp[1:]))
+                        street_address = is_digit[0] + street_address
+                        print("remove of the ", address)
             if re.search(r'\d+\s\d+\-?\s\d+\,?\d+', address_val):
                 address_val = address_val.replace(re.findall(r'\d+\s\d+\-?\s\d+\,?\d+', address_val)[0], '')
             # todo:to find state,city,zipcode
@@ -237,9 +260,9 @@ class Licence_details:
                     # state, zipcode, city = self.c.get_address_zipcode(address, address_val.split()[-3])
                     state, zipcode, city = self.c.get_address_zipcode(address_val, asp, extra=True)
                     if re.search(r'[A-Za-z]+',zipcode):
-                        a=asp[-1]
+                        a=re.findall(r'[A-Za-z]+\s?\d+\-?\d+|[A-Za-z]+', " ".join(map(str,asp[-2:])))[0]
                         address_val=address_val.replace(a,'')
-                        asp.pop(-1)
+
                         state=address_val.split()[-1]
                         city=" ".join(address_val.split()[0:2])
                         zipcode=''
@@ -251,15 +274,6 @@ class Licence_details:
                                                                           address_val.split()[-1])
                 else:
                     state, zipcode, city = self.c.get_address_zipcode(address, address_val.split()[-1])
-            # if zipcode == '' and city== '':
-            #
-            # #     city = address_val.split()[0:-2]
-            # #     city = " ".join(map(str, city))
-            # #     # print("City",city)
-            # # else:
-            #     city = address_val.split()[0:-1]
-            #     city = " ".join(map(str, city))
-            # print("City", city)
             city = city.replace(',', '')
             address_val = address_val.replace(',', '')
             city = city.replace('.', '')
@@ -275,37 +289,40 @@ class Licence_details:
                 city = city.replace(',', '')
                 if city.lower() in self.cities['city'][i].lower():
                     actual_city.append(self.cities['city'][i])
-
-            if actual_city == []:
-                city_dict, street_dict = {}, {}
+            x = difflib.get_close_matches(city.lower(), [vt.lower() for vt in actual_city],
+                                          cutoff=0.90)
+            if x:
+                city=x[0]
+            else:
+                actual_city=[]
                 actual_city.append(
                     ' '.join(map(str, address_val.split(state, 1)[0].split()[-1:])))
 
                 actual_city[0] = actual_city[0].replace(',', '')
                 actual_city[0] = actual_city[0].replace('.', '')
-
-            else:
-                if city != actual_city[0]:
-                    actual_city[0] = actual_city[0].upper()
-                else:
-                    actual_city.append(actual_city[0])
-            city = actual_city[0]
+                city = actual_city[0]
             if city.lower() == 'BROOKLAMIN'.lower():
                 city = "BROOKLAWN"
             full_address = ' '.join(s[:1].upper() + s[1:] for s in street_address.split())
             full_address = full_address.replace("DRI", "DR")
-            full_address = full_address.replace("STAPT ", "ST APT ")
-
+            full_address = full_address.replace("HTH", "11TH")
+            full_address = full_address.replace("STAPTA", "ST APT")
+            full_address = full_address.replace("STAPT", "ST APT ")
             full_address = full_address.replace("ss ", "55 ")
             full_address = full_address.replace("RDUTE  ", "ROUTE ")
             full_address = full_address.replace("AVENUF", "AVENUE")
+            full_address = full_address.replace("CI", "CT")
+            full_address = full_address.replace("CTE", "CT")
+            full_address = full_address.replace("FI", "")
+            full_address = full_address.replace(" EN ", "")
             full_address = full_address.replace("COUPTOR", "COURT")
             full_address = full_address.replace("•", "")
             full_address = full_address.replace(" -", "")
+            full_address = full_address.replace(".", "")
 
             if re.search(r'[A-Za-z]+', zipcode) or zipcode == '' or len(zipcode.split('-')[0]) >= 6:
 
-                json_val = self.gmaps.geocode(full_address + " " + city + " " + state)
+                json_val = self.gmaps.geocode(full_address + " " + city + " " + state+" USA")
                 if json_val != []:
                     for i in range(len(json_val[0]['address_components'])):
                         # #print(json_val[0]['address_components'][i]['types'])
@@ -314,21 +331,22 @@ class Licence_details:
                 else:
                     zipcode = ''
             else:
+                google_zipcode=''
                 json_val = self.gmaps.geocode(full_address + " " + city + " " + state)
                 if json_val != []:
                     for i in range(len(json_val[0]['address_components'])):
                         # #print(json_val[0]['address_components'][i]['types'])
                         if json_val[0]['address_components'][i]['types'] == ['postal_code']:
                             google_zipcode = json_val[0]['address_components'][i]['long_name']
-                    if zipcode.split('-')[0] != google_zipcode:
-                        if re.search(r'-',zipcode):
-                            z=zipcode.split('-')
-                            zipcode = google_zipcode
-                            zipcode=zipcode+"-"+z[1]
-                        else:
-                            zipcode=google_zipcode
-                    else:
-                        zipcode = google_zipcode
+                    if google_zipcode!='':
+                        if zipcode.split('-')[0] != google_zipcode:
+                            if re.search(r'-',zipcode):
+                                z=zipcode.split('-')
+                                zipcode = google_zipcode
+                                zipcode=zipcode+"-"+z[1]
+                            else:
+                                zipcode=google_zipcode
+                        
 
             zipcode = zipcode.replace('...', '')
             zipcode = zipcode.replace('.', '')
@@ -344,30 +362,51 @@ class Licence_details:
             if 'START' in full_address:
                 full_address = full_address.replace('START', 'ST APT')
             full_address = full_address.replace("STAPTI.", "ST APT 1")
-            if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MS|MT|NE|NH|ND|SD|UT|VT|WI)',
-                         state):
+            if re.search('(!?NV|OH|TX|WA|CT|MA|NC|CO|DE|ID|IN|KS|ME|MO|MS|MT|NE|NH|ND|SD|UT|VT|WI)', state):
                 if re.search(r'\b(!?8)\s?(\d+)?\b', full_address):
                     full_address = full_address.replace('8', ' ', 1)
+
             if re.search('((!?(S|s))\d+)', full_address):
                 full_address = full_address.replace(re.findall('(!?S|s\d+)', full_address)[0], "5",
                                                     1)
             if not re.search(r'[A-Za-z]+', full_address):
                 full_address = ''
-            return full_address.upper(), state, zipcode, city, value_name
+
+            # json_val = self.gmaps.geocode(full_address + " " + city + " " + state + " " + zipcode+" USA")
+            # junk_words=["dr","apt","mission","st","ave","unit","rd","ln","lane","pl","grn","ct","circle","drive","avenue","street","terrase","terrace","road","court","route","av","blvd"]
+            # x = difflib.get_close_matches(full_address.split()[-1].lower(), [vt.lower() for vt in junk_words],cutoff=0.90)
+            # if not x:
+            #     x = difflib.get_close_matches(full_address.split()[-2].lower(), [vt.lower() for vt in junk_words], cutoff=0.90)
+            # print("x value",x)
+            # if not x:
+            #     if json_val != []:
+            #         address = json_val[0]['formatted_address']
+            #         if full_address != address.split(',')[0]:
+            #             full_address = address.split(',')[0]
+
+            if full_address.split()[-1].lower() in city.split()[0].lower():
+                if len(city.split())>1:
+                    full_address=full_address.replace(city.split()[0],'',1)
+            if 'PG' and city:
+                city=city.replace('PG','UPPER MARLBORO PG')
+
+            return full_address.upper(), state.upper(), zipcode, city.upper(), value_name
         except Exception as e:
             address = state = zipcode = city = value_name = ''
             return address, state, zipcode, city, value_name
 
     # todo:first,middle and last name details
     def get_name(self, text_value, date, state, text, license_id):
-        global x
+        global x, actual_full_name
         try:
             text_value = text_value.lstrip()
             text_value = text_value.rstrip()
-            # text_value=text_value.replace('Expres','')
+            state=state.replace('T9K','AB')
 
             val = date.split(" ")
             avoid_signature = ''
+
+            print("state in name",state)
             if state=='AB':
                 for i in val:
                     st = parse(i)
@@ -375,7 +414,7 @@ class Licence_details:
                     # val[i] = val[i].replace(rep.upper(), "")
                     text_value = text_value.replace(rep.upper(), "")
             t1 = text_value.split()
-            avoid1 = ["EN", "FN", "LN", "IN", "LR", "LA",'Identification','Card','ID','#','card','ovaryland','LR.']
+            avoid1 = ["LM","LR","No","Dups","EN", "FN", "LN", "IN", "LR", "LA",'Identification','Card','ID','#','card','ovaryland','LR.','UN']
             result=[]
             for i in t1:
                 if not i in avoid1:
@@ -386,12 +425,16 @@ class Licence_details:
             text_value = text_value.replace(license_id, "")
 
             text_value = text_value.replace('Driver License', "")
+
             text_value = text_value.replace('LICENSE', "")
             text_value = text_value.replace(',', " ")
             text_value = text_value.replace('Address', "")
+            text_value = text_value.replace("DRIVER'S", "")
             text_value = text_value.replace('DRIVER', "")
             text_value = text_value.replace('2', " ")
             text_value = text_value.replace('1', " ")
+            text_value = text_value.lstrip()
+            text_value = text_value.rstrip()
             if re.search(r'[A-Za-z]+\s\s[A-Za-z]+', text_value):
                 text_value = text_value.replace(re.findall(r'\s\s', text_value)[0], re.findall(r'\s', text_value)[0], 1)
             if re.search('[A-Za-z]+\-\s[A-Za-z]+|[A-Za-z]+\s\-[A-Za-z]+', text_value):
@@ -423,11 +466,11 @@ class Licence_details:
             x=[]
             if 'FN_MN_LN_SUF' == name_seq:
                 x = difflib.get_close_matches(value.split()[0].lower(), [vt.lower() for vt in self.name_list['names']],
-                                              cutoff=0.90)
+                                              cutoff=0.88)
             elif 'LN_FN_MN_SUF' == name_seq:
                 if len(value.split())>1:
                     x = difflib.get_close_matches(value.split()[1].lower(), [vt.lower() for vt in self.name_list['names']],
-                                                  cutoff=0.90)
+                                                  cutoff=0.88)
             if x:
                 value=" ".join(map(str, value.upper().rpartition(x[0].upper())))
                 value=value.rstrip()
@@ -714,7 +757,7 @@ class Licence_details:
                 string_date_value = string_date.replace(
                     re.findall(r'\b\s(!?G|O|8|9|6)', string_date)[0], '0')
 
-            for dob in date_val[:3]:
+            for dob in date_val[:4]:
                 if 'o' in dob:
                     dob = dob.replace("o", "0")
                 if ' ' in dob:

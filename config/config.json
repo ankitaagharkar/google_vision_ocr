@@ -1,9 +1,0 @@
-{
-  "development": "192.168.9.91",
-  "development_LAN": "192.168.1.40",
-  "production": "100.72.74.108",
-  "development_port": 5015,
-  "production_port": 5012,
-  "base_url": "http://192.168.9.81:5012",
-  "upload_url":"http://192.168.9.81:5012/uploadProcessedImage"
-}

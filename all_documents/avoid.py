@@ -3,6 +3,8 @@ import re
 
 def replace(actual_name):
     actual_name1 = actual_name.replace('DONAR', "")
+    actual_name1 = actual_name1.replace("DRIVER'S", " ")
+
     actual_name1 = actual_name1.replace('DRIVER', "")
     actual_name1 = actual_name1.replace('LICENSE', "")
     actual_name1 = actual_name1.replace('FOR', "")
@@ -308,6 +310,7 @@ def address_replace(value):
 def name_replace(text_value,date,zip_code,text_val):
     text_value = text_value.replace(' ExP ', " ")
     text_value = text_value.replace(' DANONE ', " ")
+    text_value = text_value.replace("DRIVER'S", " ")
     text_value = text_value.replace('DRIVER', " ")
     text_value = text_value.replace('EXPRES', " ")
     text_value = text_value.replace('Expres', " ")

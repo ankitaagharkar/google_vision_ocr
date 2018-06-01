@@ -28,7 +28,6 @@ class SSN_details:
             self.custom_print('Exception in SSN Number',E)
             ssn_number=''
             return ssn_number
-
     def get_date(self,text):
         try:
             global actual_ssn_date
@@ -72,7 +71,6 @@ class SSN_details:
         except Exception as E:
             date = ""
             return date
-
     def name(self,text,ssn_number):
         try:
             name = ' '.join(map(str, text.split(ssn_number, 1)[1].split()[5:9]))
@@ -99,7 +97,6 @@ class SSN_details:
             actual_name=''
             date = self.get_date(text)
             return actual_name,date
-
     def get_all_snn_details(self,text):
         try:
            ssn_number=self.ssn_number(text)

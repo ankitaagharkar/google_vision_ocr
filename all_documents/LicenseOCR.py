@@ -492,7 +492,7 @@ class LicenseOCR:
 
         image_updated = False  # flag to track changes in image contents
 
-        self.image_content = self.process_image(ext)
+        # self.image_content = self.process_image(ext)
         image = Image.open(io.BytesIO(self.image_content))
         image.save(image_path)
 

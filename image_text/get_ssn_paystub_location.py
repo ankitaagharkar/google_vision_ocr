@@ -17,6 +17,8 @@ class get_all_sp_location:
         self.address_val = {}
         self.licence_id = {}
         self.ssn = {}
+        self.passport_dict = {}
+        self.passport_no = {}
         self.name = {}
         self.date = {}
         self.pay_Val = Queue()
@@ -443,3 +445,66 @@ class get_all_sp_location:
          self.deduction6, self.deduction7, self.deduction8, self.deduction9, self.deduction10,self.deduction11,self.deduction12,self.deduction13,self.deduction14,self.deduction15, self.pay_start_date,
          self.pay_end_date, self.pay_date, self.dict,path,value_json)=self.pay_Val.get()
         return self.emp_name, self.employee_name, self.emp_address, self.employee_address, self.regular1, self.regular2, self.regular3, self.regular4,self.regular5, self.regular6, self.regular7, self.regular8, self.regular9, self.regular10,self.tax1, self.tax2, self.tax3, self.tax4, self.tax5, self.tax6, self.tax7, self.tax8,self.tax9, self.tax10, self.deduction1, self.deduction2, self.deduction3, self.deduction4,self.deduction5, self.deduction6, self.deduction7, self.deduction8, self.deduction9,self.deduction10,self.deduction11,self.deduction12,self.deduction13,self.deduction14,self.deduction15, self.pay_start_date, self.pay_end_date, self.pay_date, self.dict,path,value_json
+
+    def get_passport_location(self, value_json, path,result):
+       img = Image.open(path)
+       img = np.array(img.copy())
+       _, filename = os.path.split(path)
+       for key, value in enumerate(self.result):
+           for key1, value1 in value_json.items():
+               if value[0] != '' and value1 != '':
+                   value = list(value)
+                   if re.search(r'\b(=?' + re.escape(value[0].lower()) + r')\b', value1.lower()):
+
+                       if value[0] in value_json['dob']:
+                           vrx = np.array(value[1], np.int32)
+                           vrx = vrx.reshape((-1, 1, 2))
+                           img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                           self.passport_dict.update({value[0]: value[1]})
+
+                       elif value[0] in value_json['issue_date']:
+                           vrx = np.array(value[1], np.int32)
+                           vrx = vrx.reshape((-1, 1, 2))
+                           img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                           self.passport_dict.update({value[0]: value[1]})
+
+                       elif value[0] in value_json['expiration_date']:
+                           vrx = np.array(value[1], np.int32)
+                           vrx = vrx.reshape((-1, 1, 2))
+                           img = cv2.polylines(img.copy(), [vrx], True, (0, 255, 255), 1)
+                           self.passport_dict.update({value[0]: value[1]})
+
+
+                       elif any(char in value_json['passport_no'].lower() for char in value[0].lower()):
+                           vrx = np.array(value[1], np.int32)
+                           vrx = vrx.reshape((-1, 1, 2))
+                           img = cv2.polylines(img.copy(), [vrx], True, (0, 0, 255), 1)
+                           self.passport_no.update({value[0]: value[1]})
+
+                       if any(char in value_json['first_name'].lower() for char in value[0].lower()):
+                           vrx = np.array(value[1], np.int32)
+                           vrx = vrx.reshape((-1, 1, 2))
+                           img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
+                           self.passport_dict.update({value[0]: value[1]})
+
+                       if any(char in value_json['last_name'].lower() for char in value[0].lower()):
+                           vrx = np.array(value[1], np.int32)
+                           vrx = vrx.reshape((-1, 1, 2))
+                           img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
+                           self.passport_dict.update({value[0]: value[1]})
+
+                       if any(char in value_json['middle_name'].lower() for char in value[0].lower()):
+                           vrx = np.array(value[1], np.int32)
+                           vrx = vrx.reshape((-1, 1, 2))
+                           img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
+                           self.passport_dict.update({value[0]: value[1]})
+                       else:
+                           vrx = np.array(value[1], np.int32)
+                           vrx = vrx.reshape((-1, 1, 2))
+                           img = cv2.polylines(img, [vrx], True, (0, 255, 0), 1)
+                           self.passport_dict.update({value[0]: value[1]})
+       dt = datetime.datetime.now()
+       date_val = dt.strftime("%Y%j%H%M%S") + str(dt.microsecond)
+       cv2.imwrite("../images/processed/" + date_val + ".jpg", img)
+
+       return self.passport_no,self.passport_dict,"../images/processed/" + date_val + ".jpg"

@@ -269,7 +269,7 @@ class LicenseAddress:
         name_started = False
         name_line_completed = 0
         if state_name=='PA':
-            total_name_lines = 1
+            total_name_lines = 2
         elif state_name=='MD':
             total_name_lines = 4
         elif state_name=='VA':
