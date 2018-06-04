@@ -102,7 +102,7 @@ class Paystub_details:
                 else:
                     if len(block["addresses"][0]['address'])>1:
                         address1 = block["addresses"][0]['address']
-                        if not re.search(r'(!?ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)',address1[0].split()[0],re.IGNORECASE) and not re.search('([A-Za-z]+)?|\d+',address1[0].split()[0],re.IGNORECASE):
+                        if not re.search(r'(!?ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)',address1[0].split()[0],re.IGNORECASE) and not re.search('([A-Za-z]+\s?\d+)?|\d+',address1[0].split()[0],re.IGNORECASE):
                             address1 = block["addresses"][2]['address']
                         elif re.search(r'\d+\.\d+',address1[0].split()[0]):
                             address1 = block["addresses"][2]['address']

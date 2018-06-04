@@ -456,10 +456,12 @@ class paystub_gcv:
         s = s.replace('S', '5')
         s = s.replace(',', '.')
         s = s.replace(';', '')
-        # s = s.replace('$','')
+        s = s.replace('$','')
         s = s.replace('-', '')
         s = s.replace('–', '')
         s = s.replace('—', '')
+        s = s.replace('(', '')
+        s = s.replace(')', '')
         s = s.replace(' ', '.')
         s = s.replace('.', '', s.count('.') - 1)
         try:
@@ -483,12 +485,15 @@ class paystub_gcv:
         s = s.replace('S', '5')
         s = s.replace(',', '')
         s = s.replace(';', '.')
+        s = s.replace('$', '')
         s = s.replace('to', '')
         s = s.replace('To', '')
         s = s.replace('/', '')
         s = s.replace('-', '')
         s = s.replace('–', '')
         s = s.replace('—', '')
+        s = s.replace('(', '')
+        s = s.replace(')', '')
         s = s.replace(' ', '.')
         s = s.replace('.', '', s.count('.') - 1)
         try:
@@ -507,12 +512,19 @@ class paystub_gcv:
         s = s.replace('s', '')
         s = s.replace(',', '')
         s = s.replace(';', '')
-        # s = s.replace('$','')
+        s = s.replace('$','')
         s = s.replace('-', '')
         s = s.replace('–', '')
         s = s.replace('—', '')
+        s = s.replace('(', '')
+        s = s.replace(')', '')
         s = s.replace(' ', '')
         if c_type != 'Rate':
+            try:
+                if s[-4] == '.':
+                    s = s[:-1]
+            except:
+                pass
             s = s.replace('.', '')
             s = s[:-2] + '.' + s[-2:]
         return s
@@ -597,6 +609,14 @@ class paystub_gcv:
         line_heights = []
         desc = self.description.description
         self.custom_print(desc)
+
+        words_dict = desc.split('\n')
+        digits_dict = list(filter(lambda w: bool(re.search(r'[+-]?([0-9]*[.][0-9]+)', w)), words_dict))
+        digits_w_spaces = list(filter(lambda w: bool(re.search(r'[ ]', w)), digits_dict))
+        for d in digits_w_spaces:
+            digits_dict.remove(d)
+            d = list(filter(lambda w: bool(re.search(r'[+-]?([0-9]*[.][0-9]+)', w)), d.split()))
+            digits_dict.extend(d)
 
         max_height = mode_height * 2.35
         min_height = mode_height * 0.5
@@ -829,18 +849,11 @@ class paystub_gcv:
             line_list[k] = sorted(line, key=lambda x: x[1][0][0])
             line = line_list[k]
             pop_elements = []
-            word_end = 0
-            space_width = 0
-            new_line_start = True
-            if len(space_lists) > 5:
-                general_space_width = int(sum(space_lists[-5:]) / 5)
-            else:
-                general_space_width = 100
 
             last_word = ['', []]
             junk_char_seq = []
             junk_char = ''
-            word_val = ''
+            probable_values = []
             for w_index, word in enumerate(line):
                 if word[0] == last_word[0]:
                     if word[1][0][0] < last_word[1][1][0]:
@@ -860,7 +873,51 @@ class paystub_gcv:
                     junk_char_seq = []
                     junk_char = ''
                 last_word = copy.deepcopy(word)
-                if word[0] in ('$', '|', 'USD', '(', ')', '=', '>', ':', 'less', 'equals') and word_val not in (
+                if bool(re.search(r'[\d\-+,.$)(]', word[0])):
+                    if abs(last_word[1][1][0] - word[1][0][0]) > (3 * abs(last_word[1][1][1] - last_word[1][2][1])):
+                        probable_values = []
+                    for i,p in enumerate(probable_values):
+                        if list(filter(lambda x: x.startswith(p[0]+word[0]), digits_dict)):
+                            probable_values[i][0] = p[0]+word[0]
+                            if probable_values[i][0] in digits_dict:
+                                try:
+                                    if bool(re.search(r'\d', line_list[k][w_index+1][0])) and abs(word[1][1][0] - line_list[k][w_index+1][1][0][0]) < (3 * abs(word[1][1][1] - word[1][2][1])):
+                                        continue
+                                except:
+                                    pass
+                                word_index = probable_values[i][2]
+                                line_list[k][word_index][0] = probable_values[i][0]
+                                line_list[k][word_index][1] = [probable_values[i][1][0],word[1][1],word[1][2],probable_values[i][1][3]]
+                                for s in range(word_index+1,w_index+1):
+                                    if s not in pop_elements:
+                                        pop_elements.append(s)
+                                probable_values = []
+                                break
+                        else:
+                            probable_values[i][0] = 'XXXX'
+                    if list(filter(lambda x: x.startswith(word[0]), digits_dict)):
+                        probable_values.append(copy.deepcopy(word))
+                        probable_values[-1].append(w_index)
+                    probable_values = list(filter(lambda w: w[0] != 'XXXX', probable_values))
+                else:
+                    probable_values = []
+            for i in reversed(pop_elements):
+                line_list[k].pop(i)
+
+        for k, line in enumerate(line_list):
+            line = line_list[k]
+            pop_elements = []
+            word_end = 0
+            space_width = 0
+            new_line_start = True
+            if len(space_lists) > 5:
+                general_space_width = int(sum(space_lists[-5:]) / 5)
+            else:
+                general_space_width = 100
+
+            word_val = ''
+            for w_index, word in enumerate(line):
+                if word[0] in ('$', '|', 'USD', '=', '>', ':', 'less', 'equals','(',')') and word_val not in (
                 '401', '*401','* 401', '401(k', '401 (k','*401(k','* 401(k'):
                     pop_elements.append(w_index)
                     continue
@@ -873,7 +930,7 @@ class paystub_gcv:
                     # check word without space
                     d = word_val + word[0]
                     d1 = word_val + ' ' + word[0]
-                    if word[0] not in (',', '.', '/', '-', '–', '—', '%', 'to', 'To', '(', ')'):
+                    if word[0] not in (',', '.', '/', '-', '–', '—', '%', 'to', 'To'):
                         if self.is_float_or_int(word_val):
                             if not self.is_float_or_int(word[0]) \
                                     and word[0].lower() not in ['jan', 'january', 'feb', 'february', 'mar', 'march',
@@ -1881,7 +1938,7 @@ class paystub_gcv:
                          'total gross earnings', 'cross pay', 'gross wages']
         other_columns = ['checking ', 'netpay-checking', 'net check', 'checkng', 'Chck1', '#1 checking',
                          'reimb & other payments',
-                         'savings', 'direct deposit', 'dir dip check',
+                         'savings', 'direct deposit', 'dir dip check','direct dep',
                          'your federal taxable wages this period', 'federal taxable wages',
                          'w2 gross wages', 'gross taxable earnings',
                          'excluded from federal taxable wages', 'federal taxable']
@@ -2119,12 +2176,26 @@ class paystub_gcv:
         return data, height_list, slanted_list, rotated_list
 
     def get_paystub_type(self, paystub_types):
-        lookups = [j for x in paystub_types for j in paystub_types[x]]
+        lookups = []
+        pop_elements = []
+        for x in paystub_types:
+            for j in paystub_types[x]:
+                if j != None:
+                    lookups.append(j)
+                else:
+                    pop_elements.append(x)
+                    break
+        for x in pop_elements:
+            del paystub_types[x]
+        #lookups = [j for x in paystub_types for j in paystub_types[x]]
         if not lookups:
             return 'Generic'
         lookup_string = lookups[0]
         for i in range(1, len(lookups)):
-            lookup_string = lookup_string + '|' + lookups[i]
+            try:
+                lookup_string = lookup_string + '|' + lookups[i]
+            except:
+                pass
         val = re.compile(r'\b(!?' + lookup_string + r')\b', re.IGNORECASE)
         lookup_found = val.findall(self.description.description)
         if lookup_found:
@@ -2329,6 +2400,7 @@ class paystub_gcv:
 
         # get text data from GCV
         text_output_data, hl, sl, rl = self.get_text(path)
+
         result_output = copy.deepcopy(self.result)
 
         # self.create_canvas()
@@ -2357,16 +2429,13 @@ class paystub_gcv:
         tree = ElementTree.parse('../all_documents/struct.xml')
 
         """
-        r = requests.post(self.config['base_url'] + '/getTemplateXMLFile')
-        resp_dict = json.loads(json.dumps(r.json()))
-        file_path = resp_dict.get('records')
-        url = self.config['base_url']+'/' + list(file_path.values())[0]
-        struct_json = urlopen(url)
-        buf = struct_json.read()
-        with open("../all_documents/struct/" + os.path.basename(list(file_path.values())[0]), "wb") as download_struct:
+        struct_json = requests.post(self.config['base_url'] + '/getTemplateXMLFile')
+        buf = struct_json.content
+        with open("../all_documents/struct/struct.xml", "wb") as download_struct:
             download_struct.write(buf)
             download_struct.close()
-        tree = ElementTree.parse("../all_documents/struct/" + os.path.basename(list(file_path.values())[0]))
+        tree = ElementTree.parse("../all_documents/struct/struct.xml")
+        
         """
 
         root = tree.getroot()
@@ -2483,7 +2552,8 @@ class paystub_address:
         bounding_x2, bounding_y2 = bounding[1]
         min_overlap = 40
         output_values = []
-        for l_index, line in enumerate(lines):
+        lines_copy = copy.deepcopy(lines)
+        for l_index, line in enumerate(lines_copy):
             for _, values in enumerate(line):
                 # Get bounding box by taking minimum of x and y, maximum of x and y.
                 # this will solve problem of rotated texts as well.
@@ -2600,7 +2670,7 @@ class paystub_address:
         # convert data of multiple lines into joined words form in each line
         junk_words = ['employee address', 'employee name', 'address',
                       'employer address', 'employer name', 'order', 'to the', 'of', 'exemptions/allowances',
-                      'human resources', 'payroll amount', 'payroll account','pay to the','order of']
+                      'human resources', 'payroll amount', 'payroll account', 'pay to the', 'order of']
         if data_box[-1][0].find(state_name) == 0:
             multiplier = 5
         else:
@@ -2653,7 +2723,7 @@ class paystub_address:
             if abs(min_diff[1][1][0][0] - start_x) < a_height or abs(min_diff[1][1][1][0] - end_x) < a_height:
                 if not address_found:
                     val_reg = re.compile(
-                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+',
+                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT',
                         re.IGNORECASE)
                     match_check = val_reg.findall(min_diff[1][0])
                     # match_check = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|[A-Za-z]+\s|\d+\-\d+|\d+',min_diff[1][0])
@@ -2667,7 +2737,7 @@ class paystub_address:
                             min_diff_1 = min(enumerate(db[i + 1]), key=lambda x: abs(x[1][1][0][0] - start_x))
                             self.custom_print(min_diff_1)
                             val_reg = re.compile(
-                                r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+',
+                                r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT',
                                 re.IGNORECASE)
                             match_check_1 = val_reg.findall(min_diff_1[1][0])
                             # match_check_1 = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|[A-Za-z]+\s|\d+\-\d+|\d+',min_diff_1[1][0])
@@ -2692,7 +2762,7 @@ class paystub_address:
                             address_found = True
                 elif not name_started:
                     val_reg = re.compile(
-                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+',
+                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT',
                         re.IGNORECASE)
                     match_check = val_reg.findall(min_diff[1][0])
                     # match_check = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|[A-Za-z]+\s|\d+\-\d+|\d+',min_diff[1][0])
@@ -2716,4 +2786,17 @@ class paystub_address:
                 if i > 2:
                     address_found = True
         # self.custom_print(output)
+        if output['address'][0] != '':
+            temp_text = output['address'][0]
+            temp_text = temp_text.replace('*', '')
+            val = re.findall(r'(\s[A-Za-z{2,}\s\s?\d+|\s[A-Za-z]{2,}\.?\s[A-Za-z]\d+).*', temp_text)
+            if val != []:
+                a = temp_text.split(val[0])
+                if len(a) > 1 and a != []:
+                    print(a[0] + " " + val[0].split()[0])
+                    output['name'] = [a[0] + " " + val[0].split()[0]]
+                    output['address'][0] = output['address'][0].replace(output['name'][0] + " *", '')
+                    output['address'][0] = output['address'][0].replace(output['name'][0], '')
+
         return True, output
+

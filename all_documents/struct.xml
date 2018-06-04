@@ -32,12 +32,18 @@ Ignore value 			{val_ignore}
 			<lookup_text>PetSmart</lookup_text>
 			<lookup_text>LITHIA</lookup_text>
 		</type>
+		<type id="Paychex">
+			<lookup_text>Payrolls by Paychex, Inc</lookup_text>
+			<lookup_text>Payrolls by Paychex</lookup_text>
+			<lookup_text>Paychex, Inc</lookup_text>
+		</type>
 		<type id="Insperity">
 			<lookup_text>Insperity</lookup_text>
 		</type>
 		<type id="Irvington">
 			<lookup_text>IRVINGTON UFSD</lookup_text>
 			<lookup_text>GREENBURGH-NORTH CASTLE</lookup_text>
+			<lookup_text>North Salem CSD</lookup_text>
 		</type>
 		<type id="Johnson">
 			<lookup_text>JOHNSON</lookup_text>
@@ -52,6 +58,7 @@ Ignore value 			{val_ignore}
 		</type>
 		<type id="Pace">
 			<lookup_text>Pace University</lookup_text>
+			<lookup_text>Pace Portal</lookup_text>
 			<lookup_text>FORDHAM University</lookup_text>
 		</type>
 		<type id="IBM">
@@ -104,6 +111,12 @@ Ignore value 			{val_ignore}
 		</type>
 		<type id="Kelly">
 			<lookup_text>Kelly Services Global</lookup_text>
+		</type>
+		<type id="Justworks">
+			<lookup_text>Justworks Employment Group</lookup_text>
+		</type>
+		<type id="Marrpay">
+			<lookup_text>Marrpay Pay Statement</lookup_text>
 		</type>
 
 	</paystub_types>
@@ -163,6 +176,7 @@ Ignore value 			{val_ignore}
 				<val>others</val>
 				<val>memo information</val>
 				<val>accruals/others</val>
+				<val>employee accruals</val>
 				<val>summary</val>
 				<val>net pay distribution</val>
 				<val>net pay allocations</val>
@@ -355,7 +369,6 @@ Ignore value 			{val_ignore}
 
 				<!-- Complete pay periods -->
 				<val type="date">pay period</val>
-				<val type="date">pay period from</val>
 				<val type="date">payroll period</val>
 				<val type="date">period</val>
 				<val type="date">period date</val>
@@ -364,11 +377,12 @@ Ignore value 			{val_ignore}
 
 				<!-- Payment Date -->
 				<val type="date">pay date</val>
-				<val type="date">pay day</val>
 				<val type="date">advice date</val>
 				<val type="date">check date</val>
 				<val type="date">deposit date</val>
 				<val type="date">payment date</val>
+				<val type="date">pay day</val>
+
 
 				<!-- Employment Start Date -->
 				<val type="date">hire date</val>
@@ -386,6 +400,7 @@ Ignore value 			{val_ignore}
 
 				<!-- Employee ID-->
 				<val type="id_text">employee #</val>
+				<val type="id_text">employee#</val>
 				<val type="id_text">partner number</val>
 				<val type="id_text">employee id</val>
 				<val type="id_text">employee number</val>
@@ -393,10 +408,9 @@ Ignore value 			{val_ignore}
 				<val type="id_text">emp no</val>
 				<val type="id_text">emp #</val>
 				<val type="id_text">emp#</val>
-				<val type="id_text">emplid</val>
-				<val type="id_text">employee#</val>
-				<val type="id_text">employee information</val>
 				<val type="id_text">identification no</val>
+				<val type="id_text">emplid</val>
+				<val type="id_text">employee information</val>
 
 				<val type="text">job title</val>
 				<val type="text">position</val>
@@ -558,10 +572,51 @@ Ignore value 			{val_ignore}
 		</rules>
 		<vertical_col_sequence></vertical_col_sequence>
 		<data_val></data_val>
-		<data_dict>
-			<val col="tax_total_auto">total taxes</val>
-			<val col="post_deduction_total_auto">total deductions</val>
-		</data_dict>
+	</paystub>
+	<paystub id="Paychex">
+		<block_headers>
+			<type id="earnings">
+				<val>earnings</val>
+			</type>
+			<type id="normal_deductions">
+				<val>deductions</val>
+			</type>
+			<type id="pre_deductions">
+			</type>
+			<type id="post_deductions">
+			</type>
+			<type id="taxes">
+				<val>withholdings</val>
+			</type>
+			<type id="other">
+				<val>net pay allocations</val>
+				<val>total hours</val>
+				<val>hours worked</val>
+			</type>
+		</block_headers>
+		<col_headers>
+			<type id="current">
+				<val>this period</val>
+			</type>
+			<type id="ytd">
+				<val>ytd</val>
+			</type>
+			<type id="other_earnings">
+				<val>ytd hours</val>
+			</type>
+			<type id="rate">
+				<val>rate</val>
+			</type>
+			<type id="hour">
+				<val>hrs/units</val>
+			</type>
+		</col_headers>
+		<col_sequence>
+		</col_sequence>
+		<rules>
+		</rules>
+		<vertical_col_sequence></vertical_col_sequence>
+		<data_val></data_val>
 	</paystub>
 	<paystub id="IBM">
 		<block_headers>
@@ -602,7 +657,6 @@ Ignore value 			{val_ignore}
 		</rules>
 		<vertical_col_sequence></vertical_col_sequence>
 		<data_val></data_val>
-		<data_dict></data_dict>
 	</paystub>
 	<paystub id="Insperity">
 		<block_headers>
@@ -652,10 +706,11 @@ Ignore value 			{val_ignore}
 		<vertical_col_sequence></vertical_col_sequence>
 		<data_val>
 		</data_val>
+		<!--
 		<data_dict>
 			<val col="tax_total_auto">total taxes</val>
 			<val col="post_deduction_total_auto">total deductions</val>
-		</data_dict>
+		</data_dict>-->
 	</paystub>
 	<paystub id="Irvington">
 		<block_headers>
@@ -714,16 +769,10 @@ Ignore value 			{val_ignore}
 		</rules>
 		<vertical_col_sequence></vertical_col_sequence>
 		<data_val>
-			<type id="Vertical">
-				<val>gross pay</val>
-				<val>deductions</val>
-				<val>net pay</val>
+			<type id="Horizontal">
+				<val field="pay_date">date</val>
 			</type>
 		</data_val>
-		<data_dict>
-			<val col="tax_total_auto">taxes</val>
-			<val col="post_deduction_total_auto">deds</val>
-		</data_dict>
 	</paystub>
 	<paystub id="Johnson">
 		<block_headers>
@@ -789,7 +838,6 @@ Ignore value 			{val_ignore}
 				<val type="date">total net</val>
 			</type>
 		</data_val>
-		<data_dict></data_dict>
 	</paystub>
 	<paystub id="Military">
 		<block_headers>
@@ -850,7 +898,6 @@ Ignore value 			{val_ignore}
 				<val type="date">pay date</val>
 			</type>
 		</data_val>
-		<data_dict></data_dict>
 	</paystub>
 	<paystub id="Morgan Stanley">
 		<rules>
@@ -1712,4 +1759,113 @@ Ignore value 			{val_ignore}
 		<data_val>
 		</data_val>
 	</paystub>
+	<paystub id="Justworks">
+		<block_headers>
+			<type id="earnings">
+				<val>gross earnings</val>
+			</type>
+			<type id="post_deductions">
+				<val>after-tax deductions</val>
+			</type>
+			<type id="taxes">
+				<val>taxes withheld</val>
+			</type>
+			<type id="other">
+				<val>non taxable reimbursements</val>
+				<val>net pay distribution</val>
+			</type>
+			<type id="pre_deductions">
+				<val>pre-tax deductions</val>
+			</type>
+			<type id="normal_deductions">
+			</type>
+		</block_headers>
+		<col_headers>
+			<type id="current">
+				<val>current</val>
+			</type>
+			<type id="ytd">
+				<val>ytd</val>
+			</type>
+			<type id="other_earnings">
+			</type>
+			<type id="rate">
+			</type>
+			<type id="hour">
+			</type>
+			<type id="none">
+				<val>description</val>
+			</type>
+		</col_headers>
+		<col_sequence>
+		</col_sequence>
+		<rules>
+		</rules>
+		<vertical_col_sequence>
+			<type>
+				<val>hours worked</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">ytd</val>
+			</type>
+		</vertical_col_sequence>
+		<data_val>
+		</data_val>
+	</paystub>
+	<paystub id="Marrpay">
+		<block_headers>
+			<type id="earnings">
+				<val>payments</val>
+			</type>
+			<type id="post_deductions">
+			</type>
+			<type id="taxes">
+				<val>tax deductions</val>
+			</type>
+			<type id="other">
+				<val>direct deposit</val>
+				<val>occupational information</val>
+			</type>
+			<type id="pre_deductions">
+			</type>
+			<type id="normal_deductions">
+				<val>deductions &amp; adjustments</val>
+			</type>
+		</block_headers>
+		<col_headers>
+			<type id="current">
+				<val>amount</val>
+				<val>current deduction</val>
+				<val>before tax</val>
+				<val>after tax</val>
+			</type>
+			<type id="ytd">
+				<val>ytd amount</val>
+			</type>
+			<type id="other_earnings">
+			</type>
+			<type id="rate">
+				<val>rate</val>
+			</type>
+			<type id="hour">
+				<val>reghrs/days</val>
+			</type>
+			<type id="none">
+				<val>description</val>
+			</type>
+		</col_headers>
+		<col_sequence>
+		</col_sequence>
+		<rules>
+		</rules>
+		<vertical_col_sequence>
+			<type>
+				<val>hours worked</val>
+				<val col_type="Current">current</val>
+				<val col_type="YTD">ytd</val>
+			</type>
+		</vertical_col_sequence>
+		<data_val>
+		</data_val>
+	</paystub>
+
 </structures>

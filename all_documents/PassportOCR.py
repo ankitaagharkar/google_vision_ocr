@@ -16,7 +16,7 @@ class Passport_Details:
     def get_passport_no(self,text):
 
         try:
-            text=text.replace(re.findall(r'\s(!?USA|AUS|IND|NZL|BGR|IRE|ESP|CAN|PAK|PLUSA)',text)[0],'')
+            text=text.replace(re.findall(r'\s?(!?USA|AUS|IND|NZL|BGR|IRE|ESP|CAN|PAK|PLUSA)',text)[0],'')
             passport_regex=re.findall(r'(!?\d{9}|[A-Z]{2,3}\d{5,6}|[A-Z]{1,2}\d{7,8}|[A-Z]{1,2}\d{6,7})',text)
             passport_number=passport_regex[0].rstrip()
             print(passport_number)
