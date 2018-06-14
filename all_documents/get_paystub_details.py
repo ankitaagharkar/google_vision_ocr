@@ -57,38 +57,51 @@ class Paystub_details:
 
         self.license_Address = get_licence_details.Licence_details()
 
-        with open('../config/city.json', 'r',encoding='utf-8') as data_file:
+        with open('../config/city.json', 'r', encoding='utf-8') as data_file:
             self.cities = json.load(data_file)
 
-        self.pay_begin = ["pay period start", "pay begin date", "pay period begin", "begin date", "period beginning","period. beginning",
-                          "period beginning date", "period starting",'pay begin date',"period start",'period begin date',
-                          'start date','period start date','period starting date','pay start date','check stub for','earns begin date','check stub for the period']
+        self.pay_begin = ["pay period start", "pay begin date", "pay period begin", "begin date", "period beginning",
+                          "period. beginning",
+                          "period beginning date", "period starting", 'pay begin date', "period start",
+                          'period begin date',
+                          'start date', 'period start date', 'period starting date', 'pay start date', 'check stub for',
+                          'earns begin date', 'check stub for the period','Pay Begin Dato']
 
         self.pay_end = ["pay period end", "pay end date", "end date", "period ending",
-                        "period ending date", "period ending",'period end date',"period end",'to','earns end date']
+                        "period ending date", "period ending", 'period end date', "period end", 'to', 'earns end date',
+                        'penod ending','pay date;','Pay End Dato']
 
-        self.pay_date = ["check date", "advice date", "pay date","payment date",'deposite date','with a pay date of','pay day']
+        self.pay_date = ["check date", "advice date", "pay date", "payment date", 'deposite date', 'with a pay date of',
+                         'pay day','Pay Dato']
 
-        self.pay_all = ["pay period from","period beg/end", "pay period","payroll period","period date",'period','begin/end dates']
+        self.pay_all = ["pay period from", "period beg/end", "pay period", "payroll period", "period date", 'period',
+                        'begin/end dates']
 
         self.pay_frequency = ["pay frequency"]
-        self.id = ["employee no.","emplid","employee inforamtion","emp#","emp #","employee#","employee id","employee dd", "emp no", "employee #", 'employee id #', 'identification no.','empl num','employee number','employec id','ee id','personnel id']
-        self.name = ["employee","employee name", "emp name",'name','employee full name']
-        self.emp_name = ["employer","employer name", "name",'company','employer full name']
+        self.id = ["employee no.", "emplid", "employee inforamtion", "emp#", "emp #", "employee#", "employee id",
+                   "employee dd", "emp no", "employee #", 'employee id #', 'identification no.', 'empl num',
+                   'employee number', 'employec id', 'ee id', 'personnel id']
+        self.name = ["employee", "employee name", "emp name", 'employee full name']
+        self.emp_name = ["employer", "employer name", 'company', 'employer full name']
         self.position = ["position", "job title"]
-        self.emp_Address = ['employer address', 'address']
-        self.employee_Address = ['employee address', 'address']
-        self.emp_start_date=['hire date']
-        self.all_others = self.pay_begin + self.pay_end + self.pay_date + self.pay_all + self.pay_frequency + self.id + self.name + self.emp_name + self.position + self.emp_Address + self.employee_Address+self.emp_start_date
+        self.emp_Address = ['employer address']
+        self.employee_Address = ['employee address']
+        self.emp_start_date = ['hire date']
+        self.employee1_address=['address']
+        self.employer_address=['address']
+        self.employee_name = ['name']
+        self.employer_name = ['name']
+        self.all_others = self.pay_begin + self.pay_end + self.pay_date + self.pay_all + self.pay_frequency+self.employee_name+self.employer_name+self.employee1_address+self.employer_address+ self.id + self.name + self.emp_name + self.position + self.emp_Address + self.employee_Address + self.emp_start_date
 
     def custom_print(self, *arg):
         if DEBUG:
             print(arg)
 
-    def paystub_address(self, block, emp_id,employer_name,employee_name):
+    def paystub_address(self, block, emp_id, employer_name, employee_name):
         global city2, address1, address2, temp_emp_address
         try:
-
+            all_values = list(block.values())
+            pays_keys = list(block.keys())
             actual_city1 = ''
             actual_city2 = ''
             if len(block["addresses"]) == []:
@@ -96,74 +109,110 @@ class Paystub_details:
 
             elif len(block["addresses"]) >= 2:
 
-                if re.search(r'((0[0-9]|1[0-2])\s[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])\s(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s(19|20|21|22)\d\d|([1-9]|0[0-9]|1[0-2])\s[./-]?([1-9]|0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-]?(19|20|21|22)\d\d|(0[0-9]|1[0-2])\s?[,:./-]?(0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[,:./-]?(19|20|21|22)\d\d|(0\s?[0-9]|1\s?[0-2])\s?[,:./-]\s?(0\s?[1-9]|1\s?[0-9]|2\s?[0-9]|3\s?[0-1])\s?[,:./-]?(19|20|21|22)\d\d|(0[1-9]|1[0-9]|2[0-9]|3[0-1])[,:./-]?\s?(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)\,?\s?(19|20|21|22)\d\d|(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[,:./-]?\,?\s?(19|20|21|22)\d\d|(19|20|21|22)\d\d\s?[,:./-]?(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)[,:./-]?([1-9]|0[1-9]|1[0-9]|2[0-9]|3[0-1])|(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)[./-](19|20|21|22)\d\d|(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)[./-]\s(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\,?\s(19|20|21|22)\d\d)', " ".join(map(str, block["addresses"][0]['address']))):
+                if re.search(
+                        r'((0[0-9]|1[0-2])\s[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])\s(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s(19|20|21|22)\d\d|([1-9]|0[0-9]|1[0-2])\s[./-]?([1-9]|0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-]?(19|20|21|22)\d\d|(0[0-9]|1[0-2])\s?[,:./-]?(0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[,:./-]?(19|20|21|22)\d\d|(0\s?[0-9]|1\s?[0-2])\s?[,:./-]\s?(0\s?[1-9]|1\s?[0-9]|2\s?[0-9]|3\s?[0-1])\s?[,:./-]?(19|20|21|22)\d\d|(0[1-9]|1[0-9]|2[0-9]|3[0-1])[,:./-]?\s?(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)\,?\s?(19|20|21|22)\d\d|(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[,:./-]?\,?\s?(19|20|21|22)\d\d|(19|20|21|22)\d\d\s?[,:./-]?(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)[,:./-]?([1-9]|0[1-9]|1[0-9]|2[0-9]|3[0-1])|(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)[./-](19|20|21|22)\d\d|(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)[./-]\s(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\,?\s(19|20|21|22)\d\d)',
+                        " ".join(map(str, block["addresses"][0]['address']))):
                     address1 = block["addresses"][1]['address']
                     address2 = block["addresses"][2]['address']
                 else:
-                    if len(block["addresses"][0]['address'])>1:
+                    if len(block["addresses"][0]['address']) > 1:
                         address1 = block["addresses"][0]['address']
-                        if not re.search(r'(!?ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)',address1[0].split()[0],re.IGNORECASE) and not re.search('([A-Za-z]+\s?\d+)?|\d+',address1[0].split()[0],re.IGNORECASE):
+                        if not re.search(r'(!?ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)',
+                                         address1[0].split()[0], re.IGNORECASE) and not re.search(
+                                '([A-Za-z]+\s?\d+)?|\d+', address1[0].split()[0], re.IGNORECASE):
                             address1 = block["addresses"][2]['address']
-                        elif re.search(r'\d+\.\d+',address1[0].split()[0]):
+                        elif re.search(r'\d+\.\d+', address1[0].split()[0]):
                             address1 = block["addresses"][2]['address']
-                    elif len(block["addresses"][0]['address'])==1:
-                        address1=block["addresses"][0]['address']
-                    elif len(block["addresses"][0]['address'])>1 and len(block["addresses"]) > 2:
+                    elif len(block["addresses"][0]['address']) == 1:
+                        address1 = block["addresses"][0]['address']
+                    elif len(block["addresses"][0]['address']) > 1 and len(block["addresses"]) > 2:
                         address1 = block["addresses"][2]['address']
                     else:
-                        address1=block["addresses"][0]['address']
+                        address1 = block["addresses"][0]['address']
 
                     if len(block["addresses"][1]['address']) > 1:
                         if 'Employee ID' in block["addresses"][1]['address'][0]:
                             address2 = block["addresses"][2]['address']
                         else:
                             address2 = block["addresses"][1]['address']
-                    elif len(block["addresses"][1]['address'])==1:
-                        address2=block["addresses"][1]['address']
-                    elif len(block["addresses"][0]['address'])>1 and len(block["addresses"]) > 3:
+                    elif len(block["addresses"][1]['address']) == 1:
+                        address2 = block["addresses"][1]['address']
+                    elif len(block["addresses"][0]['address']) > 1 and len(block["addresses"]) > 3:
                         address2 = block["addresses"][3]['address']
                     else:
-                        address2=block["addresses"][1]['address']
+                        address2 = block["addresses"][1]['address']
 
                 address1 = " ".join(map(str, address1))
                 address2 = " ".join(map(str, address2))
 
-                if address1==address2:
+                if address1 == address2:
                     address2 = block["addresses"][2]['address']
                     address2 = " ".join(map(str, address2))
                 address1 = address1.replace(emp_id, '')
                 address2 = address2.replace(emp_id, '')
+
                 address1 = address1.replace('.', ' ')
+                address1 = address1.replace(' - ', '-')
+                address2 = address2.replace(' - ', '-')
                 address2 = address2.replace('.', ' ')
+
+                address1 = address1.replace('  ', ' ')
+                address2 = address2.replace('  ', ' ')
+
                 with open("../config/states", "r") as all_state_val:
                     state_name = all_state_val.read().replace('\n', '')
                 with open("../config/postal_code_regex", "r") as post_val:
                     post_code = post_val.read()
-
-                data = re.findall(r'(\s|\,)\b(!?'+state_name+')(\s|\.|\,|\-)('+post_code+')',address1)
-
-                data1 = re.findall(r'(\s|\,)\b(!?'+state_name+')(\s|\.|\,|\-)('+post_code+')',address2)
-                if data!=[] and data!=[]:
-                    code = " ".join(map(str,data[0]))
-                    code1 = " ".join(map(str,data1[0]))
+                if re.search(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')',address1):
+                    data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')',
+                                      address1)
                 else:
-                    if data==[]:
+                    data = re.findall(r'(\s|\,)\b(!?' + state_name + ')', address1)
+                    if len(data)>1:
+                        if re.search(r'(!?York|Jersey)',data[0][1],re.IGNORECASE):
+                            data[0] = ('', '')
+
+                if re.search(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s\-)(' + post_code + ')',address2):
+                    data1 = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s\-)(' + post_code + ')',
+                                       address2)
+                else:
+                    data1 = re.findall(r'(\s|\,)\b(!?' + state_name + ')', address2)
+                    if len(data1)>1:
+                        if re.search(r'(!?York|Jersey)',data1[0][1],re.IGNORECASE):
+                            data1[0] = ('', '')
+                a=[]
+                a1=[]
+                if data != [] and data != []:
+                    for i in data:
+                        a.append(" ".join(i))
+                    for i in data1:
+                        a1.append(" ".join(i))
+                    code = " ".join(map(str, a))
+                    code1 = " ".join(map(str, a1))
+                else:
+                    if data == []:
                         data = re.findall(r'\b(!?' + state_name + ')\s?', address1)
 
-
-                    if data1==[]:
+                    if data1 == []:
                         data = re.findall(r'\b(!?' + state_name + ')\s?', address2)
                     code = data[0][0]
                     code1 = data1[0][0]
-                code=code.replace('   ',' ').lstrip()
-                code1=code1.replace('   ',' ').lstrip()
+                code = code.replace('   ', ' ').lstrip()
+                code = code.replace('  ', ' ').lstrip()
+                code = code.replace('- ', '-').lstrip()
+                code1 = code1.replace('- ', '-').lstrip()
+                code = code.replace(' -', '-').lstrip()
+                code1 = code1.replace(' -', '-').lstrip()
+                code1 = code1.replace('   ', ' ').lstrip()
                 code = code.replace('   ', ' ').rstrip()
                 code1 = code1.replace('   ', ' ').rstrip()
                 val1 = re.compile(
-                    r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+                    r'(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
                     re.IGNORECASE)
                 street = val1.findall(address1)[0][0]
-                val=re.compile(r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',re.IGNORECASE)
+                val = re.compile(
+                    r'(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+                    re.IGNORECASE)
                 street1 = val.findall(address2)[0][0]
                 addresses1 = self.c.find_between_r(address1, street, code)
                 addresses2 = self.c.find_between_r(address2, street1, code1)
@@ -180,28 +229,30 @@ class Paystub_details:
 
                 street1 = street1.replace('.', '')
                 street1 = street1.replace(',', '')
-                if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}',full_address):
+                if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address):
                     state, zipcode, city = self.c.get_address_zipcode(full_address, code)
                 else:
                     state, zipcode, city = self.c.get_address_zipcode(full_address, code)
-                    if not re.search(r'(!?NEW|New)\s?\w+', city) and re.search(r'(!?NEW|New)\s?', full_address.split()[-1]):
+                    if not re.search(r'(!?NEW|New)\s?\w+', city) and re.search(r'(!?NEW|New)\s?',
+                                                                               full_address.split()[-1]):
                         city = city.split()[0]
-                        state=re.findall('(!?NEW|New)',full_address)[0]+" "+state
+                        state = re.findall('(!?NEW|New)', full_address)[0] + " " + state
 
-                if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}',full_address):
+                if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address):
                     state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
                 else:
                     state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
-                    if not re.search(r'(!?NEW|New)\s?\w+', city1) and re.search(r'(!?NEW|New)\s?', full_address.split()[-1]):
+                    if not re.search(r'(!?NEW|New)\s?\w+', city1) and re.search(r'(!?NEW|New)\s?',
+                                                                                full_address.split()[-1]):
                         city1 = city1.split()[0]
                         state = re.findall('(!?NEW|New)', full_address)[0] + " " + state
 
-                print("zipcode",zipcode,zipcode1)
+                print("zipcode", zipcode, zipcode1)
                 city = city.replace('.', '')
                 city = city.replace(',', '')
                 city1 = city1.replace('.', '')
                 city1 = city1.replace(',', '')
-                print("city",city)
+                print("city", city)
                 if re.search(r'(!?lowa)', city):
                     city = city.replace('lowa', 'Iowa')
                     full_address = full_address.replace('lowa', 'Iowa')
@@ -213,22 +264,20 @@ class Paystub_details:
                         actual_city1 = self.cities['city'][i].lower()
                     if city1.lower() in self.cities['city'][i].lower():
                         actual_city2 = self.cities['city'][i].lower()
-
+                cc = city1
                 if actual_city1 == '':
+                    # full_address=full_address+" "+city.split()[0]
                     city1 = ' '.join(map(str, full_address.split(code, 1)[0].split()[-1:]))
                     city1 = city1.lower()
                 else:
                     city1 = actual_city1
                 if actual_city2 == '':
+                    # full_address1 = full_address1 + " " + cc.split()[0]
                     city2 = ' '.join(map(str, full_address1.split(code1, 1)[0].split()[-1:]))
                     city2 = city2.lower()
                 else:
                     city2 = actual_city2
 
-                if full_address.lower().count(city1)>1:
-                    street=street.lower()+city1
-                if full_address1.lower().count(city2)>1:
-                    street1 = street1.lower()+ city2
                 actual_full_address = self.c.find_between_r(full_address.lower(), street.lower(), city1)
                 actual_full_address = street.lower() + actual_full_address
                 actual_full_address1 = self.c.find_between_r(full_address1.lower(), street1.lower(), city2)
@@ -243,8 +292,7 @@ class Paystub_details:
                 city1 = city1.replace(',', '').upper()
                 city2 = city2.replace(',', '').upper()
 
-                all_values = list(block.values())
-                pays_keys = list(block.keys())
+
 
                 for i in range(len(all_values)):
                     if 'Others' in pays_keys[i]:
@@ -254,14 +302,15 @@ class Paystub_details:
                                                           cutoff=0.95)
                             if x:
                                 if x[0] in self.emp_Address:
+                                    # if employer_address=='':
                                     emp_add = j[1]
                                     if emp_add.split()[0].replace(',', '').upper() in employee_address:
                                         empl_address = employee_address
                                         empr_address = employer_address
                                         street = employer_street
                                         street1 = employee_street
-                                        z=zipcode
-                                        z1=zipcode1
+                                        z = zipcode
+                                        z1 = zipcode1
                                         empr_city = city1
                                         empl_city = city2
                                         employee_address = empr_address
@@ -270,13 +319,14 @@ class Paystub_details:
                                         employer_street = street1
                                         city1 = empl_city
                                         city2 = empr_city
-                                        zipcode=z1
-                                        zipcode1=z
-                                        s=state
-                                        s1=state1
-                                        state=s1
-                                        state1=s
+                                        zipcode = z1
+                                        zipcode1 = z
+                                        s = state
+                                        s1 = state1
+                                        state = s1
+                                        state1 = s
                                 elif x[0] in self.employee_Address:
+                                    # if employee_address == '':
                                     emp_add = j[1]
                                     if emp_add.split()[0].replace(',', '').upper() in employer_address:
                                         empl_address = employee_address
@@ -299,7 +349,9 @@ class Paystub_details:
                                         s1 = state1
                                         state = s1
                                         state1 = s
+
             else:
+                a2=[]
                 address1 = block["addresses"][0]['address']
                 address1 = " ".join(map(str, address1))
                 with open("../config/states", "r") as all_state_val:
@@ -307,13 +359,21 @@ class Paystub_details:
                 with open("../config/postal_code_regex", "r") as post_val:
                     post_code = post_val.read()
 
-                data = re.findall(r'(\s|\,)\b(!?'+state_name+')(\s|\.|\,|\-)('+post_code+')',address1)
-                code = " ".join(map(str, data[0]))
-                code = code.replace('   ', ' ').lstrip()
+                if re.search(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')',address1):
+                    data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')',
+                                      address1)
+                else:
+                    data = re.findall(r'(\s|\,)\b(!?' + state_name + ')', address1)
+                    if len(data)>1:
+                        if re.search(r'(!?York|Jersey)',data[0][1],re.IGNORECASE):
+                            data[0] = ('', '')
+                for i in data:
+                    a2.append(" ".join(i))
+                code = " ".join(map(str, a2))
                 code = code.replace('   ', ' ').rstrip()
 
                 street = re.findall(
-                    r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+                    r'(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
                     address1)[0][0]
                 addresses1 = self.c.find_between_r(address1, street, code)
                 full_address = street + addresses1 + code
@@ -341,58 +401,80 @@ class Paystub_details:
                 city2 = ''
                 state1 = ''
                 zipcode1 = ''
-            employer_address=employer_address.replace(',', '')
-            employee_address=employee_address.replace(',', '')
-            employer_street=employer_street.replace(',', '')
-            employee_street=employee_street.replace(',', '')
-            employer_street=employer_street.replace('Of', '')
-            employee_street=employee_street.replace('Of', '')
-            employer_street=employer_street.replace('OF', '')
-            employee_street=employee_street.replace('OF', '')
-            if city1!='':
+            employer_address = employer_address.replace(',', '')
+            employee_address = employee_address.replace(',', '')
+            employer_street = employer_street.replace(',', '')
+            employee_street = employee_street.replace(',', '')
+            employer_street = employer_street.replace('Of', '')
+            employee_street = employee_street.replace('Of', '')
+            employer_street = employer_street.replace('OF', '')
+            employee_street = employee_street.replace('OF', '')
+            if city1 != '':
                 if city1.split()[0].lower() in employer_address.split()[-1].lower():
-                    employer_address=employer_address.rstrip().rsplit(' ', 1)[0]
-            if city2!='':
+                    employer_address = employer_address.rstrip().rsplit(' ', 1)[0]
+            if city2 != '':
                 if city2.split()[0].lower() in employee_address.split()[-1].lower():
-                    employee_address=employee_address.rstrip().rsplit(' ', 1)[0]
-            if re.search(r'\d{3}-\d{3}-\d{4}',employer_address):
-                employer_address = employer_address.replace(re.findall(r'\d{3}-\d{3}-\d{4}',employer_address)[0],'')
-                employer_address = employer_address.replace('PAYROLL ACCOUNT','')
-                employer_address = employer_address.replace('/','')
-            if re.search(r'\d{3}-\d{3}-\d{4}',employee_address):
-                employee_address = employee_address.replace(re.findall(r'\d{3}-\d{3}-\d{4}', employee_address)[0], '')
+                    employee_address = employee_address.rstrip().rsplit(' ', 1)[0]
+            if re.search(r'\d?\-?\d{3}-\d{3}-\d{4}', employer_address):
+                employer_address = employer_address.replace(re.findall(r'\d?\-?\d{3}-\d{3}-\d{4}', employer_address)[0],
+                                                            '')
+                employer_address = employer_address.replace('PAYROLL ACCOUNT', '')
+                employer_address = employer_address.replace('/', '')
+            if re.search(r'\d?\-?\d{3}-\d{3}-\d{4}', employee_address):
+                employee_address = employee_address.replace(re.findall(r'\d?\-?\d{3}-\d{3}-\d{4}', employee_address)[0],
+                                                            '')
                 employee_address = employee_address.replace('PAYROLL ACCOUNT', '')
                 employee_address = employee_address.replace('/', '')
             if 'NEW NEW' in state:
-                state=state.replace('NEW','')
+                state = state.replace('NEW', '')
             if 'NEW NEW' in state1:
-                state1=state1.replace('NEW','')
+                state1 = state1.replace('NEW', '')
             if 'PG' and city1:
-                city1=city1.replace('PG','UPPER MARLBORO PG')
+                city1 = city1.replace('PG', 'UPPER MARLBORO PG')
             if 'PG' and city2:
-                city2=city2.replace('PG','UPPER MARLBORO PG')
-            if employee_name!='' and employer_name in employer_address:
-                emp_add=re.findall(r'(!?'+employer_name.replace(' ','|')+')',employer_address)
+                city2 = city2.replace('PG', 'UPPER MARLBORO PG')
+
+            if re.search('[A-Za-z]{2,}\s?\-\d{5}', state):
+                temp_state = state.split('-')[0]
+                zipcode = state.split('-')[-1]
+                state = temp_state
+            if re.search('[A-Za-z]{2,}\s?\-\d{5}', state1):
+                temp_state1 = state1.split('-')[0]
+                zipcode1 = state1.split('-')[-1]
+                state = temp_state1
+            if employee_name != '' and employer_name in employer_address:
+                emp_add = re.findall(r'(!?' + employer_name.replace(' ', '|') + ')', employer_address)
                 for i in emp_add:
                     if i in employer_address.split()[0]:
                         employer_address = employer_address.replace(i, '')
                         employer_address = employer_address.lstrip()
                         employer_address = employer_address.rstrip()
-            if employee_name!='' and employee_name in employee_address:
-                employee_add=re.findall(r'(!?'+employee_name.replace(' ','|')+')',employee_address)
+            if employee_name != '' and employee_name in employee_address:
+                employee_add = re.findall(r'(!?' + employee_name.replace(' ', '|') + ')', employee_address)
 
                 for i in employee_add:
                     if i in employee_address.split()[0]:
                         employee_address = employee_address.replace(i, '')
                         employee_address = employee_address.lstrip()
                         employee_address = employee_address.rstrip()
+            if employer_name.lower() == 'J&J SERVICES INC'.lower():
+                employer_address = employee_address
+                employer_street = employee_street
+                city1 = city2
+                state = state1
+                zipcode = zipcode1
+                employee_address = ''
+                employee_street = ''
+                city2 = ''
+                state1 = ''
+                zipcode1 = ''
+
             if employer_address.lower() in employee_address.lower():
                 for i in range(len(block["addresses"])):
                     if block["addresses"][i]['name'] != []:
-                        if block["addresses"][i]['name'][0].lower()==employee_name:
-                            temp_emp_address=block["addresses"][i]['address']
+                        if block["addresses"][i]['name'][0].lower() == employee_name:
+                            temp_emp_address = block["addresses"][i]['address']
                             temp_emp_address = " ".join(map(str, temp_emp_address))
-
 
                             # address1 = address1.replace('.', '')
                             # address1 = address1.replace(',', '')
@@ -407,8 +489,8 @@ class Paystub_details:
                             with open("../config/postal_code_regex", "r") as post_val:
                                 post_code = post_val.read()
 
-                            data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-)(' + post_code + ')', temp_emp_address)
-
+                            data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\,\s)+(' + post_code + ')',
+                                              temp_emp_address)
 
                             if data != []:
                                 code = " ".join(map(str, data[0]))
@@ -421,7 +503,7 @@ class Paystub_details:
                             code = code.replace('   ', ' ').lstrip()
                             code = code.replace('   ', ' ').rstrip()
                             val1 = re.compile(
-                                r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+                                r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
                                 re.IGNORECASE)
                             street = val1.findall(temp_emp_address)[0][0]
 
@@ -434,7 +516,6 @@ class Paystub_details:
                             street = street.replace('.', '')
                             street = street.replace(',', '')
 
-
                             if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address):
                                 state, zipcode, city = self.c.get_address_zipcode(full_address, code)
                             else:
@@ -443,7 +524,6 @@ class Paystub_details:
                                                                                            full_address.split()[-1]):
                                     city = city.split()[0]
                                     state = re.findall('(!?NEW|New)', full_address)[0] + " " + state
-
 
                             print("zipcode", zipcode, zipcode1)
                             city = city.replace('.', '')
@@ -458,32 +538,31 @@ class Paystub_details:
                                 if city.lower() in self.cities['city'][i].lower():
                                     actual_city1 = self.cities['city'][i].lower()
 
-
                             if actual_city1 == '':
                                 city = ' '.join(map(str, full_address.split(code, 1)[0].split()[-1:]))
                                 city = city.lower()
                             else:
                                 city = actual_city1
 
-
-                            if full_address.lower().count(city) > 1:
-                                street = street.lower() + city
+                            if full_address.lower().count(city.lower()) > 1:
+                                if city.lower() in street.lower():
+                                    pass
+                                else:
+                                    street = street.lower() + city.lower()
 
                             actual_full_address = self.c.find_between_r(full_address.lower(), street.lower(), city)
                             actual_full_address = street.lower() + actual_full_address
-
 
                             employee_address = actual_full_address.upper()
                             employee_street = street.upper()
 
                             city1 = city.replace('.', '').upper()
                             city1 = city1.replace(',', '').upper()
-
-            if employee_address.lower() in employer_address.lower():
+            elif employee_address.lower() in employer_address.lower():
                 for i in range(len(block["addresses"])):
-                    if block["addresses"][i]['name']!=[]:
-                        if block["addresses"][i]['name'][0].lower()==employer_name:
-                            temp_employer_address=block["addresses"][i]['address']
+                    if block["addresses"][i]['name'] != []:
+                        if block["addresses"][i]['name'][0].lower() == employer_name:
+                            temp_employer_address = block["addresses"][i]['address']
                             temp_employer_address = " ".join(map(str, temp_employer_address))
 
                             # address1 = address1.replace('.', '')
@@ -499,7 +578,7 @@ class Paystub_details:
                             with open("../config/postal_code_regex", "r") as post_val:
                                 post_code = post_val.read()
 
-                            data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-)(' + post_code + ')',
+                            data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\,\s)+(' + post_code + ')',
                                               temp_employer_address)
 
                             if data != []:
@@ -513,7 +592,7 @@ class Paystub_details:
                             code1 = code1.replace('   ', ' ').lstrip()
                             code1 = code1.replace('   ', ' ').rstrip()
                             val1 = re.compile(
-                                r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+                                r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
                                 re.IGNORECASE)
                             street1 = val1.findall(temp_employer_address)[0][0]
 
@@ -535,7 +614,6 @@ class Paystub_details:
                                     city1 = city1.split()[0]
                                     state1 = re.findall('(!?NEW|New)', full_address1)[0] + " " + state1
 
-
                             city1 = city1.replace('.', '')
                             city1 = city1.replace(',', '')
 
@@ -554,8 +632,11 @@ class Paystub_details:
                             else:
                                 city1 = actual_city2
 
-                            if full_address1.lower().count(city1) > 1:
-                                street1 = street1.lower() + city1
+                            if full_address1.lower().count(city1.lower()) > 1:
+                                if city1.lower() in street1.lower():
+                                    pass
+                                else:
+                                    street1 = street1.lower() + city1.lower()
 
                             actual_full_address1 = self.c.find_between_r(full_address1.lower(), street1.lower(), city1)
                             actual_full_address1 = street1.lower() + actual_full_address1
@@ -566,13 +647,462 @@ class Paystub_details:
                             city2 = city1.replace('.', '').upper()
                             city2 = city2.replace(',', '').upper()
 
+            if employer_address.lower()==employee_address.lower():
+                for i in range(len(block["addresses"])):
+                    if block["addresses"][i]['name'] != []:
+                        if block["addresses"][i]['name'][0].lower() == employer_name:
+                            pass
+                        else:
+                            employer_address=''
+                            employer_street=''
+                            city1=''
+                            state=''
+                            zipcode=''
+                for i in range(len(block["addresses"])):
+                    if block["addresses"][i]['name'] != []:
+                        if block["addresses"][i]['name'][0].lower() == employee_name:
+                            pass
+                        else:
+                            employee_address=''
+                            employee_street=''
+                            city2=''
+                            state1=''
+                            zipcode1=''
+
+            for j in range(len(block["addresses"])):
+                if block["addresses"][j]['name'] != []:
+                    if re.search(block["addresses"][j]['address'][0].lower(), employee_address.lower()):
+                        temp_emp_name = block["addresses"][j]['name']
+                        temp_emp_name = " ".join(map(str, temp_emp_name))
+                        if temp_emp_name.lower() == employee_name:
+                            pass
+                        else:
+                            if not re.search(r'\d+|&|\*|Inc|LLC', temp_emp_name,re.IGNORECASE):
+                                employee_name = temp_emp_name
+                            # for i in range(len(block["addresses"])):
+                            #     if block["addresses"][i]['name'] != []:
+                            #         if block["addresses"][i]['name'][0].lower() == employee_name.lower():
+                            #             temp_emp_address = block["addresses"][i]['address']
+                            #             temp_emp_address = " ".join(map(str, temp_emp_address))
+                            #
+                            #             # address1 = address1.replace('.', '')
+                            #             # address1 = address1.replace(',', '')
+                            #             #
+                            #             # address2 = address2.replace('.', '')
+                            #             # address2 = address2.replace(',', '')
+                            #
+                            #             temp_emp_address = temp_emp_address.replace(emp_id, '')
+                            #             temp_emp_address = temp_emp_address.replace('.', ' ')
+                            #             with open("../config/states", "r") as all_state_val:
+                            #                 state_name = all_state_val.read().replace('\n', '')
+                            #             with open("../config/postal_code_regex", "r") as post_val:
+                            #                 post_code = post_val.read()
+                            #
+                            #             data = re.findall(
+                            #                 r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\,\s)+(' + post_code + ')',
+                            #                 temp_emp_address)
+                            #
+                            #             if data != []:
+                            #                 code = " ".join(map(str, data[0]))
+                            #             else:
+                            #                 if data == []:
+                            #                     data = re.findall(r'\b(!?' + state_name + ')\s?', temp_emp_address)
+                            #
+                            #                 code = data[0][0]
+                            #
+                            #             code = code.replace('   ', ' ').lstrip()
+                            #             code = code.replace('   ', ' ').rstrip()
+                            #             val1 = re.compile(
+                            #                 r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+                            #                 re.IGNORECASE)
+                            #             street = val1.findall(temp_emp_address)[0][0]
+                            #
+                            #             addresses1 = self.c.find_between_r(temp_emp_address, street, code)
+                            #
+                            #             full_address = street + addresses1 + code
+                            #             full_address = full_address.replace(',', '')
+                            #             full_address = full_address.replace(',', '')
+                            #
+                            #             street = street.replace('.', '')
+                            #             street = street.replace(',', '')
+                            #
+                            #             if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address):
+                            #                 state, zipcode, city = self.c.get_address_zipcode(full_address, code)
+                            #             else:
+                            #                 state, zipcode, city = self.c.get_address_zipcode(full_address, code)
+                            #                 if not re.search(r'(!?NEW|New)\s?\w+', city) and re.search(r'(!?NEW|New)\s?',
+                            #                                                                            full_address.split()[
+                            #                                                                                -1]):
+                            #                     city = city.split()[0]
+                            #                     state = re.findall('(!?NEW|New)', full_address)[0] + " " + state
+                            #
+                            #             print("zipcode", zipcode, zipcode1)
+                            #             city = city.replace('.', '')
+                            #             city = city.replace(',', '')
+                            #
+                            #             print("city", city)
+                            #             if re.search(r'(!?lowa)', city):
+                            #                 city = city.replace('lowa', 'Iowa')
+                            #                 full_address = full_address.replace('lowa', 'Iowa')
+                            #
+                            #             for i in range(len(self.cities['city'])):
+                            #                 if city.lower() in self.cities['city'][i].lower():
+                            #                     actual_city1 = self.cities['city'][i].lower()
+                            #
+                            #             if actual_city1 == '':
+                            #                 city = ' '.join(map(str, full_address.split(code, 1)[0].split()[-1:]))
+                            #                 city = city.lower()
+                            #             else:
+                            #                 city = actual_city1
+                            #
+                            #             if full_address.lower().count(city.lower()) > 1:
+                            #                 if city.lower() in street.lower():
+                            #                     pass
+                            #                 else:
+                            #                     street = street.lower() + city.lower()
+                            #
+                            #             actual_full_address = self.c.find_between_r(full_address.lower(), street.lower(), city)
+                            #             actual_full_address = street.lower() + actual_full_address
+                            #
+                            #             employee_address = actual_full_address.upper()
+                            #             employee_street = street.upper()
+                            #
+                            #             city1 = city.replace('.', '').upper()
+                            #             city1 = city1.replace(',', '').upper()
+
+                    if re.search(block["addresses"][j]['address'][0].lower(), employer_address.lower()):
+                        temp_empr_name = block["addresses"][j]['name']
+                        temp_empr_name = " ".join(map(str, temp_empr_name))
+                        if temp_empr_name.lower() == employee_name:
+                            pass
+                        else:
+                            if not re.search(r'\d+|&|\*|Inc|LLC', temp_empr_name):
+                                employer_name = temp_empr_name
+                            # for i in range(len(block["addresses"])):
+                            #     if block["addresses"][i]['name'] != []:
+                            #         if block["addresses"][i]['name'][0].lower() == employer_name.lower():
+                            #             temp_employer_address = block["addresses"][i]['address']
+                            #             temp_employer_address = " ".join(map(str, temp_employer_address))
+                            #
+                            #             # address1 = address1.replace('.', '')
+                            #             # address1 = address1.replace(',', '')
+                            #             #
+                            #             # address2 = address2.replace('.', '')
+                            #             # address2 = address2.replace(',', '')
+                            #
+                            #             temp_employer_address = temp_employer_address.replace(emp_id, '')
+                            #             temp_employer_address = temp_employer_address.replace('.', ' ')
+                            #             with open("../config/states", "r") as all_state_val:
+                            #                 state_name = all_state_val.read().replace('\n', '')
+                            #             with open("../config/postal_code_regex", "r") as post_val:
+                            #                 post_code = post_val.read()
+                            #
+                            #             data = re.findall(
+                            #                 r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\,\s)+(' + post_code + ')',
+                            #                 temp_employer_address)
+                            #
+                            #             if data != []:
+                            #                 code1 = " ".join(map(str, data[0]))
+                            #             else:
+                            #                 if data == []:
+                            #                     data = re.findall(r'\b(!?' + state_name + ')\s?', temp_employer_address)
+                            #
+                            #                 code1 = data[0][0]
+                            #
+                            #             code1 = code1.replace('   ', ' ').lstrip()
+                            #             code1 = code1.replace('   ', ' ').rstrip()
+                            #             val1 = re.compile(
+                            #                 r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+                            #                 re.IGNORECASE)
+                            #             street1 = val1.findall(temp_employer_address)[0][0]
+                            #
+                            #             addresses2 = self.c.find_between_r(temp_emp_address, street1, code1)
+                            #
+                            #             full_address1 = street1 + addresses2 + code1
+                            #             full_address1 = full_address1.replace(',', '')
+                            #             full_address1 = full_address1.replace(',', '')
+                            #
+                            #             street1 = street1.replace('.', '')
+                            #             street1 = street1.replace(',', '')
+                            #
+                            #             if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address1):
+                            #                 state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
+                            #             else:
+                            #                 state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
+                            #                 if not re.search(r'(!?NEW|New)\s?\w+', city) and re.search(
+                            #                         r'(!?NEW|New)\s?',
+                            #                         full_address1.split()[-1]):
+                            #                     city1 = city1.split()[0]
+                            #                     state1 = re.findall('(!?NEW|New)', full_address1)[0] + " " + state1
+                            #
+                            #             city1 = city1.replace('.', '')
+                            #             city1 = city1.replace(',', '')
+                            #
+                            #             print("city", city1)
+                            #             if re.search(r'(!?lowa)', city1):
+                            #                 city = city.replace('lowa', 'Iowa')
+                            #                 full_address1 = full_address1.replace('lowa', 'Iowa')
+                            #
+                            #             for i in range(len(self.cities['city'])):
+                            #                 if city1.lower() in self.cities['city'][i].lower():
+                            #                     actual_city2 = self.cities['city'][i].lower()
+                            #
+                            #             if actual_city2 == '':
+                            #                 city1 = ' '.join(map(str, full_address1.split(code1, 1)[0].split()[-1:]))
+                            #                 city1 = city1.lower()
+                            #             else:
+                            #                 city1 = actual_city2
+                            #
+                            #             if full_address1.lower().count(city1.lower()) > 1:
+                            #                 if city1.lower() in street1.lower():
+                            #                     pass
+                            #                 else:
+                            #                     street1 = street1.lower() + city1.lower()
+                            #
+                            #             actual_full_address1 = self.c.find_between_r(full_address1.lower(),
+                            #                                                          street1.lower(), city1)
+                            #             actual_full_address1 = street1.lower() + actual_full_address1
+                            #
+                            #             employer_address = actual_full_address1.upper()
+                            #             employer_street = street1.upper()
+                            #
+                            #             city2 = city1.replace('.', '').upper()
+                            #             city2 = city2.replace(',', '').upper()
+
+            if city1.lower() == 'new':
+                city1 = employer_address.split()[-1]
+                employer_address = employer_address.replace(city1, '')
+                state = 'New' + " " + state
+            if city2.lower() == 'new':
+                city2 = employee_address.split()[-1]
+                employee_address = employee_address.replace(city2, '')
+                state1 = 'New' + " " + state1
+
+            if re.search('(!?PAY|payroll|Amount|\d+[./-]\d+[./-]\d+)',employer_address,re.IGNORECASE) or re.search('(!?PAY|payroll|Amount|\d+[./-]\d+[./-]\d+)',city1,re.IGNORECASE):
+                employer_address=''
+                city1=''
+                state=''
+                zipcode=''
+                employer_street=''
+            if re.search('(!?PAY|payroll|Amount|\d+[./-]\d+[./-]\d+)',employee_address,re.IGNORECASE) or re.search('(!?PAY|payroll|Amount|\d+[./-]\d+[./-]\d+)',city2,re.IGNORECASE):
+                employee_address=''
+                city2=''
+                state1=''
+                zipcode1=''
+                employee_street=''
 
 
 
-            return employer_address, employee_address, employee_street, employer_street, city1, city2, state, state1, zipcode, zipcode1
+
+            # if employer_address=='' and employee_address=='' and employer_name=='' and employee_name=='':
+            #     for i in range(len(all_values)):
+            #         if 'Others' in pays_keys[i]:
+            #             for j in block['Others']:
+            #                 x = difflib.get_close_matches(j[0].lower(),
+            #                                               [vt.lower() for vt in self.all_others],
+            #                                               cutoff=0.95)
+            #                 if x:
+            #                     if x[0] in self.employee_address:
+            #                         address1=j[1]
+            #                         continue
+            #                     if x[0] in self.employer_address:
+            #                         address2=j[1]
+            #                         continue
+            #                     if x[0] in self.employer_name:
+            #                         employer_name=j[1]
+            #                         continue
+            #                     if x[0] in self.employee_name:
+            #                         employee_name=j[1]
+            #                         continue
+            #     address1 = address1.replace(emp_id, '')
+            #     address2 = address2.replace(emp_id, '')
+            #
+            #     address1 = address1.replace('.', ' ')
+            #     address1 = address1.replace(' - ', '-')
+            #     address2 = address2.replace(' - ', '-')
+            #     address2 = address2.replace('.', ' ')
+            #
+            #     address1 = address1.replace('  ', ' ')
+            #     address2 = address2.replace('  ', ' ')
+            #
+            #     with open("../config/states", "r") as all_state_val:
+            #         state_name = all_state_val.read().replace('\n', '')
+            #     with open("../config/postal_code_regex", "r") as post_val:
+            #         post_code = post_val.read()
+            #     if re.search(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')', address1):
+            #         data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')',
+            #                           address1)
+            #     else:
+            #         data = re.findall(r'(\s|\,)\b(!?' + state_name + ')', address1)
+            #         if len(data) > 1:
+            #             if re.search(r'(!?York|Jersey)', data[0][1], re.IGNORECASE):
+            #                 data[0] = ('', '')
+            #
+            #     if re.search(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s\-)(' + post_code + ')', address2):
+            #         data1 = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s\-)(' + post_code + ')',
+            #                            address2)
+            #     else:
+            #         data1 = re.findall(r'(\s|\,)\b(!?' + state_name + ')', address2)
+            #         if len(data1) > 1:
+            #             if re.search(r'(!?York|Jersey)', data1[0][1], re.IGNORECASE):
+            #                 data1[0] = ('', '')
+            #     a = []
+            #     a1 = []
+            #     if data != [] and data != []:
+            #         for i in data:
+            #             a.append(" ".join(i))
+            #         for i in data1:
+            #             a1.append(" ".join(i))
+            #         code = " ".join(map(str, a))
+            #         code1 = " ".join(map(str, a1))
+            #     else:
+            #         if data == []:
+            #             data = re.findall(r'\b(!?' + state_name + ')\s?', address1)
+            #
+            #         if data1 == []:
+            #             data = re.findall(r'\b(!?' + state_name + ')\s?', address2)
+            #         code = data[0][0]
+            #         code1 = data1[0][0]
+            #     code = code.replace('   ', ' ').lstrip()
+            #     code = code.replace('  ', ' ').lstrip()
+            #     code = code.replace('- ', '-').lstrip()
+            #     code1 = code1.replace('- ', '-').lstrip()
+            #     code = code.replace(' -', '-').lstrip()
+            #     code1 = code1.replace(' -', '-').lstrip()
+            #     code1 = code1.replace('   ', ' ').lstrip()
+            #     code = code.replace('   ', ' ').rstrip()
+            #     code1 = code1.replace('   ', ' ').rstrip()
+            #     val1 = re.compile(
+            #         r'(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+            #         re.IGNORECASE)
+            #     street = val1.findall(address1)[0][0]
+            #     val = re.compile(
+            #         r'(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+            #         re.IGNORECASE)
+            #     street1 = val.findall(address2)[0][0]
+            #     addresses1 = self.c.find_between_r(address1, street, code)
+            #     addresses2 = self.c.find_between_r(address2, street1, code1)
+            #     full_address = street + addresses1 + code
+            #     full_address1 = street1 + addresses2 + code1
+            #     full_address = full_address.replace('.', '')
+            #     full_address = full_address.replace(',', '')
+            #
+            #     full_address1 = full_address1.replace('.', '')
+            #     full_address1 = full_address1.replace(',', '')
+            #
+            #     street = street.replace('.', '')
+            #     street = street.replace(',', '')
+            #
+            #     street1 = street1.replace('.', '')
+            #     street1 = street1.replace(',', '')
+            #     if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address):
+            #         state, zipcode, city = self.c.get_address_zipcode(full_address, code)
+            #     else:
+            #         state, zipcode, city = self.c.get_address_zipcode(full_address, code)
+            #         if not re.search(r'(!?NEW|New)\s?\w+', city) and re.search(r'(!?NEW|New)\s?',
+            #                                                                    full_address.split()[-1]):
+            #             city = city.split()[0]
+            #             state = re.findall('(!?NEW|New)', full_address)[0] + " " + state
+            #
+            #     if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address):
+            #         state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
+            #     else:
+            #         state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
+            #         if not re.search(r'(!?NEW|New)\s?\w+', city1) and re.search(r'(!?NEW|New)\s?',
+            #                                                                     full_address.split()[-1]):
+            #             city1 = city1.split()[0]
+            #             state = re.findall('(!?NEW|New)', full_address)[0] + " " + state
+            #
+            #     print("zipcode", zipcode, zipcode1)
+            #     city = city.replace('.', '')
+            #     city = city.replace(',', '')
+            #     city1 = city1.replace('.', '')
+            #     city1 = city1.replace(',', '')
+            #     print("city", city)
+            #     if re.search(r'(!?lowa)', city):
+            #         city = city.replace('lowa', 'Iowa')
+            #         full_address = full_address.replace('lowa', 'Iowa')
+            #     if re.search(r'(!?lowa)', city1):
+            #         city1 = city1.replace('lowa', 'Iowa')
+            #         full_address1 = full_address1.replace('lowa', 'Iowa')
+            #     for i in range(len(self.cities['city'])):
+            #         if city.lower() in self.cities['city'][i].lower():
+            #             actual_city1 = self.cities['city'][i].lower()
+            #         if city1.lower() in self.cities['city'][i].lower():
+            #             actual_city2 = self.cities['city'][i].lower()
+            #     cc = city1
+            #     if actual_city1 == '':
+            #         # full_address=full_address+" "+city.split()[0]
+            #         city1 = ' '.join(map(str, full_address.split(code, 1)[0].split()[-1:]))
+            #         city1 = city1.lower()
+            #     else:
+            #         city1 = actual_city1
+            #     if actual_city2 == '':
+            #         # full_address1 = full_address1 + " " + cc.split()[0]
+            #         city2 = ' '.join(map(str, full_address1.split(code1, 1)[0].split()[-1:]))
+            #         city2 = city2.lower()
+            #     else:
+            #         city2 = actual_city2
+            #
+            #     # if full_address.lower().count(city1.lower())>1:
+            #     #     if  city1.lower() in street.lower():
+            #     #         pass
+            #     #     else:
+            #     #          street=street.lower()+city1.lower()
+            #     # if full_address1.lower().count(city2.lower())>1:
+            #     #     if city2.lower() in street1.lower():
+            #     #         pass
+            #     #     else:
+            #     #          street1=street1.lower()+city2.lower()
+            #
+            #     actual_full_address = self.c.find_between_r(full_address.lower(), street.lower(), city1)
+            #     actual_full_address = street.lower() + actual_full_address
+            #     actual_full_address1 = self.c.find_between_r(full_address1.lower(), street1.lower(), city2)
+            #     actual_full_address1 = street1.lower() + actual_full_address1
+            #
+            #     employer_address = actual_full_address.upper()
+            #     employee_address = actual_full_address1.upper()
+            #     employer_street = street.upper()
+            #     employee_street = street1.upper()
+            #     city1 = city1.replace('.', '').upper()
+            #     city2 = city2.replace('.', '').upper()
+            #     city1 = city1.replace(',', '').upper()
+            #     city2 = city2.replace(',', '').upper()
+            #     if re.search(r'\d?\-?\d{3}-\d{3}-\d{4}', employer_address):
+            #         employer_address = employer_address.replace(
+            #             re.findall(r'\d?\-?\d{3}-\d{3}-\d{4}', employer_address)[0],
+            #             '')
+            #         employer_address = employer_address.replace('PAYROLL ACCOUNT', '')
+            #         employer_address = employer_address.replace('/', '')
+            #     if re.search(r'\d?\-?\d{3}-\d{3}-\d{4}', employee_address):
+            #         employee_address = employee_address.replace(
+            #             re.findall(r'\d?\-?\d{3}-\d{3}-\d{4}', employee_address)[0],
+            #             '')
+            #         employee_address = employee_address.replace('PAYROLL ACCOUNT', '')
+            #         employee_address = employee_address.replace('/', '')
+            #     if 'NEW NEW' in state:
+            #         state = state.replace('NEW', '')
+            #     if 'NEW NEW' in state1:
+            #         state1 = state1.replace('NEW', '')
+            #     if 'PG' and city1:
+            #         city1 = city1.replace('PG', 'UPPER MARLBORO PG')
+            #     if 'PG' and city2:
+            #         city2 = city2.replace('PG', 'UPPER MARLBORO PG')
+            #
+            #     if re.search('[A-Za-z]{2,}\s?\-\d{5}', state):
+            #         temp_state = state.split('-')[0]
+            #         zipcode = state.split('-')[-1]
+            #         state = temp_state
+            #     if re.search('[A-Za-z]{2,}\s?\-\d{5}', state1):
+            #         temp_state1 = state1.split('-')[0]
+            #         zipcode1 = state1.split('-')[-1]
+            #         state = temp_state1
+
+            return employer_address, employee_address, employee_street, employer_street, city1, city2, state, state1, zipcode, zipcode1, employee_name, employer_name
+
         except Exception as e:
-            employer_address, employee_address, employee_street, employer_street, city, city1, state, state1, zipcode, zipcode1 = "", "", "", "", "", "", "", "", "", ""
-            return employer_address, employee_address, employee_street, employer_street, city, city1, state, state1, zipcode, zipcode1
+            employer_address, employee_address, employee_street, employer_street, city, city1, state, state1, zipcode, zipcode1,employee_name, employer_name = "", "", "", "", "", "", "", "", "", "",'',''
+            return employer_address, employee_address, employee_street, employer_street, city, city1, state, state1, zipcode, zipcode1,employee_name, employer_name
 
     def paystub_name(self, block):
         global position, employer_name
@@ -584,18 +1114,20 @@ class Paystub_details:
             employee_name = ''
             gross_net_values = list(block.values())
             pays_keys = list(block.keys())
+
             # if len(block["addresses"][0]['name']) == []:
             #     employer_name = ''
             #     employee_name = ''
-            if block["addresses"]!=[] and len(block["addresses"]) >= 2:
-                if len(block["addresses"]) >= 2 or block["addresses"][0]['name']!=[] or block["addresses"][1]['name']!=[]:
+            if block["addresses"] != [] and len(block["addresses"]) >= 2:
+                if len(block["addresses"]) >= 2 or block["addresses"][0]['name'] != [] or block["addresses"][1][
+                    'name'] != []:
                     name = block["addresses"][0]['name']
 
                     name1 = block["addresses"][1]['name']
-                    if name==[]:
+                    if name == []:
                         if len(block["addresses"]) > 2:
                             name = block["addresses"][2]['name']
-                    if name1==[]:
+                    if name1 == []:
                         if len(block["addresses"]) > 2:
                             name1 = block["addresses"][2]['name']
                     if name != [] and name1 != []:
@@ -607,7 +1139,8 @@ class Paystub_details:
                             for i in range(len(gross_net_values)):
                                 if 'Others' in pays_keys[i]:
                                     for j in block['Others']:
-                                        x = difflib.get_close_matches(j[0].lower(), [vt.lower() for vt in self.all_others],
+                                        x = difflib.get_close_matches(j[0].lower(),
+                                                                      [vt.lower() for vt in self.all_others],
                                                                       cutoff=0.95)
                                         if x:
                                             if x[0] in self.name:
@@ -617,7 +1150,8 @@ class Paystub_details:
                             for i in range(len(gross_net_values)):
                                 if 'Others' in pays_keys[i]:
                                     for j in block['Others']:
-                                        x = difflib.get_close_matches(j[0].lower(), [vt.lower() for vt in self.all_others],
+                                        x = difflib.get_close_matches(j[0].lower(),
+                                                                      [vt.lower() for vt in self.all_others],
                                                                       cutoff=0.95)
                                         if x:
                                             if x[0] in self.name:
@@ -672,7 +1206,8 @@ class Paystub_details:
                             name1 = ''
                     if employer_name.lower() == name1.lower():
                         name1 = ''
-                    if name1!='':
+                    if name1!=' ' and name1 != '':
+
                         if re.search(r'(!?\,)', name1):
                             if len(ename) == 1:
                                 last_name = ename[0]
@@ -712,7 +1247,7 @@ class Paystub_details:
                     else:
                         employee_name = ''
                 else:
-                    if block["addresses"][0]['name']!=[]:
+                    if block["addresses"][0]['name'] != []:
                         employer_name = block["addresses"][0]['name'][0]
                     for i in range(len(gross_net_values)):
                         if 'Others' in pays_keys[i]:
@@ -726,20 +1261,16 @@ class Paystub_details:
                                     if x[0] in self.emp_name:
                                         employer_name = j[1]
             else:
-                    if block["addresses"][0]['name']!=[]:
-                        employer_name = block["addresses"][0]['name'][0]
-                    for i in range(len(gross_net_values)):
-                        if 'Others' in pays_keys[i]:
-                            for j in block['Others']:
-                                x = difflib.get_close_matches(j[0].lower(),
-                                                              [vt.lower() for vt in self.all_others],
-                                                              cutoff=0.95)
-                                if x:
-                                    if x[0] in self.name:
-                                        employee_name = j[1]
-                                    if x[0] in self.emp_name:
-                                        employer_name = j[1]
+                if block["addresses"][0]['name'] != []:
+                    employer_name = block["addresses"][0]['name'][0]
 
+            if re.search('(!?Inc|LLC)', employee_name, re.IGNORECASE):
+                a = employer_name
+                employer_name = employee_name
+                employee_name = a
+            # x1 = difflib.get_close_matches(employee_name.split()[0].lower(),
+            #                               [vt.lower() for vt in self.name_list['names']],
+            #                               cutoff=0.93)
             for i in range(len(gross_net_values)):
                 if 'Others' in pays_keys[i]:
                     for j in block['Others']:
@@ -752,27 +1283,69 @@ class Paystub_details:
                             if x[0] in self.id:
                                 employee_id = j[1]
                             if x[0] in self.name:
-                                if employee_name=='':
+                                if employee_name == '':
                                     employee_name = j[1]
+                                if employee_name.lower() == 'J&J Services Inc.'.lower():
+                                    employer_name = employee_name
+                                    employee_name = j[1]
+
                                 continue
                             if x[0] in self.emp_name:
                                 if employer_name == '' or employer_name.lower() == 'company':
                                     employer_name = j[1]
-            if employer_name.lower()=='earnings statement':
-                employer_name=block["addresses"][1]['name'][0]
-                employee_name=block["addresses"][2]['name'][0]
+
+
+            if employer_name.lower() == 'earnings statement':
+                employer_name = block["addresses"][1]['name'][0]
+                employee_name = block["addresses"][2]['name'][0]
             if employer_name.lower() == employee_name.lower():
                 employer_name = ''
-            employer_name=employer_name.replace('.', '')
+            employer_name = employer_name.replace('.', '')
             if re.search('(!?\s-\s[A-Za-z].*)', employer_name):
                 employer_name = employer_name.replace(re.findall('(!?\s-\s[A-Za-z].*)', employer_name)[0], '')
-            employee_name=employee_name.replace('.', '')
+            employee_name = employee_name.replace('.', '')
             if re.search('(!?\s-\s[A-Za-z].*)', employee_name):
-                 employee_name = employee_name.replace(re.findall('(!?\s-\s[A-Za-z].*)', employee_name)[0], '')
+                employee_name = employee_name.replace(re.findall('(!?\s-\s[A-Za-z].*)', employee_name)[0], '')
+            employee_name = employee_name.replace('APT 119J', '')
+            employer_name = employer_name.replace('APT 119J', '')
+            employer_name = employer_name.replace('PREFERRED', 'PREFERRED BEHAVIORAL HEALTH OF NJ')
+
             return employer_name, employee_name, position, employee_id
         except Exception as e:
-            employer_name = employee_name = position = employee_id = ''
-            return employer_name, employee_name, position, employee_id
+            try:
+                employer_name = ''
+                position = ''
+                employee_id = ''
+                middle_name = ''
+                employee_name = ''
+                gross_net_values = list(block.values())
+                pays_keys = list(block.keys())
+                for i in range(len(gross_net_values)):
+                    if 'Others' in pays_keys[i]:
+                        for j in block['Others']:
+                            x = difflib.get_close_matches(j[0].lower(),
+                                                          [vt.lower() for vt in self.all_others],
+                                                          cutoff=0.95)
+                            if x:
+                                if x[0] in self.position:
+                                    position = j[1]
+                                if x[0] in self.id:
+                                    employee_id = j[1]
+                                if x[0] in self.name:
+                                    if employee_name == '':
+                                        employee_name = j[1]
+                                    if employee_name.lower() == 'J&J Services Inc.'.lower():
+                                        employer_name = employee_name
+                                        employee_name = j[1]
+
+                                    continue
+                                if x[0] in self.emp_name:
+                                    if employer_name == '' or employer_name.lower() == 'company':
+                                        employer_name = j[1]
+                return employer_name, employee_name, position, employee_id
+            except Exception as E:
+                employer_name = employee_name = position = employee_id = ''
+                return employer_name, employee_name, position, employee_id
 
     def unique_list(self, l):
         ulist = []
@@ -782,7 +1355,7 @@ class Paystub_details:
     def get_paystub_date(self, block):
         global Start_date, End_date, Pay_date
         try:
-            Start_date1=End_date1=''
+            Start_date1 = End_date1 = ''
             pay_freq = ''
             emp_start_date = ''
             start_date = ''
@@ -799,14 +1372,37 @@ class Paystub_details:
                         if x:
                             if x[0] in self.pay_frequency:
                                 pay_freq = j[1]
+                                if re.search('\d+', pay_freq):
+                                    if re.search(r'\s\-\s', pay_freq):
+                                        pay_freq = pay_freq.split(' - ')
+                                    elif re.search(r'\-\s', pay_freq):
+                                        pay_freq = pay_freq.split('- ')
+                                    elif re.search(r'\s\-', pay_freq):
+                                        pay_freq = pay_freq.split(' -')
+                                    elif re.search(r'\-', pay_freq):
+                                        pay_freq = pay_freq.split('-')
+                                    elif re.search(r'\sto\s', pay_freq, re.IGNORECASE):
+                                        pay_freq = pay_freq.split(re.findall(r'\s(!?To|to|TO)\s', pay_freq)[0])
+                                    elif re.search(r'to\s', pay_freq, re.IGNORECASE):
+                                        pay_freq = pay_freq.split(re.findall(r'(!?To|to|TO)\s', pay_freq)[0])
+                                    elif re.search(r'\sto', pay_freq, re.IGNORECASE):
+                                        pay_freq = pay_freq.split(re.findall(r'\s(!?To|to|TO)', pay_freq)[0])
+                                    elif re.search(r'to', pay_freq, re.IGNORECASE):
+                                        pay_freq = pay_freq.split(re.findall(r'(!?To|to|TO)', pay_freq)[0])
+                                    start_date = pay_freq[0]
+                                    end_date = pay_freq[1]
+                                    pay_freq = " ".join(map(str, pay_freq))
                             elif x[0] in self.emp_start_date:
-                                emp_start_date = j[1]
+                                if emp_start_date=='':
+                                    emp_start_date = j[1]
                             elif x[0] in self.pay_begin:
-                                start_date = j[1]
+                                if start_date == '':
+                                    start_date = j[1]
                             elif x[0] in self.pay_end:
-                                end_date = j[1]
+                                if end_date == '' and re.search('\d+',j[1]):
+                                    end_date = j[1]
                             elif x[0] in self.pay_date:
-                                if pay_date=='':
+                                if pay_date == '' and re.search('\d+',j[1]):
                                     pay_date = j[1]
                             elif x[0] in self.pay_all:
                                 paya = j[1]
@@ -818,14 +1414,14 @@ class Paystub_details:
                                     paya = paya.split(' -')
                                 elif re.search(r'\-', paya):
                                     paya = paya.split('-')
-                                elif re.search(r'\sto\s', paya,re.IGNORECASE):
+                                elif re.search(r'\sto\s', paya, re.IGNORECASE):
                                     paya = paya.split(re.findall(r'\s(!?To|to|TO)\s', paya)[0])
-                                elif re.search(r'to\s', paya,re.IGNORECASE):
+                                elif re.search(r'to\s', paya, re.IGNORECASE):
                                     paya = paya.split(re.findall(r'(!?To|to|TO)\s', paya)[0])
-                                elif re.search(r'\sto', paya,re.IGNORECASE):
+                                elif re.search(r'\sto', paya, re.IGNORECASE):
                                     paya = paya.split(re.findall(r'\s(!?To|to|TO)', paya)[0])
-                                elif re.search(r'to', paya,re.IGNORECASE):
-                                    paya = paya.split(re.findall(r'(!?To|to|TO)',paya)[0])
+                                elif re.search(r'to', paya, re.IGNORECASE):
+                                    paya = paya.split(re.findall(r'(!?To|to|TO)', paya)[0])
                                 start_date = paya[0]
                                 end_date = paya[1]
 
@@ -848,7 +1444,7 @@ class Paystub_details:
                 Start_date = dt.strptime(starting_date, "%m/%d/%Y")
                 End_date = dt.strptime(ending_date, "%m/%d/%Y")
                 Pay_date = dt.strptime(paying_date, "%m/%d/%Y")
-                frequency = abs((End_date - Start_date).days)+1
+                frequency = abs((End_date - Start_date).days) + 1
 
                 if pay_freq.lower() == 'semimonthly' or pay_freq.lower() == 'semi monthly' or pay_freq.lower() == 'semi-monthly':
                     pay_frequency = 'Bi-Monthly'
@@ -856,9 +1452,9 @@ class Paystub_details:
                 elif pay_freq == 'Bi-weekly':
                     pay_frequency = 'Bi-Weekly'
                 else:
-                    if 15<=frequency<28:
+                    if 15 <= frequency < 28:
                         pay_frequency = 'Bi-Monthly'
-                    elif 8<=frequency<15:
+                    elif 8 <= frequency < 15:
                         pay_frequency = 'Bi-Weekly'
                     elif frequency <= 7:
                         pay_frequency = 'Weekly'
@@ -867,9 +1463,10 @@ class Paystub_details:
                     else:
                         pay_frequency = ""
 
-
                 string_date = str(Start_date.date()) + " " + str(End_date.date()) + " " + str(Pay_date.date())
-                return str(Start_date.date().strftime('%m/%d/%Y')), pay_frequency, string_date, str(End_date.date().strftime('%m/%d/%Y')), str(Pay_date.date().strftime('%m/%d/%Y')),str(emp_start_date)
+                return str(Start_date.date().strftime('%m/%d/%Y')), pay_frequency, string_date, str(
+                    End_date.date().strftime('%m/%d/%Y')), str(Pay_date.date().strftime('%m/%d/%Y')), str(
+                    emp_start_date)
             else:
                 if end_date != '':
                     et = parse(end_date)
@@ -889,29 +1486,29 @@ class Paystub_details:
                     Start_date = dt.strptime(starting_date_date, "%m/%d/%Y").date().strftime('%m/%d/%Y')
                     Start_date1 = dt.strptime(Start_date, "%m/%d/%Y")
 
-                if Start_date1!='' and End_date1!='':
-                   frequency = abs((End_date1 - Start_date1).days)
-                   if pay_freq == '':
-                       if frequency == 15 or frequency == 16:
-                           pay_frequency = 'Bi-Monthly'
-                       elif frequency == 14 or frequency == 13:
-                           pay_frequency = 'Bi-Weekly'
-                       elif frequency <= 7:
-                           pay_frequency = 'Weekly'
-                       elif frequency >= 28:
-                           pay_frequency = 'Monthly'
-                       else:
-                           pay_frequency = ""
-                   elif pay_freq.lower() == 'semimonthly' or pay_freq.lower() == 'semi monthly' or pay_freq.lower() == 'semi-monthly':
-                       pay_frequency = 'Bi-Monthly'
-                   else:
-                       if pay_freq=='Bi-weekly':
+                if Start_date1 != '' and End_date1 != '':
+                    frequency = abs((End_date1 - Start_date1).days)
+                    if pay_freq == '':
+                        if frequency == 15 or frequency == 16:
+                            pay_frequency = 'Bi-Monthly'
+                        elif frequency == 14 or frequency == 13:
                             pay_frequency = 'Bi-Weekly'
-                return str(Start_date), pay_frequency, string_date, str(End_date), str(Pay_date),str(emp_start_date)
+                        elif frequency <= 7:
+                            pay_frequency = 'Weekly'
+                        elif frequency >= 28:
+                            pay_frequency = 'Monthly'
+                        else:
+                            pay_frequency = ""
+                    elif pay_freq.lower() == 'semimonthly' or pay_freq.lower() == 'semi monthly' or pay_freq.lower() == 'semi-monthly':
+                        pay_frequency = 'Bi-Monthly'
+                    else:
+                        if pay_freq == 'Bi-weekly':
+                            pay_frequency = 'Bi-Weekly'
+                return str(Start_date), pay_frequency, string_date, str(End_date), str(Pay_date), str(emp_start_date)
         except Exception as E:
             self.custom_print("Paystub Date Exception", E)
-            start_date, self.pay_frequency, string_date_value, end_date, pay_end_date,emp_start_date = "", "", "", "", "",""
-            return start_date, self.pay_frequency, string_date_value, end_date, pay_end_date,emp_start_date
+            start_date, self.pay_frequency, string_date_value, end_date, pay_end_date, emp_start_date = "", "", "", "", "", ""
+            return start_date, self.pay_frequency, string_date_value, end_date, pay_end_date, emp_start_date
 
     def get_gross_net_pay(self, path):
         try:
@@ -926,11 +1523,11 @@ class Paystub_details:
             for i in range(len(gross_net_values)):
                 for item in gross_net_values[i]:
                     if 'Gross Pay' in pays_keys[i]:
-                        if self.current_gross_pay=='':
+                        if self.current_gross_pay == '':
                             self.current_gross_pay = item[1]
                             self.ytd_gross_pay = item[2]
                     elif 'Net Pay' in pays_keys[i]:
-                        if self.current_net_pay=='':
+                        if self.current_net_pay == '':
                             self.current_net_pay = item[1]
                             self.ytd_net_pay = item[2]
                     elif 'Taxes' == pays_keys[i]:
@@ -1018,218 +1615,322 @@ class Paystub_details:
     def get_details(self, path):
 
         try:
-            actual_city2=''
-            actual_city1=''
+            actual_city2 = ''
+            actual_city1 = ''
             current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, \
             hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, text_value, result_output_data, text = self.get_gross_net_pay(
                 path)
 
-            start_date, pay_frequency, string_date_value, employment_Start_date, pay_date,emp_start_date = self.get_paystub_date(
+            start_date, pay_frequency, string_date_value, employment_Start_date, pay_date, emp_start_date = self.get_paystub_date(
                 text_value)
 
             employer_name, employee_name, position, employee_id = self.paystub_name(text_value)
 
-            employer_address, employee_address, employee_street, employer_street, employer_city, employee_city, employer_state, employee_state, employer_zipcode, employee_zipcode = self.paystub_address(
-                text_value, employee_id,employer_name,employee_name)
-            if 1<len(employer_name.split())<=5 and employer_name!='':
-                x = difflib.get_close_matches(employer_name.split()[0].lower(), [vt.lower() for vt in self.name_list['names']],
+            employer_address, employee_address, employee_street, employer_street, employer_city, employee_city, employer_state, employee_state, employer_zipcode, employee_zipcode, employee_name, employer_name = self.paystub_address(
+                text_value, employee_id, employer_name, employee_name)
+            employer_name=employer_name.replace('BUSO','USO')
+            gross_net_values = list(text_value.values())
+            pays_keys = list(text_value.keys())
+            if employee_name == '' and employer_name == '':
+                for i in range(len(gross_net_values)):
+                    if 'Others' in pays_keys[i]:
+                        for j in text_value['Others']:
+                            x = difflib.get_close_matches(j[0].lower(),
+                                                          [vt.lower() for vt in self.all_others],
+                                                          cutoff=0.95)
+                            if x:
+                                if x[0] in self.employee_name:
+                                    employee_name = j[1]
+                                    continue
+                                if x[0] in self.employer_name:
+                                    employer_name = j[1]
+                                    continue
+            if employee_name == '' and employer_name == '':
+                for i in range(len(gross_net_values)):
+                    if 'Others' in pays_keys[i]:
+                        for j in text_value['Others']:
+                            x = difflib.get_close_matches(j[0].lower(),
+                                                          [vt.lower() for vt in self.all_others],
+                                                          cutoff=0.95)
+                            if x:
+                                if x[0] in self.name:
+                                    employee_name = j[1]
+                                    continue
+                                if x[0] in self.emp_name:
+                                    employer_name = j[1]
+                                    continue
+            if employer_name.rstrip().lower() == employee_name.rstrip().lower():
+                for i in range(len(gross_net_values)):
+                    if 'Others' in pays_keys[i]:
+                        for j in text_value['Others']:
+                            x = difflib.get_close_matches(j[0].lower(),
+                                                          [vt.lower() for vt in self.all_others],
+                                                          cutoff=0.95)
+                            if x:
+                                if x[0] in self.position:
+                                    position = j[1]
+                                if x[0] in self.id:
+                                    employee_id = j[1]
+                                if x[0] in self.name:
+                                    if employee_name.lower() == 'J&J Services Inc.'.lower():
+                                        employer_name = employee_name
+                                        employee_name = j[1]
+                                    else:
+                                        employee_name = j[1]
+                                    continue
+                                if x[0] in self.emp_name:
+                                    if employer_name.lower() == 'company':
+                                        employer_name = j[1]
+                                    else:
+                                        employer_name = j[1]
+            if 1 < len(employer_name.split()) <= 5 and employer_name != '':
+                x = difflib.get_close_matches(employer_name.split()[0].lower(),
+                                              [vt.lower() for vt in self.name_list['names']],
                                               cutoff=0.93)
-                y= difflib.get_close_matches(employer_name.split()[1].lower(), [vt.lower() for vt in self.surname_list['surnames']],
-                                              cutoff=0.93)
-                if not y:
-                    if len(employer_name.split())>2:
+                if len(employer_name.split()) > 2:
+                    y = difflib.get_close_matches(employer_name.split()[2].lower(),
+                                                  [vt.lower() for vt in self.surname_list['surnames']],
+                                                  cutoff=0.93)
 
-                        y = difflib.get_close_matches(employer_name.split()[2].lower(),
-                                                      [vt.lower() for vt in self.surname_list['surnames']],
-                                                      cutoff=0.93)
+                else:
+                    y = difflib.get_close_matches(employer_name.split()[1].lower(),
+                                                  [vt.lower() for vt in self.surname_list['surnames']],
+                                                  cutoff=0.93)
                 if x:
                     if y:
-                        en=employee_name
-                        employee_name=employer_name
-                        employer_name=en
+                        # en = employee_name
+                        # ed = employee_address
+                        # es = employee_street
+                        # ez = employee_zipcode
+                        # est = employee_state
+                        # ec = employee_city
+                        # employee_name = employer_name
+                        # employee_address = employer_address
+                        # employee_city = employer_city
+                        # employee_state = employer_state
+                        # employee_zipcode = employer_zipcode
+                        # employee_street = employer_street
+                        # employer_name = en
+                        # employer_address = ed
+                        # employer_city = ec
+                        # employer_state = est
+                        # employer_zipcode = ez
+                        # employer_street = es
+                        a2=[]
+                        a3=[]
                         for i in range(len(text_value["addresses"])):
-                                if text_value["addresses"][i]['name'] != []:
-                                    if text_value["addresses"][i]['name'][0].lower() == employee_name.lower():
-                                        temp_emp_address = text_value["addresses"][i]['address']
-                                        temp_emp_address = " ".join(map(str, temp_emp_address))
+                            if text_value["addresses"][i]['name'] != [] :
+                                if len(text_value["addresses"][i]["name"])>1:
+                                    en = employee_name
+                                    employee_name = employer_name
+                                    employer_name = en
+                                else:
+                                    en = employee_name
+                                    employee_name = employer_name
+                                    employer_name = ""
+                                if text_value["addresses"][i]['name'][0].replace('.','').lower() == employee_name.lower():
+                                    temp_emp_address = text_value["addresses"][i]['address']
+                                    temp_emp_address = " ".join(map(str, temp_emp_address))
+                                    temp_emp_address = temp_emp_address.replace(employee_id, '')
+                                    temp_emp_address = temp_emp_address.replace('.', ' ')
+                                    with open("../config/states", "r") as all_state_val:
+                                        state_name = all_state_val.read().replace('\n', '')
+                                    with open("../config/postal_code_regex", "r") as post_val:
+                                        post_code = post_val.read()
 
-                                        # address1 = address1.replace('.', '')
-                                        # address1 = address1.replace(',', '')
-                                        #
-                                        # address2 = address2.replace('.', '')
-                                        # address2 = address2.replace(',', '')
-
-                                        temp_emp_address = temp_emp_address.replace(employee_id, '')
-                                        temp_emp_address = temp_emp_address.replace('.', ' ')
-                                        with open("../config/states", "r") as all_state_val:
-                                            state_name = all_state_val.read().replace('\n', '')
-                                        with open("../config/postal_code_regex", "r") as post_val:
-                                            post_code = post_val.read()
-
+                                    if re.search(
+                                            r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')',
+                                            address1):
                                         data = re.findall(
-                                            r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-)(' + post_code + ')',
-                                            temp_emp_address)
+                                            r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')',
+                                            address1)
+                                    else:
+                                        data = re.findall(r'(\s|\,)\b(!?' + state_name + ')', address1)
+                                        if len(data) > 1:
+                                            if re.search(r'(!?York|Jersey)', data[0][1], re.IGNORECASE):
+                                                data[0] = ('', '')
+                                    for i in data:
+                                        a2.append(" ".join(i))
+                                    code = " ".join(map(str, a2))
+                                    code = code.replace('   ', ' ').rstrip()
 
-                                        if data != []:
-                                            code = " ".join(map(str, data[0]))
-                                        else:
-                                            if data == []:
-                                                data = re.findall(r'\b(!?' + state_name + ')\s?', temp_emp_address)
+                                    code = code.replace('   ', ' ').lstrip()
+                                    code = code.replace('   ', ' ').rstrip()
+                                    val1 = re.compile(
+                                        r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+                                        re.IGNORECASE)
+                                    street = val1.findall(temp_emp_address)[0][0]
 
-                                            code = data[0][0]
+                                    addresses1 = self.c.find_between_r(temp_emp_address, street, code)
 
-                                        code = code.replace('   ', ' ').lstrip()
-                                        code = code.replace('   ', ' ').rstrip()
-                                        val1 = re.compile(
-                                            r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
-                                            re.IGNORECASE)
-                                        street = val1.findall(temp_emp_address)[0][0]
+                                    full_address = street + addresses1 + code
+                                    full_address = full_address.replace(',', '')
+                                    full_address = full_address.replace(',', '')
 
-                                        addresses1 = self.c.find_between_r(temp_emp_address, street, code)
+                                    street = street.replace('.', '')
+                                    street = street.replace(',', '')
 
-                                        full_address = street + addresses1 + code
-                                        full_address = full_address.replace(',', '')
-                                        full_address = full_address.replace(',', '')
+                                    if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address):
+                                        state, zipcode, city = self.c.get_address_zipcode(full_address, code)
+                                    else:
+                                        state, zipcode, city = self.c.get_address_zipcode(full_address, code)
+                                        if not re.search(r'(!?NEW|New)\s?\w+', city) and re.search(r'(!?NEW|New)\s?',
+                                                                                                   full_address.split()[
+                                                                                                       -1]):
+                                            city = city.split()[0]
+                                            state = re.findall('(!?NEW|New)', full_address)[0] + " " + state
 
-                                        street = street.replace('.', '')
-                                        street = street.replace(',', '')
+                                    city = city.replace('.', '')
+                                    city = city.replace(',', '')
 
-                                        if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address):
-                                            state, zipcode, city = self.c.get_address_zipcode(full_address, code)
-                                        else:
-                                            state, zipcode, city = self.c.get_address_zipcode(full_address, code)
-                                            if not re.search(r'(!?NEW|New)\s?\w+', city) and re.search(r'(!?NEW|New)\s?',
-                                                                                                       full_address.split()[
-                                                                                                           -1]):
-                                                city = city.split()[0]
-                                                state = re.findall('(!?NEW|New)', full_address)[0] + " " + state
+                                    print("city", city)
+                                    if re.search(r'(!?lowa)', city):
+                                        city = city.replace('lowa', 'Iowa')
+                                        full_address = full_address.replace('lowa', 'Iowa')
+
+                                    for i in range(len(self.cities['city'])):
+                                        if city.lower() in self.cities['city'][i].lower():
+                                            actual_city1 = self.cities['city'][i].lower()
+
+                                    if actual_city1 == '':
+                                        city = ' '.join(map(str, full_address.split(code, 1)[0].split()[-1:]))
+                                        city = city.lower()
+                                    else:
+                                        city = actual_city1
+
+                                    if full_address.lower().count(city) > 1:
+                                        street = street.lower() + city
+
+                                    actual_full_address = self.c.find_between_r(full_address.lower(), street.lower(),
+                                                                                city)
+                                    actual_full_address = street.lower() + actual_full_address
+
+                                    if employee_address=='':
+                                        employer_address = ''
+                                        employer_street = ''
+                                        employer_city = ''
+                                        employer_state = ''
+                                        employer_zipcode = ''
+                                    else:
+                                        employer_address = employee_address
+                                        employer_street = employee_street
+                                        employer_city = employee_city
+                                        employer_state = employee_state
+                                        employer_zipcode = employee_zipcode
+
+                                    employee_address = actual_full_address.upper()
+                                    employee_street = street.upper()
+                                    employee_zipcode = zipcode
+                                    employee_state = state
+                                    city1 = city.replace('.', '').upper()
+                                    employee_city = city1.replace(',', '').upper()
 
 
-                                        city = city.replace('.', '')
-                                        city = city.replace(',', '')
-
-                                        print("city", city)
-                                        if re.search(r'(!?lowa)', city):
-                                            city = city.replace('lowa', 'Iowa')
-                                            full_address = full_address.replace('lowa', 'Iowa')
-
-                                        for i in range(len(self.cities['city'])):
-                                            if city.lower() in self.cities['city'][i].lower():
-                                                actual_city1 = self.cities['city'][i].lower()
-
-                                        if actual_city1 == '':
-                                            city = ' '.join(map(str, full_address.split(code, 1)[0].split()[-1:]))
-                                            city = city.lower()
-                                        else:
-                                            city = actual_city1
-
-                                        if full_address.lower().count(city) > 1:
-                                            street = street.lower() + city
-
-                                        actual_full_address = self.c.find_between_r(full_address.lower(), street.lower(),
-                                                                                    city)
-                                        actual_full_address = street.lower() + actual_full_address
-
-                                        employee_address = actual_full_address.upper()
-                                        employee_street = street.upper()
-                                        employer_zipcode = zipcode
-                                        employer_state = state
-                                        city1 = city.replace('.', '').upper()
-                                        employee_city = city1.replace(',', '').upper()
+                                    break
                         for i in range(len(text_value["addresses"])):
-                                if text_value["addresses"][i]['name'] != []:
-                                    if text_value["addresses"][i]['name'][0].lower() == employer_name.lower():
-                                        temp_employer_address = text_value["addresses"][i]['address']
-                                        temp_employer_address = " ".join(map(str, temp_employer_address))
+                            if text_value["addresses"][i]['name'] != []:
 
-                                        temp_employer_address = temp_employer_address.replace(employee_id, '')
-                                        temp_employer_address = temp_employer_address.replace('.', ' ')
-                                        with open("../config/states", "r") as all_state_val:
-                                            state_name = all_state_val.read().replace('\n', '')
-                                        with open("../config/postal_code_regex", "r") as post_val:
-                                            post_code = post_val.read()
+                                if text_value["addresses"][i]['name'][0].replace('.','').lower() == employer_name.lower():
+                                    temp_employer_address = text_value["addresses"][i]['address']
+                                    temp_employer_address = " ".join(map(str, temp_employer_address))
 
+                                    temp_employer_address = temp_employer_address.replace(employee_id, '')
+                                    temp_employer_address = temp_employer_address.replace('.', ' ')
+                                    with open("../config/states", "r") as all_state_val:
+                                        state_name = all_state_val.read().replace('\n', '')
+                                    with open("../config/postal_code_regex", "r") as post_val:
+                                        post_code = post_val.read()
+
+                                    if re.search(
+                                            r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')',
+                                            address1):
                                         data = re.findall(
-                                            r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-)(' + post_code + ')',
-                                            temp_employer_address)
+                                            r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\s?\-\s?)(' + post_code + ')',
+                                            address1)
+                                    else:
+                                        data = re.findall(r'(\s|\,)\b(!?' + state_name + ')', address1)
+                                        if len(data) > 1:
+                                            if re.search(r'(!?York|Jersey)', data[0][1], re.IGNORECASE):
+                                                data[0] = ('', '')
+                                    for i in data:
+                                        a3.append(" ".join(i))
+                                    code1 = " ".join(map(str, a3))
 
-                                        if data != []:
-                                            code1 = " ".join(map(str, data[0]))
-                                        else:
-                                            if data == []:
-                                                data = re.findall(r'\b(!?' + state_name + ')\s?', temp_employer_address)
+                                    code1 = code1.replace('   ', ' ').lstrip()
+                                    code1 = code1.replace('   ', ' ').rstrip()
+                                    val1 = re.compile(
+                                        r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
+                                        re.IGNORECASE)
+                                    street1 = val1.findall(temp_employer_address)[0][0]
 
-                                            code1 = data[0][0]
+                                    addresses2 = self.c.find_between_r(temp_employer_address, street1, code1)
 
-                                        code1 = code1.replace('   ', ' ').lstrip()
-                                        code1 = code1.replace('   ', ' ').rstrip()
-                                        val1 = re.compile(
-                                            r'(!?(ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?\.?|(\w+)?\s?(\d+)?\-?\.?\w+?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
-                                            re.IGNORECASE)
-                                        street1 = val1.findall(temp_employer_address)[0][0]
+                                    full_address1 = street1 + addresses2 + code1
+                                    full_address1 = full_address1.replace(',', '')
+                                    full_address1 = full_address1.replace(',', '')
 
-                                        addresses2 = self.c.find_between_r(temp_employer_address, street1, code1)
+                                    street1 = street1.replace('.', '')
+                                    street1 = street1.replace(',', '')
 
-                                        full_address1 = street1 + addresses2 + code1
-                                        full_address1 = full_address1.replace(',', '')
-                                        full_address1 = full_address1.replace(',', '')
+                                    if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address1):
+                                        state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
+                                    else:
+                                        state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
+                                        if not re.search(r'(!?NEW|New)\s?\w+', city1) and re.search(r'(!?NEW|New)\s?',
+                                                                                                    full_address1.split()[
+                                                                                                        -1]):
+                                            city1 = city1.split()[0]
+                                            state1 = re.findall('(!?NEW|New)', full_address1)[0] + " " + state1
 
-                                        street1 = street1.replace('.', '')
-                                        street1 = street1.replace(',', '')
+                                    city1 = city1.replace('.', '')
+                                    city1 = city1.replace(',', '')
 
-                                        if re.search(r'\s[A-Za-z]{2}\s\d{5}|\s[A-Za-z]{2}\s?\-\s?\d{5}', full_address1):
-                                            state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
-                                        else:
-                                            state1, zipcode1, city1 = self.c.get_address_zipcode(full_address1, code1)
-                                            if not re.search(r'(!?NEW|New)\s?\w+', city1) and re.search(r'(!?NEW|New)\s?',
-                                                                                                       full_address1.split()[
-                                                                                                           -1]):
-                                                city1 = city1.split()[0]
-                                                state1 = re.findall('(!?NEW|New)', full_address1)[0] + " " + state1
+                                    print("city", city1)
+                                    if re.search(r'(!?lowa)', city1):
+                                        city1 = city1.replace('lowa', 'Iowa')
+                                        full_address1 = full_address1.replace('lowa', 'Iowa')
 
-                                        city1 = city1.replace('.', '')
-                                        city1 = city1.replace(',', '')
+                                    for i in range(len(self.cities['city'])):
+                                        if city1.lower() in self.cities['city'][i].lower():
+                                            actual_city2 = self.cities['city'][i].lower()
 
-                                        print("city", city1)
-                                        if re.search(r'(!?lowa)', city1):
-                                            city1 = city1.replace('lowa', 'Iowa')
-                                            full_address1 = full_address1.replace('lowa', 'Iowa')
+                                    if actual_city2 == '':
+                                        city1 = ' '.join(map(str, full_address1.split(code1, 1)[0].split()[-1:]))
+                                        city1 = city1.lower()
+                                    else:
+                                        city1 = actual_city2
 
-                                        for i in range(len(self.cities['city'])):
-                                            if city1.lower() in self.cities['city'][i].lower():
-                                                actual_city2 = self.cities['city'][i].lower()
+                                    if full_address1.lower().count(city1) > 1:
+                                        street1 = street1.lower() + city1
 
-                                        if actual_city2 == '':
-                                            city1 = ' '.join(map(str, full_address1.split(code1, 1)[0].split()[-1:]))
-                                            city1 = city1.lower()
-                                        else:
-                                            city1 = actual_city2
+                                    actual_full_address1 = self.c.find_between_r(full_address1.lower(), street1.lower(),
+                                                                                 city1)
+                                    actual_full_address1 = street1.lower() + actual_full_address1
 
-                                        if full_address1.lower().count(city1) > 1:
-                                            street1 = street1.lower() + city1
 
-                                        actual_full_address1 = self.c.find_between_r(full_address1.lower(), street1.lower(),
-                                                                                     city1)
-                                        actual_full_address1 = street1.lower() + actual_full_address1
+                                    employer_address = actual_full_address1.upper()
+                                    employer_street = street1.upper()
+                                    employer_zipcode = zipcode1
+                                    employer_state = state1
 
-                                        employer_address = actual_full_address1.upper()
-                                        employer_street = street1.upper()
-                                        employer_zipcode=zipcode1
-                                        employer_state=state1
+                                    city2 = city1.replace('.', '').upper()
+                                    employer_city = city2.replace(',', '').upper()
+                                    break
 
-                                        city2 = city1.replace('.', '').upper()
-                                        employer_city = city2.replace(',', '').upper()
-            employee_address=employee_address.upper()
-            employer_address=employer_address.upper()
+
+
+            employee_address = employee_address.upper()
+            employer_address = employer_address.upper()
             employer_address = employer_address.replace(employer_name, '')
             employer_address = employer_address.replace(employee_name, '')
             employee_address = employee_address.replace(employer_name, '')
             employee_address = employee_address.replace(employee_name, '')
-            return employer_address, employer_street, employer_state.upper(), employer_zipcode, employer_city.upper(), employee_address, employee_street, employee_state.upper(), employee_zipcode, employee_city.upper(), start_date, pay_frequency, string_date_value, employer_name.upper(), employee_name.upper(), current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date, position, result_output_data, employee_id, text,emp_start_date
+
+            return employer_address, employer_street, employer_state.upper(), employer_zipcode, employer_city.upper(), employee_address, employee_street, employee_state.upper(), employee_zipcode, employee_city.upper(), start_date, pay_frequency, string_date_value, employer_name.upper(), employee_name.upper(), current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date, position, result_output_data, employee_id, text, emp_start_date
         except Exception as e:
-
-            employer_address = employer_street = employer_state = employer_zipcode = employer_city = employee_address = employee_street = employee_state = employee_zipcode = employee_city = start_date = pay_frequency = string_date_value = employer_name = employee_name = current_gross_pay = ytd_gross_pay = current_net_pay = ytd_net_pay = taxes = current_taxes = ytd_taxes = rate_taxes = hrs_taxes = earnings = current_earnings = ytd_earnings = rate_regular = hrs_regular = pre_deduction = current_pre_deduction = ytd_pre_deduction = rate_pre_deduction = hrs_pre_deduction = post_deduction = current_post_deduction = ytd_post_deduction = rate_post_deduction = hrs_post_deduction = total_calculated_taxes = current_total_calculated_taxes = ytd_total_calculated_taxes = hrs_total_calculated_taxes = rate_total_calculated_taxes = total_calculated_regular = current_total_calculated_regular = ytd_total_calculated_regular = hrs_total_calculated_regular = rate_total_calculated_regular = total_calculated_pre = current_total_calculated_pre = ytd_total_calculated_pre = hrs_total_calculated_pre = rate_total_calculated_pre = total_calculated_post = current_total_calculated_post = ytd_total_calculated_post = hrs_total_calculated_post = rate_total_calculated_post = total_taxes = current_total_taxes = ytd_total_taxes = hrs_total_taxes = rate_total_taxes = total_regular = current_total_regular = ytd_total_regular = hrs_total_regular = rate_total_regular = total_pre = current_total_pre = ytd_total_pre = hrs_total_pre = rate_total_pre = total_post = current_total_post = ytd_total_post = hrs_total_post = rate_total_post = employment_Start_date = pay_date = position = result = employee_id = text_value=emp_start_date = ''
-
-            return employer_address, employer_street, employer_state, employer_zipcode, employer_city, employee_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date, position, result, employee_id, text_value,emp_start_date
-
-
+            earnings=[]
+            employer_address = employer_street = employer_state = employer_zipcode = employer_city = employee_address = employee_street = employee_state = employee_zipcode = employee_city = start_date = pay_frequency = string_date_value = employer_name = employee_name = current_gross_pay = ytd_gross_pay = current_net_pay = ytd_net_pay  = current_taxes = ytd_taxes = rate_taxes = hrs_taxes =  current_earnings = ytd_earnings = rate_regular = hrs_regular  = current_pre_deduction = ytd_pre_deduction = rate_pre_deduction = hrs_pre_deduction =  current_post_deduction = ytd_post_deduction = rate_post_deduction = hrs_post_deduction = total_calculated_taxes = current_total_calculated_taxes = ytd_total_calculated_taxes = hrs_total_calculated_taxes = rate_total_calculated_taxes = total_calculated_regular = current_total_calculated_regular = ytd_total_calculated_regular = hrs_total_calculated_regular = rate_total_calculated_regular = total_calculated_pre = current_total_calculated_pre = ytd_total_calculated_pre = hrs_total_calculated_pre = rate_total_calculated_pre = total_calculated_post = current_total_calculated_post = ytd_total_calculated_post = hrs_total_calculated_post = rate_total_calculated_post = total_taxes = current_total_taxes = ytd_total_taxes = hrs_total_taxes = rate_total_taxes = total_regular = current_total_regular = ytd_total_regular = hrs_total_regular = rate_total_regular = total_pre = current_total_pre = ytd_total_pre = hrs_total_pre = rate_total_pre = total_post = current_total_post = ytd_total_post = hrs_total_post = rate_total_post = employment_Start_date = pay_date = position = result = employee_id = text_value = emp_start_date = ''
+            post_deduction=[]
+            pre_deduction=[]
+            taxes=[]
+            return employer_address, employer_street, employer_state, employer_zipcode, employer_city, employee_address, employee_street, employee_state, employee_zipcode, employee_city, start_date, pay_frequency, string_date_value, employer_name, employee_name, current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date, position, result, employee_id, text_value, emp_start_date

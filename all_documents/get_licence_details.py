@@ -17,11 +17,7 @@ DEBUG = False
 class Licence_details:
 
     def __init__(self):
-        self.api_key = 'AIzaSyCao8hUleolUVnfFVI3CmBHECSbO1FZFpg'
-        self.date_val = []
-        self.date = []
-        self.gmaps = googlemaps.Client(key=self.api_key)
-        self.regex_val = ''
+
 
         self.result = {}
 
@@ -41,13 +37,20 @@ class Licence_details:
         self.street_address_original, self.state_original, self.city_original, self.zip_code_original, self.street_address_processed, self.state_processed, self.city_processed, self.zip_code_processed = {}, {}, {}, {}, {}, {}, {}, {}
         self.failure_regex = ''
         self.c = Common()
-
+        with open('../config/config.json') as data_file:
+            self.config = json.load(data_file)
         with open('../config/name', 'r') as data_file:
             self.name_list = json.load(data_file)
         with open('../config/city.json', 'r',encoding='utf-8') as data_file:
             self.cities = json.load(data_file)
         with open('../config/filtering.json', 'r') as data:
             self.state_value = json.load(data)
+
+        self.api_key = self.config["google_map_key"]
+        self.date_val = []
+        self.date = []
+        self.gmaps = googlemaps.Client(key=self.api_key)
+        self.regex_val = ''
 
     def custom_print(self, *arg):
         if DEBUG:
@@ -136,13 +139,13 @@ class Licence_details:
         try:
 
             name, actual_city = [], []
-            if re.search('\s(!?NH)\s'," ".join(map(str,details[0]['address']))):
-                address_details = details[0]['address']
-                street_address = address_details[1]
-                street_address=street_address.replace('3.','')
-                address_val = address_details[2]
-                address_val=address_val.replace('-','')
-                value_name = address_details[0]
+            if re.search('\s(!?NH)\s'," ".join(map(str,details[0]['address']))) and re.search(r'(!?3|8|6|9)\.'," ".join(map(str,details[0]['address']))):
+                    address_details = details[0]['address']
+                    street_address = address_details[1]
+                    street_address=street_address.replace('3.','')
+                    address_val = address_details[2]
+                    address_val=address_val.replace('-','')
+                    value_name = address_details[0]
             elif 'dob' in details[0]["address"][0].lower():
                 address_details = details[0]['address']
                 street_address = address_details[1]
@@ -192,9 +195,11 @@ class Licence_details:
 
                 name = details[0]['name']
                 value_name = ' '.join(map(str, name))
-            if re.search('\s(!?NH)\s', " ".join(map(str, details[0]['address']))):
-                address = street_address+" "+address_val
-                address = avoid.address_replace(address)
+            if re.search('\s(!?NH)\s'," ".join(map(str,details[0]['address']))) and re.search(r'(!?3|8|6|9)\.'," ".join(map(str,details[0]['address']))):
+
+                    address = street_address+" "+address_val
+                    address = avoid.address_replace(address)
+
             else:
                 address = " ".join(map(str, address_details))
                 address = avoid.address_replace(address)

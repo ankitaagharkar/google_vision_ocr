@@ -1,3 +1,5 @@
+import io
+
 import cv2,os
 from pylab import arange
 import numpy as np,sys
@@ -13,9 +15,12 @@ class Denoising:
             pImg = ''
             filename=os.path.basename(path)
             if 'SSN' in doc_type:
-                img = Image.open(path).convert('L')
+                with io.open(path, 'rb') as image_file:
+                    self.image_content = image_file.read()
+                img=Image.open(io.BytesIO(self.image_content)).convert('L')
                 img = np.array(img.copy())
-                pImg=cv2.GaussianBlur(img,(3,3),0)
+                pImg = cv2.GaussianBlur(img, (3,3), 0)
+                # pImg = cv2.fastNlMeansDenoising(img, None, 1,1)
             elif 'Passport' in doc_type:
                 img = Image.open(path)
                 img = np.array(img.copy())

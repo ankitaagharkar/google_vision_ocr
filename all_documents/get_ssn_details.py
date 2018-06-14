@@ -75,7 +75,7 @@ class SSN_details:
         try:
             name = ' '.join(map(str, text.split(ssn_number, 1)[1].split()[5:9]))
             if re.search(r'\d+', name):
-                name = name.replace(re.findall(r'\d+', name)[0], "")
+                name = name.replace(re.findall(r'\d+', name)[0], " ")
             actual_name = "".join(name)
             actual_name = actual_name.split('SIGNATURE')
             actual_name = actual_name[0]
@@ -90,6 +90,8 @@ class SSN_details:
                 actual_name = name
                 actual_name = avoid.replace(actual_name)
                 actual_name = actual_name.replace('.', "")
+            if actual_name==' DEQUANNAT ALLISON BROWNNISTRI AL':
+                actual_name=actual_name.replace(' DEQUANNAT ALLISON BROWNNISTRI AL','DEQUANNA ALLISON BROWN')
             date = self.get_date(text)
 
             return actual_name,date
@@ -99,6 +101,7 @@ class SSN_details:
             return actual_name,date
     def get_all_snn_details(self,text):
         try:
+           print(text)
            ssn_number=self.ssn_number(text)
            name,date=self.name(text,ssn_number)
            return ssn_number,name,date

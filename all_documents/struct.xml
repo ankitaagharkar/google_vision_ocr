@@ -187,6 +187,7 @@ Ignore value 			{val_ignore}
 				<val>direct deposit bank</val>
 				<val>organizations contribution</val>
 				<val>employer paid benefits</val>
+				<val>employer paid cost</val>
 				<val>company paid benefits</val>
 				<val>leave</val>
 				<val>benefits paid by government for you</val>
@@ -437,6 +438,8 @@ Ignore value 			{val_ignore}
 				<val type="amount">current deductions</val>
 				<val type="amount">current taxes</val>
 				<val type="amount">ytd deductions</val>
+				<val type="amount">deposit amount</val>
+				<val type="amount">pen gross</val>
 
 				<!-- Location -->
 				<val type="text">site</val>
@@ -462,6 +465,8 @@ Ignore value 			{val_ignore}
 			<val col="gross_pay_ytd">ytd gross</val>
 			<val col="gross_pay_current">current gross pay</val>
 			<val col="gross_pay_ytd">ytd gross pay</val>
+			<val col="net_pay_current">deposit amount</val>
+			<val col="gross_pay_current">pen gross</val>
 		</data_dict>
 	</paystub>
 	<paystub id="ADP">

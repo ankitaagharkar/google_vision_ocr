@@ -246,6 +246,8 @@ class get_all_location:
                         test = symbol.property.detected_break
                         if str("SPACE").lower() in str(test).lower():
                             symbol.text = symbol.text + ' '
+                        if str("NEW LINE").lower() in str(test).lower():
+                            symbol.text = symbol.text + ' '
                         block_text = block_text + symbol.text
 
                     text.append(block_text)

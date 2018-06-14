@@ -4,6 +4,9 @@ import re
 def replace(actual_name):
     actual_name1 = actual_name.replace('DONAR', "")
     actual_name1 = actual_name1.replace("DRIVER'S", " ")
+    actual_name1 = actual_name1.replace(">", "")
+    actual_name1 = actual_name1.replace("<", "")
+    actual_name1 = actual_name1.replace(",", "")
 
     actual_name1 = actual_name1.replace('DRIVER', "")
     actual_name1 = actual_name1.replace('LICENSE', "")
