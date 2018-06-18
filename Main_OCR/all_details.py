@@ -987,6 +987,7 @@ class Scan_OCR:
                     thread = threading.Thread(target=self.get_doc_text, args=(
                         "../images/documents_upload/" + filename, json_val[doc_id],))
                     # file_path1=f_path
+                time.sleep(2)
                 thread.start()
                 (
                     self.text, employer_full_address, employer_street, employer_state,
@@ -1061,7 +1062,7 @@ class Scan_OCR:
                     last_name = name_value[2]
                     first_name = name_value[0]
                     middle_name = name_value[1]
-                time.sleep(1)
+
                 for i in range(len(response['fields'])):
                     if 'regular_earn' in response['fields'][i]['name']:
                         if len(earnings) > 0:

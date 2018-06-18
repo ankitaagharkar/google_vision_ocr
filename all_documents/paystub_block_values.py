@@ -20,6 +20,25 @@ import copy
 
 """
 Changelog
+    ## [6.1.0] - 2018-06-13
+    ### Added
+    - Standard dictionary for using data val and data dict of paystub template
+    - Logic to read float values along with $ and (, ) signs.
+    - Logic to use google for checking addresses
+    - Logic to sort buckets of y-axis as per x-axis
+    - Logic to read net pay if net pay not found till end.
+
+    ### Changed
+    - Logic to read float values, now using google text description to read float values
+    - Line algo logic modified to improve results
+    - Improved logic of sequence with 3 words, 100% confidence required to use sequence
+    - Improved hybrid data val logic
+    - Address logic improved.
+
+    ### Removed
+    - Logic of reading Paycor paystubs specifically. 'NET' word logic removed
+
+
     ## [6.0.1] - 2018-05-25
     ### Changed
     - Line algo updated, now checking line_list having one word, and checking its proper position.
@@ -437,12 +456,18 @@ class paystub_gcv:
 
         self.data_val = all_headers['data_val']
         self.data_dict = all_headers['data_dict']
-        self.standard_dict = {'employee_number': 'Employee Number', 'pay_period_end_date': 'End Date',
-                              'pay_period_start_date': 'Start Date',
-                              'employment_start_date': 'Hire Date', 'pay_frequency': 'Pay Frequency',
-                              'position': 'Position',
-                              'employer_name': 'Company', 'employee_fn': 'Name', 'pay_date': 'Pay Date',
-                              'gross_pay': 'Gross Pay', 'net_pay': 'Net Pay'}
+        self.standard_dict = {'employee_number': {'name': 'Employee Number', 'type': 'id_text'},
+                              'pay_period_end_date': {'name': 'End Date', 'type': 'date'},
+                              'pay_period_start_date': {'name': 'Start Date', 'type': 'date'},
+                              'employment_start_date': {'name': 'Hire Date', 'type': 'date'},
+                              'pay_frequency': {'name': 'Pay Frequency', 'type': 'text'},
+                              'position': {'name': 'Position', 'type': 'text'},
+                              'employer_name': {'name': 'Company', 'type': 'text'},
+                              'employee_fn': {'name': 'Name', 'type': 'text'},
+                              'pay_date': {'name': 'Pay Date', 'type': 'date'},
+                              'gross_pay': {'name': 'Gross Pay', 'type': 'amount'},
+                              'net_pay': {'name': 'Net Pay', 'type': 'amount'}
+                              }
 
     def custom_print(self, *arg):
         if DEBUG:
@@ -537,7 +562,7 @@ class paystub_gcv:
 
     def is_pay_component(self, word, l_index):
         s = word[0]
-        if s.lower() in ['yes', 'no']+self.digits_dict:
+        if s.lower() in ['yes', 'no'] + self.digits_dict:
             return False
         s = re.sub('[^a-zA-LN-Z0-9 \n\.]', '', s)
         """
@@ -635,6 +660,15 @@ class paystub_gcv:
         range_bucket = []
         upto_y = res[0][1][0][1] + range_size
         for values in res:
+            # check if word size is greater than mode height of all words
+            if abs(values[1][0][1] - values[1][2][1]) > max_height or abs(
+                    values[1][0][1] - values[1][2][1]) < min_height:
+                self.custom_print('Rejected word ', values)
+                continue
+
+            if abs(values[1][0][1] - values[1][1][1]) > slant_reject:
+                self.custom_print('Rejected word because of improper alignment', values)
+                continue
             if values[1][0][1] <= upto_y:
                 range_bucket.append(values)
             else:
@@ -673,15 +707,6 @@ class paystub_gcv:
 
         for i, values in enumerate(res[1:]):
             self.custom_print(values, mod_ht)
-            # check if word size is greater than mode height of all words
-            if abs(values[1][0][1] - values[1][2][1]) > max_height or abs(
-                    values[1][0][1] - values[1][2][1]) < min_height:
-                self.custom_print('Rejected word ', values)
-                continue
-
-            if abs(values[1][0][1] - values[1][1][1]) > slant_reject:
-                self.custom_print('Rejected word because of improper alignment', values)
-                continue
 
             """'
             From - To - Mean Algorithm
@@ -1067,10 +1092,10 @@ class paystub_gcv:
                                 if len(space_lists) > 10:
                                     general_space_width = int(sum(space_lists[-10:]) / 10)
                                 try:
-                                    if d1.lower() in ['period start','period begin','period ending','period end',
-                                                      'period starting','period beginning','pay start','pay begin',
-                                                      'earns begin','pay end','earns end']:
-                                        if line[w_index+1][0].lower() not in ['date']:
+                                    if d1.lower() in ['period start', 'period begin', 'period ending', 'period end',
+                                                      'period starting', 'period beginning', 'pay start', 'pay begin',
+                                                      'earns begin', 'pay end', 'earns end']:
+                                        if line[w_index + 1][0].lower() not in ['date']:
                                             space_width = 0
                                 except:
                                     pass
@@ -1422,6 +1447,7 @@ class paystub_gcv:
 
         data_blocks = []
         block_with_headers = self.check_rule('All Blocks With Headers')
+        bottom_up_data = self.check_rule('Bottom Up Data Values')
 
         is_star_pre = self.check_rule('Is Star Pre-Tax')
         is_pre_header_defined = self.check_rule('Is TaxType Header Defined')
@@ -1480,9 +1506,9 @@ class paystub_gcv:
                             horizontal_word = []
                         try:
                             vertical_word = min(enumerate(lines[l_index + 1]),
-                                                key=lambda x: abs(word[1][0][0] - x[1][1][0][0]) if (x[1][1][0][0] - word[1][0][0]) > -5 else float('inf'))
+                                                key=lambda x: abs(word[1][0][0] - x[1][1][0][0]))
                             # if word is too below on y-axis, reject it
-                            if abs(vertical_word[1][1][0][1] - word[1][3][1]) > (2 * word_height)\
+                            if abs(vertical_word[1][1][0][1] - word[1][3][1]) > (2 * word_height) \
                                     or abs(word[1][0][0] - vertical_word[1][1][0][0]) > (6 * word_height):
                                 vertical_word = []
                             else:
@@ -1509,7 +1535,6 @@ class paystub_gcv:
                                     v_word = False
                                 else:
                                     h_word = False
-                                pass
                             if h_word:
                                 data_blocks.append([word[0], h_word, 'Current', 'General'])
                             elif v_word:
@@ -1529,10 +1554,12 @@ class paystub_gcv:
                                 if j[0] == seq_word[0]:
                                     field_type = j[1]
                                     break
-                            data_blocks.append(
-                                [self.standard_dict[field_type['field']], line[w_index + 1][0], 'Current', 'Others'])
+                            val = self.check_type(line[w_index + 1][0], self.standard_dict[field_type['field']])
+                            if val:
+                                data_blocks.append(
+                                    [self.standard_dict[field_type['field']]['name'], val, 'Current', 'Others'])
                         except:
-                            data_blocks.append([word[0], line[w_index + 1][0], 'Current', 'General'])
+                            pass
                 except:
                     pass
 
@@ -1541,22 +1568,73 @@ class paystub_gcv:
                     seq_word = difflib.get_close_matches(word[0].lower(), [j[0] for j in self.data_val['Vertical']],
                                                          cutoff=0.80)
                     if seq_word:
+                        try:
+                            down_val = min(enumerate(lines[l_index + 1]),
+                                           key=lambda x: abs(word[1][0][0] - x[1][1][0][0]) if (x[1][1][0][0] -
+                                                                                                word[1][0][
+                                                                                                    0]) > -5 else float(
+                                               'inf'))
+                            # if word is too below on y-axis, reject it
+                            if abs(down_val[1][1][0][1] - word[1][3][1]) > (2 * word_height) \
+                                    or abs(word[1][0][0] - down_val[1][1][0][0]) > (6 * word_height):
+                                down_val = []
+                            else:
+                                down_val = down_val[1]
+                        except:
+                            down_val = []
+                        try:
+                            if bottom_up_data:
+                                up_val = min(enumerate(lines[l_index - 1]),
+                                             key=lambda x: abs(word[1][0][0] - x[1][1][0][0]))
+                                # if word is too below on y-axis, reject it
+                                if abs(up_val[1][1][3][1] - word[1][0][1]) > (2 * word_height) \
+                                        or abs(word[1][0][0] - up_val[1][1][0][0]) > (8 * word_height):
+                                    up_val = []
+                                else:
+                                    up_val = up_val[1]
+                            else:
+                                up_val = []
+                        except:
+                            up_val = []
+                        if up_val or down_val:
+                            for j in self.data_val['Vertical']:
+                                if j[0] == seq_word[0]:
+                                    field_type = j[1]
+                                    break
+                            u_word = d_word = False
+                            if up_val:
+                                u_word = self.check_type(up_val[0], self.standard_dict[field_type['field']])
+                            if down_val:
+                                d_word = self.check_type(down_val[0], self.standard_dict[field_type['field']])
+                            if u_word and d_word:
+                                d_word = False
+                            if u_word:
+                                data_blocks.append(
+                                    [self.standard_dict[field_type['field']]['name'], u_word, 'Current', 'Others'])
+                            elif d_word:
+                                data_blocks.append(
+                                    [self.standard_dict[field_type['field']]['name'], d_word, 'Current', 'Others'])
+                            else:
+                                pass
+                        """
                         possible_word = min(enumerate(lines[l_index + 1]),
                                             key=lambda x: word[1][1][0] - x[1][1][0][0] if word[1][1][0] - x[1][1][0][
                                                 0] >= 0 else float('inf'))
                         if possible_word[1][1][1][0] > word[1][0][0]:
-                            val = self.is_float(possible_word[1][0])
-                            if val:
-                                try:
-                                    for j in self.data_val['Vertical']:
-                                        if j[0] == seq_word[0]:
-                                            field_type = j[1]
-                                            break
+
+                            try:
+                                for j in self.data_val['Vertical']:
+                                    if j[0] == seq_word[0]:
+                                        field_type = j[1]
+                                        break
+                                val = self.check_type(possible_word[1][0], self.standard_dict[field_type['field']])
+                                if val:
                                     data_blocks.append(
-                                        [self.standard_dict[field_type['field']], self.final_float(val), 'Current',
+                                        [self.standard_dict[field_type['field']]['name'], val, 'Current',
                                          'Others'])
-                                except:
-                                    data_blocks.append([word[0], self.final_float(val), 'Current', 'General'])
+                            except:
+                                pass
+                        """
                 except Exception as e:
                     pass
 
@@ -1629,7 +1707,7 @@ class paystub_gcv:
                             # closest block's mean and its respective 'Current' type column's start-x
                             else:
                                 for i, x in enumerate(columns):
-                                    if x[4] == b_index and x[6] == 'Current' and blocks[-1][3] > blocks[b_index][3] and \
+                                    if x[4] == b_index and x[6] == 'Current' and blocks[-1][3] > blocks[b_index][1] and \
                                             blocks[-1][3] < x[0]:
                                         change_block = True
                                         break
@@ -2022,7 +2100,7 @@ class paystub_gcv:
                                                self.earning_headers + self.tax_headers + ['pre tax deductions',
                                                                                           'post tax deductions'],
                                                cutoff=0.80)
-                if bool(re.search(r'check|chck|chkck', db[0].lower())):
+                if bool(re.search(r'check|chck|chkck|xxxx', db[0].lower())):
                     block_name = 'Others'
                     try:
                         probable_net_pay = db[1] if float(db[1]) > 0 else probable_net_pay
@@ -2039,6 +2117,8 @@ class paystub_gcv:
                     if db[3].lower() in ['net pay distribution'] and db[0].lower() in ['total']:
                         block_name = 'Net Pay'
                         db[2] = 'Current'
+                    elif db[3].lower() in ['summary_table'] and db[0].lower() in ['earnings']:
+                        block_name = 'Gross Pay'
                     else:
                         block_name = 'Others'
 
@@ -2208,6 +2288,7 @@ class paystub_gcv:
         for d in digits_w_spaces:
             new_d = re.findall(r'(([(|\-|+|*|$]+)?\d+\s?\,?\s?(\d+)?\.?(\d+)?[*)]?)', d)
             self.digits_dict.remove(d)
+
             # d = list(filter(lambda w: bool(re.search(r'[+-]?([0-9]*[.][0-9]+)', w)), d.split()))
             for val in new_d:
                 if re.search(r'\d+\.\d+', val[0]):
@@ -2502,7 +2583,8 @@ class paystub_gcv:
         mode_height = max(set([x for x in hl if x > 2]), key=hl.count)
 
         # parse tree and get root element
-        # tree = ElementTree.parse('../all_documents/struct.xml')
+        # tree = ElementTree.parse('struct.xml')
+
 
         struct_json = requests.post(self.config['base_url'] + '/getTemplateXMLFile', verify=False)
         buf = struct_json.content
@@ -2510,6 +2592,7 @@ class paystub_gcv:
             download_struct.write(buf)
             download_struct.close()
         tree = ElementTree.parse("../all_documents/struct/struct.xml")
+      
 
         root = tree.getroot()
         paystub_structs = []
@@ -2613,11 +2696,12 @@ class paystub_gcv:
                 except:
                     pass
 
-        print(final_data)
+        # print(final_data)
         return final_data, text_output_data, result_output
 
     def final_address(self, output):
         try:
+            print("in final_address",output)
             address_name = []
             code = ''
             replace_val = ''
@@ -2638,9 +2722,18 @@ class paystub_gcv:
 
                     data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\,\s)+(' + post_code + ')',
                                       temp_address_name)
+                    # a1 = []
+                    # if data != [] and data != []:
+                    #     for i in data:
+                    #         a1.append(" ".join(i))
+                    #
+                    # code = " ".join(map(str, a1))
                     code = " ".join(map(str, data[0]))
+
+                    words = code.split()
+                    code = " ".join(sorted(set(words), key=words.index))
                     code = code.replace('   ', ' ').lstrip()
-                    code = code.replace('   ', ' ').rstrip()
+                    code = code.replace('- ', '-').lstrip()
 
                     a = temp_address_name
                     address_name.append(temp_address_name.split(code)[0] + " " + code)
@@ -2650,25 +2743,31 @@ class paystub_gcv:
                 else:
                     temp_address_name = name + " " + output[i]["address"][0]
                     # print(address_name)
-                    data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\,\s)+(' + post_code + ')',
-                                      temp_address_name)
+                    data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\,\s)+(' + post_code + ')',temp_address_name)
                     code = " ".join(map(str, data[0]))
+                    words = code.split()
+                    code = " ".join(sorted(set(words), key=words.index))
                     code = code.replace('   ', ' ').lstrip()
-                    code = code.replace('   ', ' ').rstrip()
+                    code = code.replace('- ', '-').lstrip()
                     address_name.append(temp_address_name.split(code)[0] + " " + code)
             # print(address_name)
 
             for i in range(len(address_name)):
+                if "" in address_name:
+                    address_name.remove("")
+            for i in range(len(address_name)):
+                address_name[i] = address_name[i].replace('* ', '')
+
+                if re.search(r'\d?\-?\d{3}-\d{3}-\d{4}|\(?\d+\)?\s\d+\-\d+',address_name[i]):
+                     address_name[i]=address_name[i].replace(re.findall(r'\d?\-?\d{3}-\d{3}-\d{4}|\(?\d+\)?\s\d+\-\d+',address_name[i])[0],'')
                 print(address_name[i])
-                if re.search(r'\d?\-?\d{3}-\d{3}-\d{4}',address_name[i]):
-                     address_name[i]=address_name[i].replace(re.findall(r'\d?\-?\d{3}-\d{3}-\d{4}',address_name[i])[0],'')
                 if address_name[i] != '':
                     gmaps = googlemaps.Client(key=self.config["google_map_key"])
                     if not re.search(r'(!?ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)',address_name[i].split()[0],re.IGNORECASE) or not re.search('([A-Za-z]+\s?\d+)?|\d+',
                                                                      address_name[i].split()[0],
                                                                      re.IGNORECASE):
 
-                        json_val = gmaps.geocode(" ".join(address_name[i].split()[2:]))
+                        json_val = gmaps.geocode(" ".join(address_name[i].split()[2:]).replace('LLC',"").replace('INC','').lstrip().rstrip())
                         # json_val = gmaps.geocode(" ".join(address_name[i].split()[2:]))
                         # print(json_val)
                         new_ouput = {}
@@ -2689,7 +2788,7 @@ class paystub_gcv:
                                         replace_val = replace_val.split()[0].replace(replace_val.split()[0],json_val[0]['address_components'][j][
                                                                                          'long_name']) + " " + replace_val
                                     else:
-                                        replace_val = " ".join(map(str, json_val[0]['formatted_address'])).replace(
+                                        replace_val = "".join(map(str, json_val[0]['formatted_address'])).replace(
                                             ',', json_val[0]['address_components'][j]['long_name'])
 
                             if address_name[i] != json_val[0]['formatted_address']:
@@ -2706,12 +2805,12 @@ class paystub_gcv:
                                     else:
                                         new_ouput['name'] = [address_name[i].upper().split(replace_val.upper().split()[0])[0]]
                                         new_ouput['address'] = [address_name[i].upper().replace(new_ouput['name'][0], '')]
-                                    if re.search(r'\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|APT |RT |P.O. |NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.?\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+|\d+\s\d+|\d+)',new_ouput['name'][0],re.IGNORECASE):
-                                        reg_val=re.findall(r'\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|P.O. |APT |RT |NINE|TEN)\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.?\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+|\d+\s\d+|\d+)',new_ouput['name'][0])[0][0]
+                                    if re.search(r'\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|APT |RT |P.O. |PO |NINE|TEN|UNION )\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.?\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+|\d+\s\d+|\d+)',new_ouput['name'][0],re.IGNORECASE):
+                                        reg_val=re.findall(r'\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|P.O. |PO |APT |RT |NINE|TEN|UNION )\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.?\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+|\d+\s\d+|\d+)',new_ouput['name'][0])[0][0]
                                         new_ouput['name']=new_ouput['name'][0].split(reg_val)[0]
                                         new_ouput['name']=[new_ouput['name']]
                                         new_ouput['address'] = [address_name[i].upper().replace(new_ouput['name'][0], ' ')]
-                                    if re.search(r'((!?\d+)\s[A-Za-z]+)|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|RT |APT |SUITE |C\/O|P.O.|PO',new_ouput['address'][0]):
+                                    if re.search(r'((!?\d+)\s[A-Za-z]+)|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+\s\d+[A-Za-z+]|\d+\s\-?\s[A-Za-z]+|RT |APT |SUITE |C\/O|P.O.|PO',new_ouput['address'][0]):
                                         main_output.append(new_ouput)
 
 
@@ -2722,7 +2821,7 @@ class paystub_gcv:
                                     if not x2:
                                         new_ouput['name'] =output[i]["name"]
                                         new_ouput['address']=output[i]["address"]
-                                        if re.search(r'((!?\d+)\s[A-Za-z]+)|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|RT |APT |SUITE |C\/O|P.O.|PO',new_ouput['address'][0]):
+                                        if re.search(r'((!?\d+)\s[A-Za-z]+)|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+\s\d+[A-Za-z+]|\d+\s\-?\s[A-Za-z]+|RT |APT |SUITE |C\/O|P.O.|PO',new_ouput['address'][0]):
                                             main_output.append(new_ouput)
                                         main_output.append(new_ouput)
 
@@ -2738,9 +2837,11 @@ class paystub_gcv:
                             main_output=output
                             break
                     else:
+                        google_ouput.append(json_val[0]['formatted_address'])
                         new_ouput['name'] = output[i]["name"]
                         new_ouput['address'] = output[i]["address"]
                         main_output.append(new_ouput)
+
             return main_output
         except Exception as e:
             print("in google map",e)
@@ -2881,7 +2982,7 @@ class paystub_address:
         junk_words = ['c/o bunge human resources','C/O BUNGE HUMAN RESOURCES','attn payroll','employee address', 'employee name', 'address',
                       'employer address', 'employer name', 'order', 'to the', 'of', 'exemptions/allowances',
                       'human resources', 'payroll amount', 'payroll account', 'pay to the', 'order of',
-                      'tax blocked']
+                      'tax blocked','cmed - surgery']
         if data_box[-1][0].find(state_name) == 0:
             multiplier = 5
         else:
@@ -2935,8 +3036,9 @@ class paystub_address:
             self.custom_print(min_diff, start_x)
             if abs(min_diff[1][1][0][0] - start_x) < a_height or abs(min_diff[1][1][1][0] - end_x) < a_height:
                 if not address_found:
+
                     val_reg = re.compile(
-                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|SUITE|C\/O',
+                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|Union|SUITE|C\/O|MADISON',
                         re.IGNORECASE)
                     match_check = val_reg.findall(min_diff[1][0])
                     # match_check = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|[A-Za-z]+\s|\d+\-\d+|\d+',min_diff[1][0])
@@ -2949,8 +3051,10 @@ class paystub_address:
                         try:
                             min_diff_1 = min(enumerate(db[i + 1]), key=lambda x: abs(x[1][1][0][0] - start_x))
                             self.custom_print(min_diff_1)
+
+
                             val_reg = re.compile(
-                                r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|SUITE|C\/O',
+                                r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|SUITE|C\/O|MADISON',
                                 re.IGNORECASE)
                             match_check_1 = val_reg.findall(min_diff_1[1][0])
                             # match_check_1 = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|[A-Za-z]+\s|\d+\-\d+|\d+',min_diff_1[1][0])
@@ -2974,8 +3078,9 @@ class paystub_address:
                             name_started = True
                             address_found = True
                 elif not name_started:
+
                     val_reg = re.compile(
-                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|SUITE|C\/O',
+                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|Union|SUITE|C\/O|MADISON',
                         re.IGNORECASE)
                     match_check = val_reg.findall(min_diff[1][0])
                     # match_check = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|[A-Za-z]+\s|\d+\-\d+|\d+',min_diff[1][0])
