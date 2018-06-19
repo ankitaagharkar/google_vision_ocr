@@ -612,7 +612,12 @@ class Scan_OCR:
 
             image_process_data = image_process_resp.content
             if re.search(r'(!?(&|!|@|#|\$|\^|\*|\-|\'|\"))', filename):
-                filename = filename.replace(re.findall(r'(!?(&|!|@|#|\$|\^|\*|\-|\'|\"))', filename)[0][0], "")
+                data=re.findall(r'(!?&|!|@|#|\$|\^|\*|\-|\'|\")', filename)
+                if len(data)>1:
+                    filename = filename.replace(data[0], "")
+                    filename = filename.replace(data[1], "")
+                else:
+                    filename = filename.replace(data[0], "")
             with open("../images/documents_upload/" + filename, "wb") as downloaded_image:
                 downloaded_image.write(bytearray(image_process_data))
                 downloaded_image.close()

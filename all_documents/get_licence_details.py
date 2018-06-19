@@ -205,9 +205,11 @@ class Licence_details:
                 address = avoid.address_replace(address)
 
             address_val = avoid.address_replace(address_val)
-            address_val = address_val.replace(',', '')
-            address = address.replace(',', '')
-            address = address.replace('.', '')
+            address_val = address_val.replace(',', '').lstrip().rstrip()
+            address_val = address_val.replace(', ', '').lstrip().rstrip()
+            address = address.replace(',', '').lstrip().rstrip()
+            address = address.replace(', ', '').lstrip().rstrip()
+            address = address.replace('.', '').lstrip().rstrip()
             address_val = address_val.replace('.', '')
             # todo:to remove words before street number
             asp = address_val.split()

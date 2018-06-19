@@ -68,14 +68,14 @@ class Paystub_details:
                           "period beginning date", "period starting", 'pay begin date', "period start",
                           'period begin date',
                           'start date', 'period start date', 'period starting date', 'pay start date', 'check stub for',
-                          'earns begin date', 'check stub for the period','Pay Begin Dato']
+                          'earns begin date', 'check stub for the period','pay begin dato','begin at']
 
         self.pay_end = ["pay period end", "pay end date", "end date", "period ending",
                         "period ending date", "period ending", 'period end date', "period end", 'to', 'earns end date',
-                        'penod ending','pay date;','Pay End Dato']
+                        'penod ending','pay date;','pay end dato']
 
         self.pay_date = ["check date", "advice date", "pay date", "payment date", 'deposite date', 'with a pay date of',
-                         'pay day','Pay Dato']
+                         'pay day','Pay Dato','payment date']
 
         self.pay_all = ["pay period from", "period beg/end", "pay period", "payroll period", "period date", 'period',
                         'begin/end dates','for pay period']
@@ -95,7 +95,7 @@ class Paystub_details:
         self.employee_name = ['name']
         self.employer_name = ['name']
         self.all_others = self.pay_begin + self.pay_end + self.pay_date + self.pay_all + self.pay_frequency+self.employee_name+self.employer_name+self.employee1_address+self.employer_address+ self.id + self.name + self.emp_name + self.position + self.emp_Address + self.employee_Address + self.emp_start_date
-        self.all_name = self.employee_name+self.employer_name+ self.name + self.emp_name
+        self.all_name = self.employee_name+ self.name
 
     def custom_print(self, *arg):
         if DEBUG:
@@ -188,10 +188,18 @@ class Paystub_details:
                 a=[]
                 a1=[]
                 if data != [] and data != []:
-                    for i in data:
-                        a.append(" ".join(i))
-                    for i in data1:
-                        a1.append(" ".join(i))
+                    if len(data)>1:
+                        for i in data[0]:
+                            a.append("".join(i))
+                    else:
+                        for i in data:
+                            a.append(" ".join(i))
+                    if len(data1)>1:
+                        for i in data1[0]:
+                            a1.append("".join(i))
+                    else:
+                        for i in data1:
+                            a1.append(" ".join(i))
                     code = " ".join(map(str, a))
                     code1 = " ".join(map(str, a1))
                     if len(re.findall(r'\s[A-Za-z]+\s',code))>1:
@@ -231,6 +239,8 @@ class Paystub_details:
 
                 address1 = address1.replace('   ', ' ').rstrip().lstrip()
                 address2 = address2.replace('   ', ' ').rstrip().lstrip()
+
+
 
                 val1 = re.compile(
                     r'\s?\s?(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\-?\.?\w(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\-?\s?[A-Za-z]+|\d+\s?\.\s[A-Za-z]+|\d+\s?[A-Za-z]+\.?\s?[A-Za-z]+\s?\.|(\w+)?\s?(\d+)?\-?\.?\w+?\.?\s?(\w+)?|\s?\d+\s?\-?\s?\d+\s?[A-Za-z]+\s?([A-Za-z]+)?\s?([A-Za-z]+)?|\w+?\d+\s?\-?\s?(\d+)?\s?[A-Za-z]+|[A-Za-z]+\s[A-Za-z]+\s\d+|[A-Za-z]+\.?[A-Za-z]+\.?\s?[A-Za-z]+\s\d+|\d+\s\d+|[A-Za-z]+\s[A-Za-z]+)',
@@ -538,11 +548,11 @@ class Paystub_details:
                 employee_street=''
 
             if zipcode=='':
-                if state != '':
+                if re.search('\d+\-\d+|\d+|\w+\s?d+',state):
                     zipcode=state.split()[1]
                     state=state.split()[0]
             if zipcode1=='':
-                if state1!='':
+                if re.search('\d+\-\d+|\d+|\w+\s?d+',state1):
                     zipcode1=state1.split()[1]
                     state1=state1.split()[0]
 
@@ -730,7 +740,7 @@ class Paystub_details:
                                 position = j[1]
                             if x[0] in self.id:
                                 employee_id = j[1]
-                            if x[0] in self.name:
+                            if x[0] in self.name or x[0] in self.employee_name:
                                 if employee_name == '':
                                     employee_name = j[1]
                                 if employee_name.lower() == 'J&J Services Inc.'.lower():
@@ -738,7 +748,7 @@ class Paystub_details:
                                     employee_name = j[1]
 
                                 continue
-                            if x[0] in self.emp_name:
+                            if x[0] in self.emp_name or x[0] in self.employee_name:
                                 if employer_name == '' or employer_name.lower() == 'company':
                                     employer_name = j[1]
 
@@ -1142,6 +1152,7 @@ class Paystub_details:
                                                                             self.surname_list['surnames']],
                                                                            cutoff=0.93)
                                         if not x1:
+                                            a=employee_name
                                             if x[0] in self.position:
                                                 position = j[1]
                                             if x[0] in self.id:
@@ -1153,24 +1164,15 @@ class Paystub_details:
                                                 else:
                                                     employee_name = j[1]
 
-                                            elif x[0] in self.emp_name:
-                                                if employer_name.lower() == 'company':
-                                                    employer_name = j[1]
-                                                else:
-                                                    employer_name = j[1]
                                             elif x[0] in self.employee_name:
-
-
                                                     employee_name = j[1]
-
-                                            elif x[0] in self.employer_name:
-
-                                                    employer_name = j[1]
-
 
                                             for k in range(len(text_value["addresses"])):
                                                     a2=[]
-                                                    if text_value["addresses"][k]['name'][0].replace(',','').replace('.', '').rstrip().lower() == employee_name.replace(',','').replace('.', '').rstrip().lower():
+                                                    print(
+                                                        text_value["addresses"][k]['name'][0].replace(',', '').replace(
+                                                            '.', '').rstrip().lower())
+                                                    if employee_name.replace(',','').replace('.', '').rstrip().lower() in text_value["addresses"][k]['name'][0].replace(',','').replace('.', '').rstrip().lower() :
                                                         temp_emp_address = text_value["addresses"][k]['address']
                                                         temp_emp_address = " ".join(map(str, temp_emp_address))
                                                         temp_emp_address = temp_emp_address.replace(employee_id, '')
@@ -1266,7 +1268,7 @@ class Paystub_details:
                                                             employer_city = employee_city
                                                             employer_state = employee_state
                                                             employer_zipcode = employee_zipcode
-
+                                                            employer_name=a
                                                         employee_address = actual_full_address.upper()
                                                         employee_street = street.upper()
                                                         employee_zipcode = zipcode
@@ -1274,20 +1276,21 @@ class Paystub_details:
                                                         city1 = city.replace('.', '').upper()
                                                         employee_city = city1.replace(',', '').upper()
 
-                                                        break
-                                        else:
-                                            if y1:
-                                                pass
+
+
 
 
                 x = difflib.get_close_matches(employer_name.split()[0].lower(),
                                               [vt.lower() for vt in self.name_list['names']],
                                               cutoff=0.93)
-                if len(employer_name.split()) > 2:
+                if len(employer_name.rstrip().lstrip().split()) > 2:
                     y = difflib.get_close_matches(employer_name.split()[2].lower(),
                                                   [vt.lower() for vt in self.surname_list['surnames']],
                                                   cutoff=0.93)
-
+                elif len(employer_name.rstrip().lstrip().split())==1:
+                    y = difflib.get_close_matches(employer_name.split()[0].lower(),
+                                                  [vt.lower() for vt in self.surname_list['surnames']],
+                                                  cutoff=0.93)
                 else:
                     y = difflib.get_close_matches(employer_name.split()[1].lower(),
                                                   [vt.lower() for vt in self.surname_list['surnames']],
@@ -1509,16 +1512,24 @@ class Paystub_details:
 
             employee_address = employee_address.upper()
             employer_address = employer_address.upper()
-            employer_address = employer_address.replace(employer_name, ' ').lstrip()
-            employer_address = employer_address.replace(employee_name, ' ').rstrip()
-            employee_address = employee_address.replace(employer_name, ' ').lstrip()
-            employee_address = employee_address.replace(employee_name, ' ').rstrip()
 
             for vt in self.employer_name_list["employer_name"]:
                 if vt.lower() in text.lower():
                     employer_name = vt
+                    break
+            if employer_name=='' or employer_name==' ':
+                employer_address = employer_address.replace(employer_name, ' ').lstrip().rstrip()
+            else:
+                employer_address = employer_address.replace(employer_name, '').lstrip().rstrip()
+
+            if employee_name=='' or employee_name==' ':
+                employee_address = employee_address.replace(employee_name, ' ').lstrip().rstrip()
+            else:
+                employee_address = employee_address.replace(employee_name, '').lstrip().rstrip()
+
+
             text_value=text
-            return employer_address, employer_street, employer_state.upper(), employer_zipcode, employer_city.upper(), employee_address, employee_street, employee_state.upper(), employee_zipcode, employee_city.upper(), start_date, pay_frequency, string_date_value, employer_name.upper(), employee_name.upper(), current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date, position, result_output_data, employee_id, text, emp_start_date
+            return employer_address, employer_street, employer_state.upper(), employer_zipcode, employer_city.upper(), employee_address, employee_street, employee_state.upper(), employee_zipcode, employee_city.upper(), start_date, pay_frequency, string_date_value, employer_name.upper().replace('.','').replace('  ',' '), employee_name.upper().replace('.','').replace('  ',' '), current_gross_pay, ytd_gross_pay, current_net_pay, ytd_net_pay, taxes, current_taxes, ytd_taxes, rate_taxes, hrs_taxes, earnings, current_earnings, ytd_earnings, rate_regular, hrs_regular, pre_deduction, current_pre_deduction, ytd_pre_deduction, rate_pre_deduction, hrs_pre_deduction, post_deduction, current_post_deduction, ytd_post_deduction, rate_post_deduction, hrs_post_deduction, total_calculated_taxes, current_total_calculated_taxes, ytd_total_calculated_taxes, hrs_total_calculated_taxes, rate_total_calculated_taxes, total_calculated_regular, current_total_calculated_regular, ytd_total_calculated_regular, hrs_total_calculated_regular, rate_total_calculated_regular, total_calculated_pre, current_total_calculated_pre, ytd_total_calculated_pre, hrs_total_calculated_pre, rate_total_calculated_pre, total_calculated_post, current_total_calculated_post, ytd_total_calculated_post, hrs_total_calculated_post, rate_total_calculated_post, total_taxes, current_total_taxes, ytd_total_taxes, hrs_total_taxes, rate_total_taxes, total_regular, current_total_regular, ytd_total_regular, hrs_total_regular, rate_total_regular, total_pre, current_total_pre, ytd_total_pre, hrs_total_pre, rate_total_pre, total_post, current_total_post, ytd_total_post, hrs_total_post, rate_total_post, employment_Start_date, pay_date, position, result_output_data, employee_id, text, emp_start_date
         # except Exception as e:
         #     earnings=[]
         #     employer_address = employer_street = employer_state = employer_zipcode = employer_city = employee_address = employee_street = employee_state = employee_zipcode = employee_city = start_date = pay_frequency = string_date_value = employer_name = employee_name = current_gross_pay = ytd_gross_pay = current_net_pay = ytd_net_pay  = current_taxes = ytd_taxes = rate_taxes = hrs_taxes =  current_earnings = ytd_earnings = rate_regular = hrs_regular  = current_pre_deduction = ytd_pre_deduction = rate_pre_deduction = hrs_pre_deduction =  current_post_deduction = ytd_post_deduction = rate_post_deduction = hrs_post_deduction = total_calculated_taxes = current_total_calculated_taxes = ytd_total_calculated_taxes = hrs_total_calculated_taxes = rate_total_calculated_taxes = total_calculated_regular = current_total_calculated_regular = ytd_total_calculated_regular = hrs_total_calculated_regular = rate_total_calculated_regular = total_calculated_pre = current_total_calculated_pre = ytd_total_calculated_pre = hrs_total_calculated_pre = rate_total_calculated_pre = total_calculated_post = current_total_calculated_post = ytd_total_calculated_post = hrs_total_calculated_post = rate_total_calculated_post = total_taxes = current_total_taxes = ytd_total_taxes = hrs_total_taxes = rate_total_taxes = total_regular = current_total_regular = ytd_total_regular = hrs_total_regular = rate_total_regular = total_pre = current_total_pre = ytd_total_pre = hrs_total_pre = rate_total_pre = total_post = current_total_post = ytd_total_post = hrs_total_post = rate_total_post = employment_Start_date = pay_date = position = result = employee_id = text_value = emp_start_date = ''

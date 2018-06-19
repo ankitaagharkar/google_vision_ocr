@@ -417,7 +417,7 @@ Changelog
     - Draw bounding box and get data in box code, as it was not relevant to this project.
 
 """
-DEBUG = False
+DEBUG = True
 
 
 class paystub_gcv:
@@ -538,6 +538,8 @@ class paystub_gcv:
                 return False
 
     def final_float(self, s, c_type='General'):
+        if s == '':
+            return s
         s = s.replace('B', '8')
         s = s.replace('S', '5')
         s = s.replace('s', '')
@@ -1506,7 +1508,10 @@ class paystub_gcv:
                             horizontal_word = []
                         try:
                             vertical_word = min(enumerate(lines[l_index + 1]),
-                                                key=lambda x: abs(word[1][0][0] - x[1][1][0][0]))
+                                                key=lambda x: abs(word[1][0][0] - x[1][1][0][0]) if x[1][1][1][0] >
+                                                                                                    word[1][0][
+                                                                                                        0] else float(
+                                                    'inf'))
                             # if word is too below on y-axis, reject it
                             if abs(vertical_word[1][1][0][1] - word[1][3][1]) > (2 * word_height) \
                                     or abs(word[1][0][0] - vertical_word[1][1][0][0]) > (6 * word_height):
@@ -1570,9 +1575,8 @@ class paystub_gcv:
                     if seq_word:
                         try:
                             down_val = min(enumerate(lines[l_index + 1]),
-                                           key=lambda x: abs(word[1][0][0] - x[1][1][0][0]) if (x[1][1][0][0] -
-                                                                                                word[1][0][
-                                                                                                    0]) > -5 else float(
+                                           key=lambda x: abs(word[1][0][0] - x[1][1][0][0]) if x[1][1][1][0] >
+                                                                                               word[1][0][0] else float(
                                                'inf'))
                             # if word is too below on y-axis, reject it
                             if abs(down_val[1][1][0][1] - word[1][3][1]) > (2 * word_height) \
@@ -1585,7 +1589,10 @@ class paystub_gcv:
                         try:
                             if bottom_up_data:
                                 up_val = min(enumerate(lines[l_index - 1]),
-                                             key=lambda x: abs(word[1][0][0] - x[1][1][0][0]))
+                                             key=lambda x: abs(word[1][0][0] - x[1][1][0][0]) if x[1][1][1][0] >
+                                                                                                 word[1][0][
+                                                                                                     0] else float(
+                                                 'inf'))
                                 # if word is too below on y-axis, reject it
                                 if abs(up_val[1][1][3][1] - word[1][0][1]) > (2 * word_height) \
                                         or abs(word[1][0][0] - up_val[1][1][0][0]) > (8 * word_height):
@@ -1674,6 +1681,10 @@ class paystub_gcv:
                     self.custom_print('\nI am in B', word[0])
                     blocks.append([word[0], word[1][0][0], word[1][0][1], mean_x, word_height, True])
                     block_flag = True
+                    if b[0] in self.earning_headers:
+                        blocks[-1][0] = 'Earnings'
+                    elif b[0] in self.tax_headers:
+                        blocks[-1][0] = 'Taxes'
 
                     # check if there is any column upto 3 lines above which this block can be a part of
                     # that column should have its mean-x after block's mean-x and
@@ -2057,7 +2068,7 @@ class paystub_gcv:
 
     def create_blocks(self, data_blocks):
         net_columns = ['net pay', 'total net', 'net earnings', 'net wages', 'total net pay', 'net', 'net amount',
-                       'ner pays']
+                       'ner pays', 'net payment']
         gross_columns = ['gross pay', 'total gross', 'gross earnings', 'gross',
                          'total gross earnings', 'cross pay', 'gross wages']
         other_columns = ['reimb & other payments', 'savings', 'direct deposit', 'direct dep',
@@ -2096,23 +2107,22 @@ class paystub_gcv:
                 else:
                     block_name = 'Others'
             else:
-                bn = difflib.get_close_matches(db[3].lower(),
-                                               self.earning_headers + self.tax_headers + ['pre tax deductions',
-                                                                                          'post tax deductions'],
-                                               cutoff=0.80)
                 if bool(re.search(r'check|chck|chkck|xxxx', db[0].lower())):
                     block_name = 'Others'
                     try:
                         probable_net_pay = db[1] if float(db[1]) > 0 else probable_net_pay
                     except:
                         pass
-                elif bn:
+                elif db[3].lower() in ['earnings', 'taxes', 'pre tax deductions', 'post tax deductions']:
+                    block_name = db[3]
+                    """
                     if bn[0] in ['pre tax deductions', 'post tax deductions']:
                         block_name = db[3]
                     elif bn[0] in self.earning_headers:
                         block_name = 'Earnings'
                     elif bn[0] in self.tax_headers:
                         block_name = 'Taxes'
+                    """
                 else:
                     if db[3].lower() in ['net pay distribution'] and db[0].lower() in ['total']:
                         block_name = 'Net Pay'
@@ -2583,7 +2593,7 @@ class paystub_gcv:
         mode_height = max(set([x for x in hl if x > 2]), key=hl.count)
 
         # parse tree and get root element
-        # tree = ElementTree.parse('struct.xml')
+        # tree = ElementTree.parse('../all_documents/struct.xml')
 
 
         struct_json = requests.post(self.config['base_url'] + '/getTemplateXMLFile', verify=False)
@@ -2592,7 +2602,7 @@ class paystub_gcv:
             download_struct.write(buf)
             download_struct.close()
         tree = ElementTree.parse("../all_documents/struct/struct.xml")
-      
+
 
         root = tree.getroot()
         paystub_structs = []
@@ -2633,7 +2643,7 @@ class paystub_gcv:
 
         address_details = []
         if state_lines:
-            address_details = pa.get_address_lines(lines, state_lines)
+            address_details = pa.get_address_lines(lines, state_lines, self.data_val['Hybrid'])
 
         # get data blocks
         final_address = self.final_address(address_details)
@@ -2696,12 +2706,12 @@ class paystub_gcv:
                 except:
                     pass
 
-        # print(final_data)
+        print(final_data)
         return final_data, text_output_data, result_output
 
     def final_address(self, output):
         try:
-            print("in final_address",output)
+            print("in final_address", output)
             address_name = []
             code = ''
             replace_val = ''
@@ -2743,7 +2753,8 @@ class paystub_gcv:
                 else:
                     temp_address_name = name + " " + output[i]["address"][0]
                     # print(address_name)
-                    data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\,\s)+(' + post_code + ')',temp_address_name)
+                    data = re.findall(r'(\s|\,)\b(!?' + state_name + ')(\s|\.|\,|\-|\,\s)+(' + post_code + ')',
+                                      temp_address_name)
                     code = " ".join(map(str, data[0]))
                     words = code.split()
                     code = " ".join(sorted(set(words), key=words.index))
@@ -2758,34 +2769,40 @@ class paystub_gcv:
             for i in range(len(address_name)):
                 address_name[i] = address_name[i].replace('* ', '')
 
-                if re.search(r'\d?\-?\d{3}-\d{3}-\d{4}|\(?\d+\)?\s\d+\-\d+',address_name[i]):
-                     address_name[i]=address_name[i].replace(re.findall(r'\d?\-?\d{3}-\d{3}-\d{4}|\(?\d+\)?\s\d+\-\d+',address_name[i])[0],'')
+                if re.search(r'\d?\-?\d{3}-\d{3}-\d{4}|\(?\d+\)?\s\d+\-\d+', address_name[i]):
+                    address_name[i] = address_name[i].replace(
+                        re.findall(r'\d?\-?\d{3}-\d{3}-\d{4}|\(?\d+\)?\s\d+\-\d+', address_name[i])[0], '')
                 print(address_name[i])
                 if address_name[i] != '':
                     gmaps = googlemaps.Client(key=self.config["google_map_key"])
-                    if not re.search(r'(!?ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)',address_name[i].split()[0],re.IGNORECASE) or not re.search('([A-Za-z]+\s?\d+)?|\d+',
+                    if not re.search(r'(!?ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)', address_name[i].split()[0],
+                                     re.IGNORECASE) or not re.search('([A-Za-z]+\s?\d+)?|\d+',
                                                                      address_name[i].split()[0],
                                                                      re.IGNORECASE):
 
-                        json_val = gmaps.geocode(" ".join(address_name[i].split()[2:]).replace('LLC',"").replace('INC','').lstrip().rstrip())
+                        json_val = gmaps.geocode(" ".join(address_name[i].split()[2:]).replace('LLC', "").replace('INC',
+                                                                                                                  '').lstrip().rstrip())
                         # json_val = gmaps.geocode(" ".join(address_name[i].split()[2:]))
                         # print(json_val)
                         new_ouput = {}
-                        if json_val!=[]:
+                        if json_val != []:
 
                             for j in range(len(json_val[0]['address_components'])):
-                            # #print(json_val[0]['address_components'][i]['types'])
+                                # #print(json_val[0]['address_components'][i]['types'])
                                 if json_val[0]['address_components'][j]['types'] == ['route']:
                                     if json_val[0]['address_components'][j]['long_name'] in address_name[i]:
-                                        replace_val = " ".join(map(str, json_val[0]['formatted_address'].split()[:-1])).replace(
+                                        replace_val = " ".join(
+                                            map(str, json_val[0]['formatted_address'].split()[:-1])).replace(
                                             ',',
                                             '').replace(
                                             json_val[0]['address_components'][j]['short_name'],
                                             json_val[0]['address_components'][j]['long_name'])
                                     # print(replace_val)
                                 if json_val[0]['address_components'][j]['types'] == ['street_number']:
-                                    if replace_val!='':
-                                        replace_val = replace_val.split()[0].replace(replace_val.split()[0],json_val[0]['address_components'][j][
+                                    if replace_val != '':
+                                        replace_val = replace_val.split()[0].replace(replace_val.split()[0],
+                                                                                     json_val[0]['address_components'][
+                                                                                         j][
                                                                                          'long_name']) + " " + replace_val
                                     else:
                                         replace_val = "".join(map(str, json_val[0]['formatted_address'])).replace(
@@ -2799,29 +2816,42 @@ class paystub_gcv:
                                     google_ouput.append(json_val[0]['formatted_address'])
                                     address_name[i] = address_name[i].replace(',', '')
                                     address_name[i] = address_name[i].replace('  ', ' ')
-                                    if replace_val=='':
-                                        new_ouput['name'] = [address_name[i].upper().split(json_val[0]['formatted_address'].upper().split()[0])[0]]
-                                        new_ouput['address'] = [address_name[i].upper().replace(new_ouput['name'][0], '')]
+                                    if replace_val == '':
+                                        new_ouput['name'] = [address_name[i].upper().split(
+                                            json_val[0]['formatted_address'].upper().split()[0])[0]]
+                                        new_ouput['address'] = [
+                                            address_name[i].upper().replace(new_ouput['name'][0], '')]
                                     else:
-                                        new_ouput['name'] = [address_name[i].upper().split(replace_val.upper().split()[0])[0]]
-                                        new_ouput['address'] = [address_name[i].upper().replace(new_ouput['name'][0], '')]
-                                    if re.search(r'\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|APT |RT |P.O. |PO |NINE|TEN|UNION )\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.?\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+|\d+\s\d+|\d+)',new_ouput['name'][0],re.IGNORECASE):
-                                        reg_val=re.findall(r'\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|P.O. |PO |APT |RT |NINE|TEN|UNION )\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.?\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+|\d+\s\d+|\d+)',new_ouput['name'][0])[0][0]
-                                        new_ouput['name']=new_ouput['name'][0].split(reg_val)[0]
-                                        new_ouput['name']=[new_ouput['name']]
-                                        new_ouput['address'] = [address_name[i].upper().replace(new_ouput['name'][0], ' ')]
-                                    if re.search(r'((!?\d+)\s[A-Za-z]+)|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+\s\d+[A-Za-z+]|\d+\s\-?\s[A-Za-z]+|RT |APT |SUITE |C\/O|P.O.|PO',new_ouput['address'][0]):
+                                        new_ouput['name'] = [
+                                            address_name[i].upper().split(replace_val.upper().split()[0])[0]]
+                                        new_ouput['address'] = [
+                                            address_name[i].upper().replace(new_ouput['name'][0], '')]
+                                    if re.search(
+                                            r'\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|APT |RT |P.O. |PO |NINE|TEN|UNION )\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.?\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+|\d+\s\d+|\d+)',
+                                            new_ouput['name'][0], re.IGNORECASE):
+                                        reg_val = re.findall(
+                                            r'\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|P.O. |PO |APT |RT |NINE|TEN|UNION )\-?\.?\w?(\w+)?\s?\&?\-?\s?(\w+)?\s?[A-Za-z]+|\d+\s?\.?\s[A-Za-z]+|\d+\s?[A-Za-z]+\s?[A-Za-z]+|\d+\s\d+|\d+)',
+                                            new_ouput['name'][0])[0][0]
+                                        new_ouput['name'] = new_ouput['name'][0].split(reg_val)[0]
+                                        new_ouput['name'] = [new_ouput['name']]
+                                        new_ouput['address'] = [
+                                            address_name[i].upper().replace(new_ouput['name'][0], ' ')]
+                                    if re.search(
+                                            r'((!?\d+)\s[A-Za-z]+)|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+\s\d+[A-Za-z+]|\d+\s\-?\s[A-Za-z]+|RT |APT |SUITE |C\/O|P.O.|PO',
+                                            new_ouput['address'][0]):
                                         main_output.append(new_ouput)
 
 
                                 else:
                                     x2 = difflib.get_close_matches(json_val[0]['formatted_address'].lower(),
-                                                                  [vt.lower() for vt in google_ouput],
-                                                                  cutoff=0.95)
+                                                                   [vt.lower() for vt in google_ouput],
+                                                                   cutoff=0.95)
                                     if not x2:
-                                        new_ouput['name'] =output[i]["name"]
-                                        new_ouput['address']=output[i]["address"]
-                                        if re.search(r'((!?\d+)\s[A-Za-z]+)|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+\s\d+[A-Za-z+]|\d+\s\-?\s[A-Za-z]+|RT |APT |SUITE |C\/O|P.O.|PO',new_ouput['address'][0]):
+                                        new_ouput['name'] = output[i]["name"]
+                                        new_ouput['address'] = output[i]["address"]
+                                        if re.search(
+                                                r'((!?\d+)\s[A-Za-z]+)|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+\s\d+[A-Za-z+]|\d+\s\-?\s[A-Za-z]+|RT |APT |SUITE |C\/O|P.O.|PO',
+                                                new_ouput['address'][0]):
                                             main_output.append(new_ouput)
                                         main_output.append(new_ouput)
 
@@ -2834,7 +2864,7 @@ class paystub_gcv:
 
 
                         else:
-                            main_output=output
+                            main_output = output
                             break
                     else:
                         google_ouput.append(json_val[0]['formatted_address'])
@@ -2844,16 +2874,17 @@ class paystub_gcv:
 
             return main_output
         except Exception as e:
-            print("in google map",e)
+            print("in google map", e)
             main_output = output
             return main_output
 
 
 class paystub_address:
-    def __init__(self,digits_dict):
+    def __init__(self, digits_dict):
         self.result = {}
         self.description = []
-        self.digits_dict=digits_dict
+        self.digits_dict = digits_dict
+
     def custom_print(self, *arg):
         if DEBUG:
             print(arg)
@@ -2921,9 +2952,10 @@ class paystub_address:
             return True, all_points
         return False, []
 
-    def get_address_lines(self, lines, state_lines):
+    def get_address_lines(self, lines, state_lines, data_val):
         all_addresses = []
         lines_copy = copy.deepcopy(lines)
+        self.data_val = [j[0] for j in data_val]
         for sl in state_lines:
             state_name = sl[0][0]
             sc_vertices = vertices = sl[0][1]
@@ -2979,17 +3011,20 @@ class paystub_address:
         address_lines = []
 
         # convert data of multiple lines into joined words form in each line
-        junk_words = ['c/o bunge human resources','C/O BUNGE HUMAN RESOURCES','attn payroll','employee address', 'employee name', 'address',
+        junk_words = ['c/o bunge human resources', 'C/O BUNGE HUMAN RESOURCES', 'attn payroll', 'employee address',
+                      'employee name', 'address',
                       'employer address', 'employer name', 'order', 'to the', 'of', 'exemptions/allowances',
                       'human resources', 'payroll amount', 'payroll account', 'pay to the', 'order of',
-                      'tax blocked','cmed - surgery']
+                      'tax blocked', 'cmed - surgery']
         if data_box[-1][0].find(state_name) == 0:
             multiplier = 5
         else:
             multiplier = 2
         for db in reversed(data_box):
             self.custom_print('values are ', db[0])
-            if db[0].lower() in junk_words+ self.digits_dict:
+            if db[0].lower() in junk_words + self.digits_dict + self.data_val or re.compile(
+                    r'((0[0-9]|1[0-2])\s?[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-](19|20|21|22)\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\d\d|(0[0-9]|1[0-2])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](19|20|21|22)\d\d|(0[0-9]|1[0-9])[./-](0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?(19|20|21|22)\d\d|([1-9]|0[0-9]|1[0-2])\s?[./-]?([1-9]|0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[./-]?(19|20|21|22)\d\d|(0[0-9]|1[0-2])\s?[,:./-]?(0[1-9]|1[0-9]|2[0-9]|3[0-1])\s?[,:./-]?(19|20|21|22)\d\d|(0\s?[0-9]|1\s?[0-2])\s?[,:./-]\s?(0\s?[1-9]|1\s?[0-9]|2\s?[0-9]|3\s?[0-1])\s?[,:./-]?(19|20|21|22)\d\d|(0[1-9]|1[0-9]|2[0-9]|3[0-1])[,:./-]?\s?(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)\,?\s?(19|20|21|22)\d\d|(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)\s?(0[1-9]|1[0-9]|2[0-9]|3[0-1])[,:./-]?\,?\s?(19|20|21|22)\d\d|(19|20|21|22)\d\d\s?[,:./-]?(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)[,:./-]?([1-9]|0[1-9]|1[0-9]|2[0-9]|3[0-1])|(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-](Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)[./-](19|20|21|22)\d\d|(Jan|Feb|Mar|Apr|May|Jun|July|Jul|Aug|Sept|Sep|Oct|Nov|Dec|january|february|march|april|may|june|july|august|september|october|november|december)[./-]?\s(0[1-9]|1[0-9]|2[0-9]|3[0-1])[./-]\,?\s?(19|20|21|22)\d\d)',
+                    re.IGNORECASE).findall(db[0]):
                 continue
             # if db[0].lower() in junk_words:
             #     continue
@@ -3052,9 +3087,8 @@ class paystub_address:
                             min_diff_1 = min(enumerate(db[i + 1]), key=lambda x: abs(x[1][1][0][0] - start_x))
                             self.custom_print(min_diff_1)
 
-
                             val_reg = re.compile(
-                                r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|SUITE|C\/O|MADISON',
+                                r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|Union|SUITE|C\/O|MADISON',
                                 re.IGNORECASE)
                             match_check_1 = val_reg.findall(min_diff_1[1][0])
                             # match_check_1 = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|[A-Za-z]+\s|\d+\-\d+|\d+',min_diff_1[1][0])
@@ -3080,7 +3114,7 @@ class paystub_address:
                 elif not name_started:
 
                     val_reg = re.compile(
-                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|Union|SUITE|C\/O|MADISON',
+                        r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|\b(!?(ONE|TWO|THREE|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s?)|\d+\-\d+|\d+|APT|SUITE|C\/O|MADISON',
                         re.IGNORECASE)
                     match_check = val_reg.findall(min_diff[1][0])
                     # match_check = re.findall(r'((!?\d+)\s[A-Za-z]+)|([A-Za-z]+\s(!?\d+))|[A-Za-z]+\s|\d+\-\d+|\d+',min_diff[1][0])

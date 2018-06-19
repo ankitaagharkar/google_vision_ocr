@@ -427,7 +427,7 @@
     </vertical_col_sequence>
     <data_val>
       <type id="Horizontal">
-        <val/>
+        <val field="gross_pay">gross pay</val>
       </type>
       <type id="Vertical">
         <val/>
@@ -562,7 +562,8 @@
     </vertical_col_sequence>
     <data_val>
       <type id="Horizontal">
-        <val/>
+        <val field="net_pay">net wages</val>
+        <val field="gross_pay">gross wages</val>
       </type>
       <type id="Vertical">
         <val/>
@@ -1938,58 +1939,6 @@
       </type>
     </data_val>
   </paystub>
-  <paystub id="Primepoint">
-    <block_headers>
-      <type id="earnings">
-        <val>earnings</val>
-      </type>
-      <type id="normal_deductions">
-        <val>deductions</val>
-      </type>
-      <type id="other">
-        <val>employer contribution</val>
-        <val>pay rate</val>
-        <val>cur. units</val>
-        <val>cur. earnings</val>
-        <val>cur. deductions</val>
-      </type>
-    </block_headers>
-    <col_headers>
-      <type id="current">
-        <val>current ammount</val>
-      </type>
-      <type id="ytd">
-        <val>year to date</val>
-      </type>
-      <type id="hour">
-        <val>hrs/units</val>
-      </type>
-    </col_headers>
-    <col_sequence>
-      <type>
-        <val col_type="Hour">hrs/units</val>
-        <val col_type="Current">current amount</val>
-        <val col_type="YTD">year to date</val>
-      </type>
-    </col_sequence>
-    <rules>
-      <type val="False">Highly Compressed Text</type>
-      <type val="False">Is Star Pre-Tax</type>
-      <type val="False">All Blocks With Headers</type>
-      <type val="False">Is TaxType Header Defined</type>
-    </rules>
-    <vertical_col_sequence>
-      <type/>
-    </vertical_col_sequence>
-    <data_val>
-      <type id="Horizontal">
-        <val/>
-      </type>
-      <type id="Vertical">
-        <val/>
-      </type>
-    </data_val>
-  </paystub>
   <paystub id="Pablo">
     <block_headers>
       <type id="earnings">
@@ -2281,7 +2230,8 @@
     </vertical_col_sequence>
     <data_val>
       <type id="Horizontal">
-        <val/>
+        <val field="net_pay">net pay current</val>
+        <val field="gross_pay">gross pay current</val>
       </type>
       <type id="Vertical">
         <val/>
@@ -2853,7 +2803,8 @@
     </vertical_col_sequence>
     <data_val>
       <type id="Horizontal">
-        <val/>
+        <val field="pay_period_start_date">from</val>
+        <val field="pay_period_end_date">to</val>
       </type>
       <type id="Vertical">
         <val/>
@@ -3097,6 +3048,292 @@
       </type>
       <type id="Vertical">
         <val/>
+      </type>
+    </data_val>
+  </paystub>
+  <paystub id="Siemens">
+    <block_headers>
+      <type id="earnings">
+        <val>earnings</val>
+      </type>
+      <type id="post_deductions">
+        <val>other deductions</val>
+      </type>
+      <type id="taxes">
+        <val>tax deductions</val>
+      </type>
+      <type id="pre_deductions">
+        <val>pretax deductions</val>
+      </type>
+      <type id="none">
+        <val>summary</val>
+        <val>taxable gross</val>
+        <val>hours</val>
+        <val>absence accruals</val>
+        <val>net pay distribution</val>
+      </type>
+    </block_headers>
+    <col_headers>
+      <type id="current">
+        <val>current</val>
+      </type>
+      <type id="ytd">
+        <val>year to date</val>
+      </type>
+    </col_headers>
+    <col_sequence>
+      <type/>
+    </col_sequence>
+    <rules>
+      <type val="False">Highly Compressed Text</type>
+      <type val="False">Is Star Pre-Tax</type>
+      <type val="True">All Blocks With Headers</type>
+      <type val="False">Is TaxType Header Defined</type>
+    </rules>
+    <vertical_col_sequence>
+      <type/>
+    </vertical_col_sequence>
+    <data_val>
+      <type id="Horizontal">
+        <val/>
+      </type>
+      <type id="Vertical">
+        <val/>
+      </type>
+    </data_val>
+  </paystub>
+  <paystub id="Board of Cooperative">
+    <block_headers>
+      <type/>
+    </block_headers>
+    <col_headers>
+      <type/>
+    </col_headers>
+    <col_sequence>
+      <type/>
+    </col_sequence>
+    <rules>
+      <type val="False">Highly Compressed Text</type>
+      <type val="False">Is Star Pre-Tax</type>
+      <type val="False">All Blocks With Headers</type>
+      <type val="False">Is TaxType Header Defined</type>
+    </rules>
+    <vertical_col_sequence>
+      <type/>
+    </vertical_col_sequence>
+    <data_val>
+      <type id="Horizontal">
+        <val/>
+      </type>
+      <type id="Vertical">
+        <val/>
+      </type>
+    </data_val>
+  </paystub>
+  <paystub id="Two Connect Inc">
+    <block_headers>
+      <type id="earnings">
+        <val>pay</val>
+      </type>
+      <type id="normal_deductions">
+        <val>deductions</val>
+      </type>
+      <type id="taxes">
+        <val>taxes withheld</val>
+      </type>
+      <type id="other">
+        <val>summary</val>
+      </type>
+    </block_headers>
+    <col_headers>
+      <type id="current">
+        <val>current</val>
+      </type>
+      <type id="ytd">
+        <val>ytd</val>
+      </type>
+      <type id="rate">
+        <val>rate</val>
+      </type>
+      <type id="hour">
+        <val>hours</val>
+      </type>
+    </col_headers>
+    <col_sequence>
+      <type>
+        <val col_type="Hour">hours</val>
+        <val col_type="Rate">rate</val>
+        <val col_type="Current">current</val>
+        <val col_type="YTD">ytd</val>
+      </type>
+    </col_sequence>
+    <rules>
+      <type val="False">Highly Compressed Text</type>
+      <type val="False">Is Star Pre-Tax</type>
+      <type val="False">All Blocks With Headers</type>
+      <type val="False">Is TaxType Header Defined</type>
+    </rules>
+    <vertical_col_sequence>
+      <type/>
+    </vertical_col_sequence>
+    <data_val>
+      <type id="Horizontal">
+        <val/>
+      </type>
+      <type id="Vertical">
+        <val/>
+      </type>
+    </data_val>
+  </paystub>
+  <paystub id="Scotiabank">
+    <block_headers>
+      <type id="earnings">
+        <val>earnings</val>
+      </type>
+      <type id="normal_deductions">
+        <val>deductions</val>
+      </type>
+      <type id="other">
+        <val>taxable benefits/other info</val>
+        <val>summary</val>
+        <val>bank details</val>
+      </type>
+    </block_headers>
+    <col_headers>
+      <type id="current">
+        <val>this pay</val>
+        <val>amount</val>
+      </type>
+      <type id="ytd">
+        <val>ytd</val>
+        <val>year to date</val>
+      </type>
+      <type id="hour">
+        <val>hrs</val>
+      </type>
+    </col_headers>
+    <col_sequence>
+      <type/>
+    </col_sequence>
+    <rules>
+      <type val="False">Highly Compressed Text</type>
+      <type val="False">Is Star Pre-Tax</type>
+      <type val="False">All Blocks With Headers</type>
+      <type val="False">Is TaxType Header Defined</type>
+    </rules>
+    <vertical_col_sequence>
+      <type/>
+    </vertical_col_sequence>
+    <data_val>
+      <type id="Horizontal">
+        <val/>
+      </type>
+      <type id="Vertical">
+        <val/>
+      </type>
+    </data_val>
+  </paystub>
+  <paystub id="Primepoint">
+    <block_headers>
+      <type id="earnings">
+        <val>earnings</val>
+      </type>
+      <type id="normal_deductions">
+        <val>deductions</val>
+      </type>
+      <type id="other">
+        <val>employer contribution</val>
+        <val>pay rate</val>
+        <val>cur. units</val>
+        <val>cur. earnings</val>
+        <val>cur. deductions</val>
+      </type>
+    </block_headers>
+    <col_headers>
+      <type id="current">
+        <val>current amount</val>
+      </type>
+      <type id="ytd">
+        <val>year to date</val>
+      </type>
+      <type id="hour">
+        <val>hrs/units</val>
+      </type>
+    </col_headers>
+    <col_sequence>
+      <type>
+        <val col_type="Hour">hrs/units</val>
+        <val col_type="Current">current amount</val>
+        <val col_type="YTD">year to date</val>
+      </type>
+    </col_sequence>
+    <rules>
+      <type val="False">Highly Compressed Text</type>
+      <type val="False">Is Star Pre-Tax</type>
+      <type val="False">All Blocks With Headers</type>
+      <type val="False">Is TaxType Header Defined</type>
+      <type val="True">Bottom Up Data Values</type>
+    </rules>
+    <vertical_col_sequence>
+      <type/>
+    </vertical_col_sequence>
+    <data_val>
+      <type id="Horizontal">
+        <val/>
+      </type>
+      <type id="Vertical">
+        <val/>
+      </type>
+    </data_val>
+  </paystub>
+  <paystub id="Carillon">
+    <block_headers>
+      <type id="earnings">
+        <val>earnings type</val>
+      </type>
+      <type id="normal_deductions">
+        <val>deductions type</val>
+      </type>
+      <type id="taxes">
+        <val>taxes type</val>
+      </type>
+      <type id="other">
+        <val>priority</val>
+      </type>
+    </block_headers>
+    <col_headers>
+      <type id="current">
+        <val>amount</val>
+      </type>
+      <type id="ytd">
+        <val>ytd</val>
+      </type>
+      <type id="rate">
+        <val>rate</val>
+      </type>
+      <type id="hour">
+        <val>hours</val>
+      </type>
+    </col_headers>
+    <col_sequence>
+      <type/>
+    </col_sequence>
+    <rules>
+      <type val="False">Highly Compressed Text</type>
+      <type val="False">Is Star Pre-Tax</type>
+      <type val="False">All Blocks With Headers</type>
+      <type val="False">Is TaxType Header Defined</type>
+      <type val="False">Bottom Up Data Values</type>
+    </rules>
+    <vertical_col_sequence>
+      <type/>
+    </vertical_col_sequence>
+    <data_val>
+      <type id="Horizontal">
+        <val/>
+      </type>
+      <type id="Vertical">
+        <val field="gross_pay">gross amt</val>
       </type>
     </data_val>
   </paystub>
@@ -3527,9 +3764,6 @@
     <type id="Paycor">
       <lookup_text>Paycor</lookup_text>
     </type>
-    <type id="Primepoint">
-      <lookup_text>Powered By Primepoint</lookup_text>
-    </type>
     <type id="Pablo">
       <lookup_text>Pablo's Fashion Inc</lookup_text>
       <lookup_text>Lusthaus &amp; Lusthaus PLLC</lookup_text>
@@ -3596,6 +3830,24 @@
     </type>
     <type id="FL State">
       <lookup_text>STATE OF FLORIDA</lookup_text>
+    </type>
+    <type id="Siemens">
+      <lookup_text>SIEMENS</lookup_text>
+    </type>
+    <type id="Board of Cooperative">
+      <lookup_text>Board of Cooperative Educational Services</lookup_text>
+    </type>
+    <type id="Two Connect Inc">
+      <lookup_text>TWO CONNECT INC</lookup_text>
+    </type>
+    <type id="Scotiabank">
+      <lookup_text>Scotiabank</lookup_text>
+    </type>
+    <type id="Primepoint">
+      <lookup_text>Powered By Primepoint</lookup_text>
+    </type>
+    <type id="Carillon">
+      <lookup_text>Carillon Nursing</lookup_text>
     </type>
   </paystub_types>
 </structures>
