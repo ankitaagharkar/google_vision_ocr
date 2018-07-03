@@ -135,8 +135,9 @@ class LicenseOCR:
         if 'NJQ8104-2010' in self.description.description:
             state_name='NJQ8104'
         else:
+
             val = re.findall(
-                r'\b(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5}(?:\s?\-\s?\d{4})|\d{5}(?:\s?\.\s?\d{4})|\d{5})',
+                r'\b(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\,?\s(\d{5})',
                 self.description.description)
             if not val:
                 val1 = re.findall(r'\s\b(!?AL|AB|AK|AS|AZ|AŽ|AŻ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MJ|MN|MS|MO|MT|NE|NV|NH|NJ|NL|NM|NY|NC|ND|MP|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY)\s',
@@ -417,14 +418,38 @@ class LicenseOCR:
 
         return pilImage
 
+    def convert_bytes(self,num):
+        """
+        this function will convert bytes to MB.... GB... etc
+        """
+        for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+            if num < 1024.0:
+                return "%3.1f %s" % (num, x)
+            num /= 1024.0
+
+    def file_size(self,file_path):
+        """
+        this function will return the file size
+        """
+        if os.path.isfile(file_path):
+            file_info = os.stat(file_path)
+            return self.convert_bytes(file_info.st_size)
+
     def pdf_to_image(self, image_path):
         split_path = os.path.split(os.path.abspath(image_path))
         filename = split_path[1].split('.')[0] + '.jpg'
         out_path = os.path.join(split_path[0], filename)
         image_path = image_path.replace(' ', '\ ')
         out_path = out_path.replace(' ', '\ ')
-        process = subprocess.call(
-            'convert -density 300 -trim ' + image_path + ' -quality 100 ' + out_path, shell=True)
+        temp_var=self.file_size(image_path)
+        a1 = temp_var.split().pop(-1)
+        pdf_size=temp_var.replace(a1,'')
+        if float(pdf_size)>1.9:
+            process = subprocess.call(
+                'convert -resize 720x720 -trim ' + image_path + ' -quality 100 ' + out_path, shell=True)
+        else:
+            process = subprocess.call(
+                'convert -density 300 -trim ' + image_path + ' -quality 100 ' + out_path, shell=True)
         image_path = out_path.replace('\ ', ' ')
         return image_path, 'jpg'
 
@@ -552,9 +577,9 @@ class LicenseOCR:
         la_obj = LicenseAddress()
         lic_details = Licence_details()
         address_details = la_obj.fetch(mode_slant, mode_height, points, self)
-        licence_id, expiry_date, dob, issue_date, address, name, state, zipcode, city, date_val = lic_details.get_licence_details1(
+        licence_id, expiry_date, dob, issue_date, address, name, state, zipcode, city, date_val,flag= lic_details.get_licence_details1(
             str(self.description.description), address_details)
-        return response, licence_id, expiry_date, dob, issue_date, address, name, state, zipcode, city, date_val, text_result, pdf_image_path
+        return response, licence_id, expiry_date, dob, issue_date, address, name, state, zipcode, city, date_val, text_result, pdf_image_path,flag
 
 #
 # def main():

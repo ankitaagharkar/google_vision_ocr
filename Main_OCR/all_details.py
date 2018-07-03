@@ -223,16 +223,16 @@ class Scan_OCR:
 
     def get_license_all_details(self, path):
         try:
-            response, licence_id, expiry_date, dob, issue_date, address, name, state, zipcode, city, date_val, result, pdf_image_path = self.lic.run(
+            response, licence_id, expiry_date, dob, issue_date, address, name, state, zipcode, city, date_val, result, pdf_image_path,flag = self.lic.run(
                 path)
             self.get_license_details.put((response, licence_id, expiry_date, dob, issue_date,
                                           address, name, state, zipcode, city, date_val, result,
-                                          pdf_image_path))
+                                          pdf_image_path,flag))
         except:
-            response = licence_id = expiry_date = dob = issue_date = address = name = state = zipcode = city = date_val = result = pdf_image_path = ''
+            response = licence_id = expiry_date = dob = issue_date = address = name = state = zipcode = city = date_val = result = pdf_image_path=flag = ''
             self.get_license_details.put((response, licence_id, expiry_date, dob, issue_date,
                                           address, name, state, zipcode, city, date_val, result,
-                                          pdf_image_path))
+                                          pdf_image_path,flag))
 
     def confidence_score(self, path, doc_type, data, keys='', values=''):
         try:
@@ -287,7 +287,7 @@ class Scan_OCR:
         add_value = list(data.values())
         detected_null_value_count = add_value.count('')
         partial_not_detected, partial_detected = [], []
-
+        time.sleep(3)
         for i in range(len(response['fields'])):
             for j in range(len(actual_value)):
                 if response['fields'][i]['name'] == actual_value[j]:
@@ -634,9 +634,9 @@ class Scan_OCR:
                 thread = threading.Thread(target=self.get_license_all_details,
                                           args=("../images/documents_upload/" + filename,))
                 thread.start()
-                thread.join(999999)
+
                 (text_response, licence_id, expiry_date, dob, issue_date, address, name, state,
-                 zipcode, city, date_val, result, pdf_image_path) = self.get_license_details.get()
+                 zipcode, city, date_val, result, pdf_image_path,flag) = self.get_license_details.get()
                 if licence_id == ' ' and expiry_date == '' and dob == '' and issue_date == '' and address == '' and name == '' and state == '' and zipcode == '' and city == '' and date_val:
                     self.scan_result[
                         'error_msg'] = "Document upload was NOT successful due to unclear image or unrecognizable image; please [upload document again] or [rescan image].  Note: Please ensure that the full document is visible, and make sure there are no markings on the document that might be blocking any text or numbers."
@@ -665,12 +665,19 @@ class Scan_OCR:
                         elif self.name_value.index(re.findall('(!?JR|Jr|jr|jR)', name)[0]) == 3:
                             self.name_value[2] = self.name_value[2] + " " + self.name_value[3]
                             self.name_value.pop(3)
+                        elif self.name_value.index(re.findall('(!?JR|Jr|jr|jR)', name)[0]) == 2:
+                            self.name_value[1] = self.name_value[1] + " " + self.name_value[2]
+                            self.name_value.pop(2)
 
                 name_seq = ''
 
                 for i in range(len(self.state_value['data'])):
                     if self.state_value['data'][i]['state'] == state:
                         name_seq = self.state_value['data'][i]['name_seq']
+                if flag==True:
+                    name_seq='LN_FN_MN_SUF'
+                if flag=='true':
+                    name_seq='FN_MN_LN_SUF'
                 if len(self.name_value) == 0:
                     data = {'first_name': "", 'dob': dob, 'issue_date': issue_date,
                             'expiration_date': expiry_date,
@@ -785,6 +792,7 @@ class Scan_OCR:
                 # image_path = self.image_processing.get()
                 thread = threading.Thread(target=self.get_doc, args=(image_path, json_val[doc_id],))
                 thread.start()
+                time.sleep(2)
                 (self.text, SSN_Number, name, date, conf_keys, conf_values) = self.scan_text.get()
                 if SSN_Number == '' and name == '' and date == '':
                     file_path = ''
@@ -1038,7 +1046,7 @@ class Scan_OCR:
                 pre=[]
                 post=[]
                 tax=[]
-
+                time.sleep(2)
                 temp_emp = employee_name
                 employee_name = employee_name.replace(',', ' ')
                 name_value = employee_name.split()
@@ -1067,7 +1075,7 @@ class Scan_OCR:
                     last_name = name_value[2]
                     first_name = name_value[0]
                     middle_name = name_value[1]
-
+                time.sleep(3)
                 for i in range(len(response['fields'])):
                     if 'regular_earn' in response['fields'][i]['name']:
                         if len(earnings) > 0:

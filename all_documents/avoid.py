@@ -234,7 +234,7 @@ def replace(actual_name):
     # actual_name1 = actual_name1.replace('Is ', "")
     actual_name1 = actual_name1.replace('un ', "")
 
-    actual_name1 = re.sub(r"\b(!?es |iss |er |or |EN |EXP|HGT|Is |Earnings|Donor |AP |=|,|@|#|%|^|CGA| ER |CONG|EENHANCED|am|Mal| OL |GIN|CASS C |D |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE |DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF | LN | ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|ISS|SExr|Payroll|Attn|GEXP|class|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
+    actual_name1 = re.sub(r"\b(!?es |iss |er |or |EN |EXP|HGT|Is |Earnings|Donor |AP |=|,|@|#|%|^|CGA| ER |CONG|EENHANCED|am|Mal| OL |GIN|CASS C |AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE| USA |EYES|DXP|FN|PAYTOTHE |DiP|DIP| IS | TO |THE |ORDER|No |Payro| OC | OF | LN | ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|ISS|SExr|Payroll|Attn|GEXP|class|Class| DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)",
         "",actual_name1)
     # actual_name1 = re.sub(
     #     r"\s(=?EXP|HGT|Earnings|Donor|AP |=|,|@|#|%|^|ER |CGA|CONG|EENHANCED|am|Mal| OL |GIN|CASS|C |D | AD | SU |MWAberty|FILE|Beginning|Statement|ll|l |JTD|LICENSE|USA |EYES|DXP|FN|PAYTOTHE|DiP|DIP|IS | TO |THE |ORDER|No |Payro| OC | OF |LN |EN |ADP |Expires|Name|DENONE|NONE|Address|CLASSE|CLASEXP|EXP|ISS|SExr|Payroll|Attn|GEXP|Class|DM |Height|Expiros|Cass|CLASS|ClassE|ORGAN|DONORJawa|DOB|ub|CD)\b",

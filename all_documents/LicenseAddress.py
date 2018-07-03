@@ -154,7 +154,7 @@ class LicenseAddress:
                         line_list[k][prev_index][1] = [check_word[1][0],word[1][1],word[1][2],check_word[1][3]]
                         #remove current word from line list
                         pop_elements.append(w_index)
-                        space_width = abs(word_end - word[1][0][0]) * space_wise_multiplier
+                        space_width = abs(word_end - word[1][0][0]) * space_wise_multiplier if abs(word_end - word[1][0][0]) > 4 else space_width
                         space_lists.append(space_width)
                         word_val = d1
                         word_end = word[1][2][0]

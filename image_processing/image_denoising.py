@@ -17,9 +17,11 @@ class Denoising:
             if 'SSN' in doc_type:
                 with io.open(path, 'rb') as image_file:
                     self.image_content = image_file.read()
-                img=Image.open(io.BytesIO(self.image_content)).convert('L')
-                img = np.array(img.copy())
-                pImg = cv2.GaussianBlur(img, (3,3), 0)
+                img=Image.open(io.BytesIO(self.image_content))
+                pImg = np.array(img.copy())
+                # # img = cv2.GaussianBlur(img, (3, 1), 0)
+                # # pImg = cv2.fastNlMeansDenoising(img, None, 1, 1)
+                # pImg = cv2.erode(img, (5,5), iterations=1)
                 # pImg = cv2.fastNlMeansDenoising(img, None, 1,1)
             elif 'Passport' in doc_type:
                 img = Image.open(path)

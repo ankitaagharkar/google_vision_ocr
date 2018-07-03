@@ -31,23 +31,36 @@ class Common:
         return self.result
     def get_address_zipcode(self,full_address,zipcode, extra=False):
         try:
+            full_address=full_address.replace('  ',' ')
             if not extra:
-                if re.search('\w+\s\d+',zipcode):
+                if re.search('\w?\.?\w+\.?\s\d+|\w+\s\d+',zipcode):
                     if not re.search(r'[A-Za-z]{4,}',zipcode):
-                        zipcode = zipcode.replace(' ', "")
-                        zipcode = zipcode[0:2] + " " + zipcode[2:]
+                        if re.search('\w?\.?\w+\.?\s\d+',zipcode):
+                            pass
+                        else:
+                            zipcode = zipcode.replace(' ', "")
+                            zipcode = zipcode[0:2] + " " + zipcode[2:]
                         code = zipcode.split()
                         city = ' '.join(map(str, full_address.split(" "+code[0]+" ", 1)[0].split()[-2:]))
                         return code[0], code[1], city
                     else:
                         code = zipcode.split()
-                        city = ' '.join(map(str, full_address.split(" " + code[0], 1)[0].split()[-2:]))
+                        city = ' '.join(map(str, full_address.split(" " + code[0]+" ", 1)[0].split()[-2:]))
                         return code[0], code[1], city
                 else:
                     code=[]
-                    code.append(zipcode)
-                    city = ' '.join(map(str, full_address.split(code[0], 1)[0].split()[-2:]))
-                    code.append("")
+                    #todo: for zipcode like LO SE10
+                    if re.search(r'[A-Za-z]+\s\w+',zipcode):
+                        code = zipcode.split()
+                        city = ' '.join(map(str, full_address.split(" " + code[0]+" ", 1)[0].split()[-2:]))
+                    elif re.search(r'[A-Za-z]+\s\w+\s\w+',zipcode):
+                        code = zipcode.split()
+                        city = ' '.join(map(str, full_address.split(" " + code[0]+" ", 1)[0].split()[-2:]))
+                        code[1]=code[1]+" "+code[2]
+                    else:
+                        code.append(zipcode)
+                        city = ' '.join(map(str, full_address.split(" "+code[0]+" ", 1)[0].split()[-2:]))
+                        code.append("")
                     return code[0], code[1], city
             else:
                 # if re.search('\w+\s\d+', zipC):

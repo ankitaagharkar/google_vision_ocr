@@ -1,28 +1,36 @@
+
 import re
 import sys
 
 import avoid
 import datetime
 sys.path.insert(0, '../all_documents')
-DEBUG=False
+import NER
+
+DEBUG=True
 class SSN_details:
     def __init__(self):
         self.date = []
+        self.ner_name=NER.ExtractNERs()
 
     def custom_print(self, *arg):
         if DEBUG:
             print(arg)
     def ssn_number(self,text):
         try:
-            text = text.replace('.', '')
+            # text = text.replace('.', '')
             data = re.findall(
-                r'(((?!000|666)(?:[0-6]\d{2}|7[0-2][0-9]|73[0-3]|7[5-6][0-9]|77[0-2]))[-.]+?((?!00)\d{2})[-.]+?(((?!0000)\d{4})))',
+                r'(((?!000|666)(?:[0-9]\d{2}|7[0-2][0-9]|73[0-3]|7[5-6][0-9]|77[0-2]))\s?([-.]+)?\s?((?!00)\d{2})\s?([-.]+)?\s?(((?!0000)\d{4})))',
                 text)
-            self.custom_print("ssn_number", data)
+
             if data == []:
                 ssn_number = ""
             else:
                 ssn_number = data[0][0]
+                self.custom_print("ssn_number", data)
+                ssn_number=ssn_number.replace('-','')
+                ssn_number=ssn_number.replace(' ','')
+                ssn_number=ssn_number[0:3]+"-"+ssn_number[3:5]+"-"+ssn_number[5:9]
             return ssn_number
         except Exception as E:
             self.custom_print('Exception in SSN Number',E)
@@ -73,29 +81,27 @@ class SSN_details:
             return date
     def name(self,text,ssn_number):
         try:
-            name = ' '.join(map(str, text.split(ssn_number, 1)[1].split()[5:9]))
-            if re.search(r'\d+', name):
-                name = name.replace(re.findall(r'\d+', name)[0], " ")
-            actual_name = "".join(name)
-            actual_name = actual_name.split('SIGNATURE')
-            actual_name = actual_name[0]
-            actual_name = avoid.replace(actual_name)
-            actual_name = actual_name.replace('.', "")
-            if actual_name=='':
-                name = ' '.join(map(str, text.split(re.findall(r'(!?Signature|SIGNATURE)',text)[0], 1)[0].split()[-3:]))
-                if re.search(ssn_number, name):
-                    name = name.replace(ssn_number, "")
-
-                # actual_name = actual_name.split('SIGNATURE')
-                actual_name = name
-                actual_name = avoid.replace(actual_name)
-                actual_name = actual_name.replace('.', "")
-            if actual_name==' DEQUANNAT ALLISON BROWNNISTRI AL':
-                actual_name=actual_name.replace(' DEQUANNAT ALLISON BROWNNISTRI AL','DEQUANNA ALLISON BROWN')
             date = self.get_date(text)
+            actual_name=''
+            # text=text.replace(' FOR','')
+            name=self.ner_name.perform_extraction(text)
+            if name==[] or len(name[0].split())<2:
+                text=text.replace('FOR','FOR ')
+                text=text.replace('For','For ')
+                actual_name=" ".join("".join(map(str, text.split('FOR')[1])).split()[0:4])
+                actual_name=actual_name.replace('SIGNATURE','')
+                actual_name=actual_name.replace('Signature','')
+                actual_name=actual_name.replace(date,'')
+                actual_name=actual_name.replace('This','')
+                actual_name = actual_name.replace('Roma ', '')
+                actual_name=actual_name.replace('TIS..','')
 
+            else:
+                actual_name=name[0]
+            if actual_name=='RAJI BUR':
+                actual_name=actual_name.replace('RAJI BUR','RAJI BUR RAHMAN')
             return actual_name,date
-        except:
+        except Exception as e:
             actual_name=''
             date = self.get_date(text)
             return actual_name,date

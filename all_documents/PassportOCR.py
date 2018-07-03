@@ -20,8 +20,15 @@ class Passport_Details:
             reg_val=re.findall(r'\s?(!?USA|AUS|IND|NZL|BGR|IRE|ESP|CAN|PAK|PLUSA)',text)
             if reg_val!=[]:
                 text=text.replace(reg_val[0],'')
-            passport_regex=re.findall(r'(!?\d{9}|[A-Z]{2,3}\d{5,6}|[A-Z]{1,2}\d{7,8}|[A-Z]{1,2}\d{6,7})',text)
-            passport_number=passport_regex[0].rstrip()
+            passport_regex=re.findall(r'(!?\d{9}|[A-Z]{2,3}\d{5,6}|[A-Z]{1,2}\d{7,8}|[A-Z]{1,2}\d{6,7}|\d\s?\d{8})',text)
+            if len(passport_regex)>2:
+                passport_number=passport_regex[1].replace(' ','').rstrip()
+                passport_number1 = passport_regex[0].replace(' ','').rstrip()
+                if passport_number!=passport_number1:
+                    passport_number=passport_number1
+
+            else:
+                passport_number = passport_regex[0].replace(' ', '').rstrip()
             print(passport_number)
             return passport_number
 
@@ -34,8 +41,9 @@ class Passport_Details:
 
         try:
 
-            if len(re.findall(passport_number,text))>1:
-                text_split=text.split(passport_number)
+            if len(re.findall(passport_number,text.replace('USA',"")))>=1:
+                text1 = text.replace('USA', "")
+                text_split=text1.split(passport_number)
                 name=" ".join(map(str,re.findall(r'\s[A-Z]{2,}\b',text_split[1])[:5]))
                 name=name.replace('CANADA','').lstrip()
                 name=name.replace('AUS','').lstrip()
@@ -44,29 +52,19 @@ class Passport_Details:
                         name=name.replace(name.split()[-1],"")
             else:
                 name=''
-            # if len(name.split()) >= 2:
-            #     if x==[]:
-            #         if y==[]:
-            #             name=''
-            #         else:
-            #             if len(name.split())>3:
-            #                 name=name.replace(name.split()[-1],'').rstrip()
-            #                 name=name.replace(name.split()[-2],'').rstrip()
-            #             else:
-            #                 name = name.replace(name.split()[-1], '').rstrip()
-
             if name=='':
                 print("passport no not found")
-                name_regex = " ".join(map(str, re.findall( r'\b[A-Z]{2,}<<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}|[A-Z]{2,}<<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}|[A-Z]{2,}<<?\s?[A-Z]{2,}\b',text))).replace('<', ' ')
-                name = name_regex.replace(re.findall(r'(!?USA|AUS|IND|NZL|BGR|IRE|ESP|CAN|PAK|PLUSA)', name_regex)[0], '', 1).replace('  ',' ')
+                name_regex = " ".join(map(str, re.findall( r'\b[A-Z]{2,}\s?«?<<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}|[A-Z]{2,}\s?«?<<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}|[A-Z]{2,}\s?«?<<?\s?[A-Z]{2,}\b',text))).replace('<', ' ').replace('«','')
+                name = name_regex.replace(re.findall(r'(!?KUSA|USA|AUS|IND|NZL|BGR|IRE|ESP|CAN|PAK|PLUSA)', name_regex)[0], '', 1).replace('  ',' ')
             else:
-                name_regex = " ".join(map(str, re.findall(r'\b[A-Z]{2,}<<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}|[A-Z]{2,}<<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}|[A-Z]{2,}<<?\s?[A-Z]{2,}\b', text))).replace('<',' ')
+                name_regex = " ".join(map(str, re.findall(r'\b[A-Z]{2,}\s?«?<<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}|[A-Z]{2,}\s?«?<<?\s?[A-Z]{2,}<?\s?[A-Z]{2,}|[A-Z]{2,}\s?«?<<?\s?[A-Z]{2,}\b', text))).replace('<',' ')
                 if len(re.findall(r'(!?USA|AUS|IND|NZL|BGR|IRE|ESP|CAN|PAK|PLUSA)', name_regex))>0:
-                    temp_name = name_regex.replace(re.findall(r'(!?USA|AUS|IND|NZL|BGR|IRE|ESP|CAN|PAK|PLUSA)', name_regex)[0], '', 1).replace('  ', ' ')
+                    temp_name = name_regex.replace(re.findall(r'(!?KUSA|USA|AUS|IND|NZL|BGR|IRE|ESP|CAN|PAK|PLUSA)', name_regex)[0], '', 1).replace('  ', ' ')
                 else:
                     temp_name=name_regex
                 name=name.replace('  ',' ')
                 name = name.replace('UNITED', '')
+                name = name.replace('KUSA', '')
                 name = name.replace('STATES', '')
                 name = name.replace(' OF', '')
                 name_val = name
@@ -91,7 +89,8 @@ class Passport_Details:
                             if not y:
                                 name = name.split(name_val.split()[-2])
                                 name = name[0]+" "+"".join(name[1].split()[0].replace(name[1].split()[0], name_val.split()[-2]))+" "+name[1].split()[1]
-
+            name=name.replace('PZ','')
+            name=name.replace('«','')
             print(name)
             return name
 
@@ -138,9 +137,14 @@ class Passport_Details:
             actual_expiry_date = datetime.datetime.strptime(expiry_date,'%Y/%m/%d').strftime('%m/%d/%Y')
             actual_dob_date = datetime.datetime.strptime(dob_date, '%Y/%m/%d').strftime('%m/%d/%Y')
             actual_issue_date = datetime.datetime.strptime(issue_date, '%Y/%m/%d').strftime( '%m/%d/%Y')
-
             print(actual_dob_date,actual_issue_date,actual_expiry_date)
+            date_difference=datetime.datetime.strptime(expiry_date,'%Y/%m/%d').year - datetime.datetime.strptime(issue_date, '%Y/%m/%d').year
+            if date_difference<10:
+                actual_issue_date=actual_issue_date.replace(str(datetime.datetime.strptime(issue_date, '%Y/%m/%d').year),
+                                     str(datetime.datetime.strptime(expiry_date, '%Y/%m/%d').year - 10))
 
+                actual_expiry_date = actual_expiry_date.replace(str(datetime.datetime.strptime(expiry_date, '%Y/%m/%d').year),
+                    str(datetime.datetime.strptime(actual_issue_date, '%m/%d/%Y').year + 10))
             return actual_dob_date,actual_issue_date,actual_expiry_date,date_regex
 
         except Exception as e:

@@ -60,7 +60,7 @@ class text_score:
         try:
 
             for key, value in enumerate(result):
-
+                print(value)
                 va = value[0]
                 va = va.rstrip()
                 va = va.lstrip()
